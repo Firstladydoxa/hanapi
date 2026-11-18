@@ -1,0 +1,30 @@
+# secrets and local config
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# node / next
+node_modules/
+.next/
+frontend/next-env.d.ts
+*.tsbuildinfo
+
+# models, data and generated output: never commit weights, client documents or production datasets
+models/*
+!models/.gitkeep
+data/**/*.sqlite
+data/benchmark/results*.csv
+scripts/shots/
+
+# the frontend is its own repository (Firstladydoxa/han): clone it into ./frontend (see README)
+/frontend/
+
+# source documents and design archives supplied by TNI are not part of the code repository
+*.docx
+*.zip

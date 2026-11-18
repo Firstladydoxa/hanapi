@@ -1,0 +1,4 @@
+source_lang,target_lang,source_text,reference_text,domain
+en,de,"Please confirm the delivery address before 5 June.",,general
+en,de,"The contract takes effect on the date of the last signature.",,legal
+en,sw,"Wash your hands with soap for at least 20 seconds.",,health

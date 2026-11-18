@@ -1,0 +1,39 @@
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php81” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php81 .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
+
+# ===== HAN API: hanapi.tniglobal.org =====
+# Nothing in this folder is ever served as a file. Only the API (/v1/*) and the health check are reverse-proxied to the
+# FastAPI server on 127.0.0.1:8030; everything else is a 404. Start/stop the services with scripts/han_stack.py.
+
+# Override the deny-all inherited from the parent folder (the proxy below is the only thing that answers requests).
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>
+Options -Indexes
+DirectoryIndex disabled
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # AutoSSL / Let's Encrypt validation files must be served from this folder, not proxied.
+  RewriteRule ^\.well-known/ - [L]
+
+  # Answer only for the production host name.
+  RewriteCond %{HTTP_HOST} !^hanapi\.tniglobal\.org$ [NC]
+  RewriteRule ^ - [R=404,L]
+
+  # HTTPS only (session cookies are Secure).
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://hanapi.tniglobal.org%{REQUEST_URI} [R=301,L]
+
+  <IfModule mod_headers.c>
+    RequestHeader set X-Forwarded-Proto "https"
+  </IfModule>
+  RewriteRule ^(healthz|v1/.*)$ http://127.0.0.1:8030/$1 [P,L]
+  RewriteRule ^ - [R=404,L]
+</IfModule>

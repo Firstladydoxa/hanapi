@@ -1,0 +1,10 @@
+fastapi>=0.110,<1
+uvicorn[standard]>=0.29
+pydantic>=2.6
+# Model runtime (large downloads). Choose the torch build for your hardware (CPU or CUDA), e.g. CPU wheels:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# Verified with torch 2.14.1+cpu and transformers 5.20.2.
+torch>=2.2
+transformers>=4.40
+sentencepiece>=0.2
+protobuf>=4.25

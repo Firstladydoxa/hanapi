@@ -1,0 +1,11 @@
+# This folder lives under a web root. HAN is served by its own processes (Next.js on :3000, FastAPI on :8000) behind a
+# reverse proxy, never by Apache serving these files directly. Deny everything so source code, .env files and data
+# can never be downloaded from here.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order deny,allow
+  Deny from all
+</IfModule>
+Options -Indexes
