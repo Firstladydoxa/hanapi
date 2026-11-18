@@ -1,0 +1,6881 @@
+{
+ "probe_text": "Good morning, everyone.",
+ "updated_at": "2026-11-18T21:47:16+00:00",
+ "note": "Technical check only; not a quality assessment.",
+ "results": {
+  "abt": {
+   "code": "abt",
+   "forward": {
+    "output": "10Gotna méniba yéknwun mu yakwa du dakwa, wuné gunat wuné wakweyo.",
+    "seconds": 6.99,
+    "flag": null
+   },
+   "reverse": {
+    "output": "10You who are good in the sight of God, tell us this.",
+    "seconds": 8.29,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.316,
+   "status": "passed",
+   "flags": []
+  },
+  "ace": {
+   "code": "ace",
+   "forward": {
+    "output": "Selamat uroe, mandum",
+    "seconds": 2.14,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 3.09,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "acf": {
+   "code": "acf",
+   "forward": {
+    "output": "Bonjou, tout moun.",
+    "seconds": 2.93,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "ada": {
+   "code": "ada",
+   "forward": {
+    "output": "Moŋ lɛ, nyɛ fɛɛ.",
+    "seconds": 3.64,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Please, all of you.",
+    "seconds": 2.98,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.238,
+   "status": "passed",
+   "flags": []
+  },
+  "adh": {
+   "code": "adh",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.95,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.99,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ady": {
+   "code": "ady",
+   "forward": {
+    "output": "Добрый день, все.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 2.96,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "af": {
+   "code": "af",
+   "forward": {
+    "output": "Goeie môre, almal",
+    "seconds": 3.17,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "agr": {
+   "code": "agr",
+   "forward": {
+    "output": "16:13 Buen día, todos.",
+    "seconds": 4.42,
+    "flag": null
+   },
+   "reverse": {
+    "output": "16:13 Good morning, everyone.",
+    "seconds": 4.49,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.885,
+   "status": "passed",
+   "flags": []
+  },
+  "ahk": {
+   "code": "ahk",
+   "forward": {
+    "output": "Aˬ dui-ahˇ mawˇ haˬ.",
+    "seconds": 5.45,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Aˬ dui-ahˇ mawˇ haˬ.",
+    "seconds": 5.16,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.233,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "ak": {
+   "code": "ak",
+   "forward": {
+    "output": "Morning, everyone.",
+    "seconds": 2.43,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Morning, everyone.",
+    "seconds": 2.39,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.878,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "akb": {
+   "code": "akb",
+   "forward": {
+    "output": "Selamat pagi, hamu dohot ahu.",
+    "seconds": 3.65,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, you and I.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.766,
+   "status": "passed",
+   "flags": []
+  },
+  "alt": {
+   "code": "alt",
+   "forward": {
+    "output": "Доброе утро, все.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "alz": {
+   "code": "alz",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.18,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.56,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "am": {
+   "code": "am",
+   "forward": {
+    "output": "መልካም ማታ ሁላችሁም!",
+    "seconds": 4.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good evening everyone!",
+    "seconds": 2.6,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.8,
+   "status": "passed",
+   "flags": []
+  },
+  "amu": {
+   "code": "amu",
+   "forward": {
+    "output": "Mañá, todos.",
+    "seconds": 3.97,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Tomorrow, everyone.",
+    "seconds": 2.95,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.714,
+   "status": "passed",
+   "flags": []
+  },
+  "an": {
+   "code": "an",
+   "forward": {
+    "output": "Buen día a todos.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.54,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "ang": {
+   "code": "ang",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.89,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ann": {
+   "code": "ann",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.21,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "ape": {
+   "code": "ape",
+   "forward": {
+    "output": "13 Aria apak mataurumep wosik.",
+    "seconds": 4.3,
+    "flag": null
+   },
+   "reverse": {
+    "output": "13 And I will make you prosper.",
+    "seconds": 4.35,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.296,
+   "status": "passed",
+   "flags": []
+  },
+  "ar": {
+   "code": "ar",
+   "forward": {
+    "output": "صباح الخير الجميع",
+    "seconds": 3.62,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "arn": {
+   "code": "arn",
+   "forward": {
+    "output": "Bonjour, tous.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.53,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ary": {
+   "code": "ary",
+   "forward": {
+    "output": "صباح الخير للجميع.",
+    "seconds": 3.58,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "arz": {
+   "code": "arz",
+   "forward": {
+    "output": "صباح الخير يا عزيزي.",
+    "seconds": 3.98,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, darling.",
+    "seconds": 2.97,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.756,
+   "status": "passed",
+   "flags": []
+  },
+  "as": {
+   "code": "as",
+   "forward": {
+    "output": "সকলোকে শুভ সকাল।",
+    "seconds": 3.57,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "av": {
+   "code": "av",
+   "forward": {
+    "output": "БахIарчилъи.",
+    "seconds": 4.33,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Goodness.",
+    "seconds": 1.86,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.438,
+   "status": "passed",
+   "flags": []
+  },
+  "awa": {
+   "code": "awa",
+   "forward": {
+    "output": "सुप्रभात, सब लोग।",
+    "seconds": 3.17,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ay": {
+   "code": "ay",
+   "forward": {
+    "output": "Buenos días, todos.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.74,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "az": {
+   "code": "az",
+   "forward": {
+    "output": "Hər kəsə xoş gün.",
+    "seconds": 3.49,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good day to all.",
+    "seconds": 3.21,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.41,
+   "status": "passed",
+   "flags": []
+  },
+  "ba": {
+   "code": "ba",
+   "forward": {
+    "output": "Ҡәҙер кисе, дуҫтар.",
+    "seconds": 3.86,
+    "flag": null
+   },
+   "reverse": {
+    "output": "2000.  Duffy, Douglas.",
+    "seconds": 4.99,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.222,
+   "status": "passed",
+   "flags": []
+  },
+  "ban": {
+   "code": "ban",
+   "forward": {
+    "output": "Salam pagi, samian.",
+    "seconds": 2.91,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.89,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bar": {
+   "code": "bar",
+   "forward": {
+    "output": "Guten Morgen, alle.",
+    "seconds": 4.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bas": {
+   "code": "bas",
+   "forward": {
+    "output": "Bon matin, tout le monde.",
+    "seconds": 3.19,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bbc": {
+   "code": "bbc",
+   "forward": {
+    "output": "Selamat pagi, hamu dohot ahu.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, you and I.",
+    "seconds": 3.27,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.766,
+   "status": "passed",
+   "flags": []
+  },
+  "bci": {
+   "code": "bci",
+   "forward": {
+    "output": "Afɔtuɛ, amun kwlaa amun.",
+    "seconds": 4.09,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Come down, all of you.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.356,
+   "status": "passed",
+   "flags": []
+  },
+  "be": {
+   "code": "be",
+   "forward": {
+    "output": "Добры дзень усім.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "ber": {
+   "code": "ber",
+   "forward": {
+    "output": "ⴰⵙⵙ ⵏ ⵓⵛⵔⴰⵉ ⵉ ⴽⵓⵍⵍ.",
+    "seconds": 4.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Goodbye to Cole.",
+    "seconds": 2.54,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.513,
+   "status": "passed",
+   "flags": []
+  },
+  "bew": {
+   "code": "bew",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.47,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "bg": {
+   "code": "bg",
+   "forward": {
+    "output": "Добро утро на всички.",
+    "seconds": 3.15,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bgp": {
+   "code": "bgp",
+   "forward": {
+    "output": "شکریہ، دوستوں.",
+    "seconds": 3.15,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Thank you, guys.",
+    "seconds": 2.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.256,
+   "status": "passed",
+   "flags": []
+  },
+  "bho": {
+   "code": "bho",
+   "forward": {
+    "output": "सब लोग के सुप्रभात.",
+    "seconds": 3.11,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.45,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bi": {
+   "code": "bi",
+   "forward": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.72,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "bik": {
+   "code": "bik",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.53,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.94,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "bim": {
+   "code": "bim",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.29,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "bjn": {
+   "code": "bjn",
+   "forward": {
+    "output": "Selamat pagi, semuanya.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bm": {
+   "code": "bm",
+   "forward": {
+    "output": "Sankolo ɲuma, mɔgɔ bɛɛ la.",
+    "seconds": 4.01,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good heavens, everyone.",
+    "seconds": 3.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.739,
+   "status": "passed",
+   "flags": []
+  },
+  "bn": {
+   "code": "bn",
+   "forward": {
+    "output": "শুভ সকাল সবাইকে।",
+    "seconds": 3.64,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.56,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bo": {
+   "code": "bo",
+   "forward": {
+    "output": "བདེ་གཤེགས་འདུས་པ།",
+    "seconds": 4.09,
+    "flag": null
+   },
+   "reverse": {
+    "output": "All Saints",
+    "seconds": 2.2,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.182,
+   "status": "passed",
+   "flags": []
+  },
+  "bqc": {
+   "code": "bqc",
+   "forward": {
+    "output": "Ààa, ààa, ààa, ààa, ààa.",
+    "seconds": 11.15,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Yeah, yeah, yeah, yeah, yeah.",
+    "seconds": 7.35,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.269,
+   "status": "passed",
+   "flags": []
+  },
+  "br": {
+   "code": "br",
+   "forward": {
+    "output": "Demat d'an holl.",
+    "seconds": 3.22,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.48,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "bru": {
+   "code": "bru",
+   "forward": {
+    "output": "Cóq anhia tĩeih.",
+    "seconds": 3.56,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Let's get calm.",
+    "seconds": 3.15,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.211,
+   "status": "passed",
+   "flags": []
+  },
+  "brx": {
+   "code": "brx",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.72,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.71,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "bs": {
+   "code": "bs",
+   "forward": {
+    "output": "Dobro jutro svima.",
+    "seconds": 3.07,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bts": {
+   "code": "bts",
+   "forward": {
+    "output": "Salam pagi, sagala bangsa.",
+    "seconds": 2.72,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, all nations.",
+    "seconds": 3.24,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.694,
+   "status": "passed",
+   "flags": []
+  },
+  "btx": {
+   "code": "btx",
+   "forward": {
+    "output": "Selamat pagi, kerina.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "bua": {
+   "code": "bua",
+   "forward": {
+    "output": "Гэртээ ниидэжэ ерэхэдэ, 10.",
+    "seconds": 6.26,
+    "flag": null
+   },
+   "reverse": {
+    "output": "\"Homecoming\" 10.",
+    "seconds": 3.96,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.41,
+   "status": "passed",
+   "flags": []
+  },
+  "bug": {
+   "code": "bug",
+   "forward": {
+    "output": "Salam pagi, yamanengna tauwe.",
+    "seconds": 4.0,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, all of you.",
+    "seconds": 3.33,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.708,
+   "status": "passed",
+   "flags": []
+  },
+  "bum": {
+   "code": "bum",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.28,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "bus": {
+   "code": "bus",
+   "forward": {
+    "output": "Akũ ò pì: À pì: À pì:",
+    "seconds": 4.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "A kũ ò pì: À pì: À pì:",
+    "seconds": 4.71,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.087,
+   "status": "passed",
+   "flags": []
+  },
+  "bzj": {
+   "code": "bzj",
+   "forward": {
+    "output": "Good morning, peepl.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, peepl.",
+    "seconds": 2.53,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.791,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "ca": {
+   "code": "ca",
+   "forward": {
+    "output": "Bon dia a tothom.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "cab": {
+   "code": "cab",
+   "forward": {
+    "output": "Arufudahani, gürigia.",
+    "seconds": 3.28,
+    "flag": null
+   },
+   "reverse": {
+    "output": "It shows, man.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.27,
+   "status": "passed",
+   "flags": []
+  },
+  "cac": {
+   "code": "cac",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "cak": {
+   "code": "cak",
+   "forward": {
+    "output": "Buen día a todos.",
+    "seconds": 2.6,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "cbk": {
+   "code": "cbk",
+   "forward": {
+    "output": "Buen día a todos.",
+    "seconds": 2.6,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.54,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "cce": {
+   "code": "cce",
+   "forward": {
+    "output": "Masikati mamwane, vanhu hinkwavo.",
+    "seconds": 3.97,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ce": {
+   "code": "ce",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.86,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ceb": {
+   "code": "ceb",
+   "forward": {
+    "output": "Sa palibot sa Good Morning.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good Morning.",
+    "seconds": 1.87,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.722,
+   "status": "passed",
+   "flags": []
+  },
+  "cfm": {
+   "code": "cfm",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.98,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.92,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ch": {
+   "code": "ch",
+   "forward": {
+    "output": "Buen dia, todos.",
+    "seconds": 2.89,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.52,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "chk": {
+   "code": "chk",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.22,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.52,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "chm": {
+   "code": "chm",
+   "forward": {
+    "output": "Доброе утро, ребята.",
+    "seconds": 3.86,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, guys.",
+    "seconds": 2.53,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.762,
+   "status": "passed",
+   "flags": []
+  },
+  "chr": {
+   "code": "chr",
+   "forward": {
+    "output": "ᏳᏂᏴᏓ, ᏳᏂᏴᏓ, ᏳᏂᏴᏓ, ᏳᏂᏴᏓ, ᏳᏂᏴᏓ, Ᏻ",
+    "seconds": 11.58,
+    "flag": null
+   },
+   "reverse": {
+    "output": "not, not, not, not, not, not, not, not",
+    "seconds": 6.5,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.164,
+   "status": "passed",
+   "flags": []
+  },
+  "ckb": {
+   "code": "ckb",
+   "forward": {
+    "output": "بەیانییەکی خۆش، هەمووتان.",
+    "seconds": 3.74,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.3,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "cnh": {
+   "code": "cnh",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.54,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.82,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "co": {
+   "code": "co",
+   "forward": {
+    "output": "Buongiornu a tutti.",
+    "seconds": 3.17,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.5,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "crh": {
+   "code": "crh",
+   "forward": {
+    "output": "Эркеме, эркеме, эркеме.",
+    "seconds": 4.91,
+    "flag": null
+   },
+   "reverse": {
+    "output": "My boy, my boy, my boy.",
+    "seconds": 3.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.391,
+   "status": "passed",
+   "flags": []
+  },
+  "crs": {
+   "code": "crs",
+   "forward": {
+    "output": "Bonzour tou dimoun.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Congratulations, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.571,
+   "status": "passed",
+   "flags": []
+  },
+  "cs": {
+   "code": "cs",
+   "forward": {
+    "output": "Dobré ráno všem.",
+    "seconds": 3.52,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.48,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "ctu": {
+   "code": "ctu",
+   "forward": {
+    "output": "Che' bajche' yom.",
+    "seconds": 4.12,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Just like I do.",
+    "seconds": 2.44,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.105,
+   "status": "passed",
+   "flags": []
+  },
+  "cuk": {
+   "code": "cuk",
+   "forward": {
+    "output": "Buena mañana, todos.",
+    "seconds": 3.44,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "cv": {
+   "code": "cv",
+   "forward": {
+    "output": "Хуш кун, ăшă сăмахсем.",
+    "seconds": 5.16,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, warm words.",
+    "seconds": 3.32,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.36,
+   "status": "passed",
+   "flags": []
+  },
+  "cy": {
+   "code": "cy",
+   "forward": {
+    "output": "Bore da i bawb.",
+    "seconds": 3.03,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to everyone.",
+    "seconds": 2.61,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.917,
+   "status": "passed",
+   "flags": []
+  },
+  "da": {
+   "code": "da",
+   "forward": {
+    "output": "Godmorgen, alle sammen.",
+    "seconds": 3.64,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.96,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "passed",
+   "flags": []
+  },
+  "de": {
+   "code": "de",
+   "forward": {
+    "output": "Guten Morgen, alle.",
+    "seconds": 3.34,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.64,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "din": {
+   "code": "din",
+   "forward": {
+    "output": "Ɣɔn akɔ̈l, kɔc kedhiɛ.",
+    "seconds": 4.46,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Then the sun, all of you.",
+    "seconds": 4.03,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.292,
+   "status": "passed",
+   "flags": []
+  },
+  "dje": {
+   "code": "dje",
+   "forward": {
+    "output": "Alay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay",
+    "seconds": 11.2,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Alay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay, ndaay",
+    "seconds": 14.26,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.077,
+   "status": "passed",
+   "flags": []
+  },
+  "djk": {
+   "code": "djk",
+   "forward": {
+    "output": "Da, da, da, da.",
+    "seconds": 3.44,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Yeah, yeah, yeah, yeah.",
+    "seconds": 6.13,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.304,
+   "status": "passed",
+   "flags": []
+  },
+  "dln": {
+   "code": "dln",
+   "forward": {
+    "output": "Ka lawm e, mi zawng zawng.",
+    "seconds": 3.67,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Thank you, all of you.",
+    "seconds": 3.35,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.267,
+   "status": "passed",
+   "flags": []
+  },
+  "doi": {
+   "code": "doi",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.61,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.91,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "dov": {
+   "code": "dov",
+   "forward": {
+    "output": "Bulelo bwaazumizyo, bantu boonse.",
+    "seconds": 4.35,
+    "flag": null
+   },
+   "reverse": {
+    "output": "That's a reminder, all of you.",
+    "seconds": 4.66,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.34,
+   "status": "passed",
+   "flags": []
+  },
+  "dtp": {
+   "code": "dtp",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.52,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.85,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "dv": {
+   "code": "dv",
+   "forward": {
+    "output": "ހެނދުނާ، އެންމެން.",
+    "seconds": 5.03,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "dwr": {
+   "code": "dwr",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.85,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.84,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "dyu": {
+   "code": "dyu",
+   "forward": {
+    "output": "11O kɔ, sanfɛ, mɔgɔ bɛɛ.",
+    "seconds": 4.9,
+    "flag": null
+   },
+   "reverse": {
+    "output": "11 Then, above, all.",
+    "seconds": 4.28,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.326,
+   "status": "passed",
+   "flags": []
+  },
+  "dz": {
+   "code": "dz",
+   "forward": {
+    "output": "མི་ག་ར་ལུ་ ངལ་གསོ།",
+    "seconds": 4.34,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Happy Holidays to All",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.136,
+   "status": "passed",
+   "flags": []
+  },
+  "ee": {
+   "code": "ee",
+   "forward": {
+    "output": "Nu nyuiwo na mi katã.",
+    "seconds": 3.29,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good luck to all of you.",
+    "seconds": 3.59,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.426,
+   "status": "passed",
+   "flags": []
+  },
+  "el": {
+   "code": "el",
+   "forward": {
+    "output": "Καλημέρα σε όλους.",
+    "seconds": 3.38,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.68,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "emp": {
+   "code": "emp",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.54,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "enq": {
+   "code": "enq",
+   "forward": {
+    "output": "Guten Morgen, alle.",
+    "seconds": 3.3,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.66,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "eo": {
+   "code": "eo",
+   "forward": {
+    "output": "Bonan matenon, ĉiuj.",
+    "seconds": 3.17,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.91,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "es": {
+   "code": "es",
+   "forward": {
+    "output": "Buenos días a todos.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.66,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "et": {
+   "code": "et",
+   "forward": {
+    "output": "Tere hommikust kõigile.",
+    "seconds": 3.2,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.5,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "eu": {
+   "code": "eu",
+   "forward": {
+    "output": "Egun on, denoi.",
+    "seconds": 3.12,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "fa": {
+   "code": "fa",
+   "forward": {
+    "output": "صبح بخير همگي",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ff": {
+   "code": "ff",
+   "forward": {
+    "output": "Boɗɗum, kala neɗɗo fuu.",
+    "seconds": 3.8,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Great, everybody.",
+    "seconds": 2.64,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.55,
+   "status": "passed",
+   "flags": []
+  },
+  "ffm": {
+   "code": "ffm",
+   "forward": {
+    "output": "Ɗumɗooɗoo, yimɓe fuu.",
+    "seconds": 4.69,
+    "flag": null
+   },
+   "reverse": {
+    "output": "It's the same, all of us.",
+    "seconds": 4.41,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.25,
+   "status": "passed",
+   "flags": []
+  },
+  "fi": {
+   "code": "fi",
+   "forward": {
+    "output": "Huomenta kaikille.",
+    "seconds": 3.15,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.51,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "fil": {
+   "code": "fil",
+   "forward": {
+    "output": "Magandang umaga, lahat.",
+    "seconds": 4.07,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.96,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "fip": {
+   "code": "fip",
+   "forward": {
+    "output": "................",
+    "seconds": 11.49,
+    "flag": null
+   },
+   "reverse": {
+    "output": "................",
+    "seconds": 1.75,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.051,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "fj": {
+   "code": "fj",
+   "forward": {
+    "output": "Vakasamataka mada.",
+    "seconds": 3.24,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Vakasamataka mada.",
+    "seconds": 2.55,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.146,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "fo": {
+   "code": "fo",
+   "forward": {
+    "output": "Good morning, all.",
+    "seconds": 2.52,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, all.",
+    "seconds": 2.51,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.732,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "fon": {
+   "code": "fon",
+   "forward": {
+    "output": "Bon matin, tout le monde.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.93,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "fr": {
+   "code": "fr",
+   "forward": {
+    "output": "Bonjour à tous.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.64,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "frp": {
+   "code": "frp",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.17,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.46,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "fur": {
+   "code": "fur",
+   "forward": {
+    "output": "Buen dì a ducj.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good day to all.",
+    "seconds": 2.48,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.41,
+   "status": "passed",
+   "flags": []
+  },
+  "fuv": {
+   "code": "fuv",
+   "forward": {
+    "output": "Ɓeydaari, ƴiiƴam, yimɓe fuu.",
+    "seconds": 5.09,
+    "flag": null
+   },
+   "reverse": {
+    "output": "In addition, yes, all people.",
+    "seconds": 3.54,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.346,
+   "status": "passed",
+   "flags": []
+  },
+  "fy": {
+   "code": "fy",
+   "forward": {
+    "output": "Goedemoarn, allegearre.",
+    "seconds": 3.39,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ga": {
+   "code": "ga",
+   "forward": {
+    "output": "Maidin mhaith, a chairde.",
+    "seconds": 3.69,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, my friends.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.708,
+   "status": "passed",
+   "flags": []
+  },
+  "gag": {
+   "code": "gag",
+   "forward": {
+    "output": "Günaydın, hepsinä.",
+    "seconds": 3.21,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "gbm": {
+   "code": "gbm",
+   "forward": {
+    "output": "गुड मॉर्निंग, everyone.",
+    "seconds": 3.83,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "gd": {
+   "code": "gd",
+   "forward": {
+    "output": "Maireannach mhath, a h-uile duine.",
+    "seconds": 4.72,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good luck, everyone.",
+    "seconds": 3.13,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.744,
+   "status": "passed",
+   "flags": []
+  },
+  "gl": {
+   "code": "gl",
+   "forward": {
+    "output": "Bos días a todos.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.45,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "gn": {
+   "code": "gn",
+   "forward": {
+    "output": "Mbohapyve ára opavavépe g̃uarã.",
+    "seconds": 3.8,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Three days for the general public.",
+    "seconds": 3.64,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.281,
+   "status": "passed",
+   "flags": []
+  },
+  "gof": {
+   "code": "gof",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.75,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.94,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "gom": {
+   "code": "gom",
+   "forward": {
+    "output": " शुभ सकाळ, सगळ्यांनी.",
+    "seconds": 3.64,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.91,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "gor": {
+   "code": "gor",
+   "forward": {
+    "output": "Selamat pagi, semuanya.",
+    "seconds": 2.54,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.8,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "grc": {
+   "code": "grc",
+   "forward": {
+    "output": "Καλημέρα σε όλους.",
+    "seconds": 3.15,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.6,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "gsw": {
+   "code": "gsw",
+   "forward": {
+    "output": "Guten Morgen, alle.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.53,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "gu": {
+   "code": "gu",
+   "forward": {
+    "output": "બધાને શુભ સવાર.",
+    "seconds": 3.27,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.43,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "gub": {
+   "code": "gub",
+   "forward": {
+    "output": "A'e mehe, a'e mehe, a'e mehe, a'e mehe, a'e mehe, a'e mehe, a'",
+    "seconds": 11.04,
+    "flag": null
+   },
+   "reverse": {
+    "output": "A'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a'e male, a",
+    "seconds": 31.48,
+    "flag": "repetition_loop"
+   },
+   "roundtrip_similarity": 0.072,
+   "status": "degraded",
+   "flags": [
+    "repetition_loop"
+   ]
+  },
+  "guc": {
+   "code": "guc",
+   "forward": {
+    "output": "Aʼwaa, tü wayuukai.",
+    "seconds": 3.44,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Aʼwaa, tü wayuukai.",
+    "seconds": 3.43,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.19,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "guh": {
+   "code": "guh",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.17,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.56,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "gui": {
+   "code": "gui",
+   "forward": {
+    "output": "Ma'ãe'ã, opa vae.",
+    "seconds": 5.43,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Ma'ãe'ã, every foot.",
+    "seconds": 4.55,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.465,
+   "status": "passed",
+   "flags": []
+  },
+  "gv": {
+   "code": "gv",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.8,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.71,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "gvl": {
+   "code": "gvl",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.14,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.51,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "gym": {
+   "code": "gym",
+   "forward": {
+    "output": "¡Buenos días!",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, my friends!",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.667,
+   "status": "passed",
+   "flags": []
+  },
+  "ha": {
+   "code": "ha",
+   "forward": {
+    "output": "Assalamu alaikum, ya ku mutãne!",
+    "seconds": 4.09,
+    "flag": null
+   },
+   "reverse": {
+    "output": "O mankind!",
+    "seconds": 2.29,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.364,
+   "status": "passed",
+   "flags": []
+  },
+  "haw": {
+   "code": "haw",
+   "forward": {
+    "output": "Pōʻalima maikaʻi, e nā kānaka a pau.",
+    "seconds": 5.56,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good Friday, all people.",
+    "seconds": 4.16,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.553,
+   "status": "passed",
+   "flags": []
+  },
+  "he": {
+   "code": "he",
+   "forward": {
+    "output": "בוקר טוב לכולם.",
+    "seconds": 3.18,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "hi": {
+   "code": "hi",
+   "forward": {
+    "output": "सबको शुभ सुबह.",
+    "seconds": 2.4,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.41,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "hif": {
+   "code": "hif",
+   "forward": {
+    "output": "सभी को शुभ सुबह.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.4,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "hil": {
+   "code": "hil",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.85,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.83,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "hmn": {
+   "code": "hmn",
+   "forward": {
+    "output": "Nyob zoo sawv daws.",
+    "seconds": 2.63,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello everyone.",
+    "seconds": 1.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.579,
+   "status": "passed",
+   "flags": []
+  },
+  "hne": {
+   "code": "hne",
+   "forward": {
+    "output": "हर लखमन ल सुप्रभात।",
+    "seconds": 3.83,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all the lakhs.",
+    "seconds": 3.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.566,
+   "status": "passed",
+   "flags": []
+  },
+  "ho": {
+   "code": "ho",
+   "forward": {
+    "output": "Harihari umui ibounai.",
+    "seconds": 2.8,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Harihari to you all.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.233,
+   "status": "passed",
+   "flags": []
+  },
+  "hr": {
+   "code": "hr",
+   "forward": {
+    "output": "Dobro jutro svima.",
+    "seconds": 3.09,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ht": {
+   "code": "ht",
+   "forward": {
+    "output": "Bon maten, tout moun.",
+    "seconds": 2.82,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "hu": {
+   "code": "hu",
+   "forward": {
+    "output": "Jó reggelt mindenkinek!",
+    "seconds": 3.11,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone!",
+    "seconds": 2.43,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.933,
+   "status": "passed",
+   "flags": []
+  },
+  "hui": {
+   "code": "hui",
+   "forward": {
+    "output": "19 Anduane Homogo Hongo Haiheore kago, Anduane Homogo Bibahende Haru Haame Ho Haga-o.",
+    "seconds": 8.14,
+    "flag": null
+   },
+   "reverse": {
+    "output": "19 The Lord God, the Lord God, do it, O Lord God.",
+    "seconds": 7.01,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.278,
+   "status": "passed",
+   "flags": []
+  },
+  "hus": {
+   "code": "hus",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.46,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.38,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "hvn": {
+   "code": "hvn",
+   "forward": {
+    "output": "10:19 Ho-ho-ho, dhèu!",
+    "seconds": 5.46,
+    "flag": null
+   },
+   "reverse": {
+    "output": "10:19 Ho-ho-ho!",
+    "seconds": 7.24,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.158,
+   "status": "passed",
+   "flags": []
+  },
+  "hy": {
+   "code": "hy",
+   "forward": {
+    "output": "Բարի առավոտ, բոլորդ։",
+    "seconds": 3.99,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.86,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "iba": {
+   "code": "iba",
+   "forward": {
+    "output": "Selamat pagi, semua.",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.72,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "passed",
+   "flags": []
+  },
+  "ibb": {
+   "code": "ibb",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.09,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.74,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "id": {
+   "code": "id",
+   "forward": {
+    "output": "Selamat pagi, semuanya.",
+    "seconds": 2.86,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.79,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ify": {
+   "code": "ify",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.8,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.72,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ig": {
+   "code": "ig",
+   "forward": {
+    "output": "Morning, everyone.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Morning, everyone.",
+    "seconds": 2.53,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.878,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "ilo": {
+   "code": "ilo",
+   "forward": {
+    "output": "Saan, saan, saan, saan.",
+    "seconds": 3.63,
+    "flag": null
+   },
+   "reverse": {
+    "output": "I'll, I'll, I'll, I'll.",
+    "seconds": 6.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.174,
+   "status": "passed",
+   "flags": []
+  },
+  "inb": {
+   "code": "inb",
+   "forward": {
+    "output": "Taita Dius, kamkuna suma iuiarigmi kani.",
+    "seconds": 5.71,
+    "flag": null
+   },
+   "reverse": {
+    "output": "God, we are all in one mind.",
+    "seconds": 3.81,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.471,
+   "status": "passed",
+   "flags": []
+  },
+  "io": {
+   "code": "io",
+   "forward": {
+    "output": "Bonjorno a omna.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.63,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "is": {
+   "code": "is",
+   "forward": {
+    "output": "Gķđan dag, öllsömul.",
+    "seconds": 5.44,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "passed",
+   "flags": []
+  },
+  "iso": {
+   "code": "iso",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.14,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.8,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "it": {
+   "code": "it",
+   "forward": {
+    "output": "Buongiorno a tutti.",
+    "seconds": 3.4,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.44,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "iu": {
+   "code": "iu",
+   "forward": {
+    "output": "ᐅᓪᓛᒃᑯᑦ ᐃᓘᓐᓇᓯ.",
+    "seconds": 4.1,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all of you.",
+    "seconds": 3.11,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.64,
+   "status": "passed",
+   "flags": []
+  },
+  "ium": {
+   "code": "ium",
+   "forward": {
+    "output": "早上好，大家好。",
+    "seconds": 3.46,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.98,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "izz": {
+   "code": "izz",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.88,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ja": {
+   "code": "ja",
+   "forward": {
+    "output": "おはようございます",
+    "seconds": 2.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, sir.",
+    "seconds": 2.5,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.78,
+   "status": "passed",
+   "flags": []
+  },
+  "jac": {
+   "code": "jac",
+   "forward": {
+    "output": "Bonjour, tous.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "jam": {
+   "code": "jam",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.71,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.71,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "jiv": {
+   "code": "jiv",
+   "forward": {
+    "output": "2018-01-01 - Arin, Yus-shuar.",
+    "seconds": 7.04,
+    "flag": null
+   },
+   "reverse": {
+    "output": "2018-01-01 - Arin, Yus-shuar.",
+    "seconds": 7.52,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.308,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "jv": {
+   "code": "jv",
+   "forward": {
+    "output": "Salam pagi, kabeh.",
+    "seconds": 2.59,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.94,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "jvn": {
+   "code": "jvn",
+   "forward": {
+    "output": "Selamat pagi, semuanya.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.88,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ka": {
+   "code": "ka",
+   "forward": {
+    "output": "ეჲბპჲ სრპჲ ნა გჟთფკთ.",
+    "seconds": 6.73,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "kaa": {
+   "code": "kaa",
+   "forward": {
+    "output": "Ҳаммангизга хуш келибсиз.",
+    "seconds": 3.51,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Welcome to all of you.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.356,
+   "status": "passed",
+   "flags": []
+  },
+  "kac": {
+   "code": "kac",
+   "forward": {
+    "output": "Majan n-gun, masha yawng.",
+    "seconds": 3.72,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Majan n-gun, masha yawng.",
+    "seconds": 3.75,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.25,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "kbd": {
+   "code": "kbd",
+   "forward": {
+    "output": "Добрый день, все.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "kbp": {
+   "code": "kbp",
+   "forward": {
+    "output": "Maatiyee 25, 2018",
+    "seconds": 4.38,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Matthew 25, 2018",
+    "seconds": 5.08,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.154,
+   "status": "passed",
+   "flags": []
+  },
+  "kek": {
+   "code": "kek",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.46,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "kg": {
+   "code": "kg",
+   "forward": {
+    "output": "Boa manhã, todos.",
+    "seconds": 3.07,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "kha": {
+   "code": "kha",
+   "forward": {
+    "output": "Ka sngi kaba khuid.",
+    "seconds": 3.58,
+    "flag": null
+   },
+   "reverse": {
+    "output": "It's a clear day.",
+    "seconds": 3.24,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.15,
+   "status": "passed",
+   "flags": []
+  },
+  "kj": {
+   "code": "kj",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.76,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "kjg": {
+   "code": "kjg",
+   "forward": {
+    "output": "ມື້ດີ, ທຸກໆຄົນ.",
+    "seconds": 4.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 3.46,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "kjh": {
+   "code": "kjh",
+   "forward": {
+    "output": "Саламат таңнар, кирек кем.",
+    "seconds": 3.54,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "kk": {
+   "code": "kk",
+   "forward": {
+    "output": "Қайырлы таң.",
+    "seconds": 4.14,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning.",
+    "seconds": 2.16,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.722,
+   "status": "passed",
+   "flags": []
+  },
+  "kl": {
+   "code": "kl",
+   "forward": {
+    "output": "Ullumikkut illit tamarmik.",
+    "seconds": 3.39,
+    "flag": null
+   },
+   "reverse": {
+    "output": "All of you today.",
+    "seconds": 2.6,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.25,
+   "status": "passed",
+   "flags": []
+  },
+  "km": {
+   "code": "km",
+   "forward": {
+    "output": "ជំរាបសួរ ទាំងអស់គ្នា & # 160; ។",
+    "seconds": 6.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello everyone.",
+    "seconds": 2.24,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.579,
+   "status": "passed",
+   "flags": []
+  },
+  "kmb": {
+   "code": "kmb",
+   "forward": {
+    "output": "O muanhu, o mundu uoso.",
+    "seconds": 3.86,
+    "flag": null
+   },
+   "reverse": {
+    "output": "O muanhu, o mundo inteiro.",
+    "seconds": 4.11,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.449,
+   "status": "passed",
+   "flags": []
+  },
+  "kn": {
+   "code": "kn",
+   "forward": {
+    "output": "ಎಲ್ಲರಿಗೂ ಶುಭಾಶಯಗಳು.",
+    "seconds": 3.57,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Best wishes to all.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.143,
+   "status": "passed",
+   "flags": []
+  },
+  "knj": {
+   "code": "knj",
+   "forward": {
+    "output": "Buena mañana, todos.",
+    "seconds": 3.0,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.98,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ko": {
+   "code": "ko",
+   "forward": {
+    "output": "모두들 안녕하세요",
+    "seconds": 3.98,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "koi": {
+   "code": "koi",
+   "forward": {
+    "output": "Добрый день, все.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "kos": {
+   "code": "kos",
+   "forward": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.74,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.74,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "kr": {
+   "code": "kr",
+   "forward": {
+    "output": "Sammasoro kawu muwanjinno.",
+    "seconds": 3.87,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Normally before you get married.",
+    "seconds": 3.93,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.255,
+   "status": "passed",
+   "flags": []
+  },
+  "krc": {
+   "code": "krc",
+   "forward": {
+    "output": "Барыгъызгъа да сау болгъуз.",
+    "seconds": 3.61,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Goodbye to all of you.",
+    "seconds": 3.11,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.444,
+   "status": "passed",
+   "flags": []
+  },
+  "kri": {
+   "code": "kri",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.81,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ks": {
+   "code": "ks",
+   "forward": {
+    "output": "ہرکس صبح بخیر۔",
+    "seconds": 2.86,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.4,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ksd": {
+   "code": "ksd",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.72,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.79,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ksw": {
+   "code": "ksw",
+   "forward": {
+    "output": "ဧၢ, ဧၢ, ဧၢ, ဧၢ, ဧၢ, ဧၢ, ဧၢ, ဧၢ,",
+    "seconds": 11.31,
+    "flag": "repetition_loop"
+   },
+   "reverse": {
+    "output": "Yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah",
+    "seconds": 31.17,
+    "flag": "repetition_loop"
+   },
+   "roundtrip_similarity": 0.062,
+   "status": "degraded",
+   "flags": [
+    "repetition_loop",
+    "repetition_loop"
+   ]
+  },
+  "ktu": {
+   "code": "ktu",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.14,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.46,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "ku": {
+   "code": "ku",
+   "forward": {
+    "output": "بەیانییەکی خۆش بۆ هەمووتان.",
+    "seconds": 3.43,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all of you.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.64,
+   "status": "passed",
+   "flags": []
+  },
+  "kum": {
+   "code": "kum",
+   "forward": {
+    "output": "Яхшы гюн, барыгъыз да.",
+    "seconds": 3.44,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 3.07,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "kv": {
+   "code": "kv",
+   "forward": {
+    "output": "Добрый день, все.",
+    "seconds": 3.19,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "kw": {
+   "code": "kw",
+   "forward": {
+    "output": "Bon de'n nos, oll.",
+    "seconds": 3.51,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good night, everyone.",
+    "seconds": 2.44,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.864,
+   "status": "passed",
+   "flags": []
+  },
+  "kwi": {
+   "code": "kwi",
+   "forward": {
+    "output": "Buenas mañanas a todos.",
+    "seconds": 3.07,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.43,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "ky": {
+   "code": "ky",
+   "forward": {
+    "output": "Эртең менен, баарыңыздарга.",
+    "seconds": 3.63,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.6,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "la": {
+   "code": "la",
+   "forward": {
+    "output": "Bonam diem, omnes.",
+    "seconds": 3.55,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Bonam diem, omnes.",
+    "seconds": 3.11,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.439,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "laj": {
+   "code": "laj",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.06,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "lb": {
+   "code": "lb",
+   "forward": {
+    "output": "Moien, alleguerten.",
+    "seconds": 3.31,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.59,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "lg": {
+   "code": "lg",
+   "forward": {
+    "output": "Ekiro kino, abantu bonna.",
+    "seconds": 3.31,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Tonight, all people.",
+    "seconds": 2.95,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.465,
+   "status": "passed",
+   "flags": []
+  },
+  "lhu": {
+   "code": "lhu",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.4,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "li": {
+   "code": "li",
+   "forward": {
+    "output": "Goe morgen, ieder.",
+    "seconds": 3.08,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "lij": {
+   "code": "lij",
+   "forward": {
+    "output": "Buon mattino à tutti.",
+    "seconds": 3.04,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.53,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "lmo": {
+   "code": "lmo",
+   "forward": {
+    "output": "Buongiorno a tutti.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "ln": {
+   "code": "ln",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.08,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "lo": {
+   "code": "lo",
+   "forward": {
+    "output": "ອວຍພອນຕອນເຊົ້າ, ທຸກໆຄົນ.",
+    "seconds": 5.26,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.12,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "lrc": {
+   "code": "lrc",
+   "forward": {
+    "output": "صبح بخیر، همه.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "lt": {
+   "code": "lt",
+   "forward": {
+    "output": "Labas rytas visiems.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.45,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "ltg": {
+   "code": "ltg",
+   "forward": {
+    "output": "Labrīt vysim.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.46,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "lu": {
+   "code": "lu",
+   "forward": {
+    "output": "Bonjour, tous.",
+    "seconds": 2.66,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.48,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "lus": {
+   "code": "lus",
+   "forward": {
+    "output": "Ka lawm e, mi zawng zawng.",
+    "seconds": 3.56,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Thank you, all of you.",
+    "seconds": 3.29,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.267,
+   "status": "passed",
+   "flags": []
+  },
+  "lv": {
+   "code": "lv",
+   "forward": {
+    "output": "Labrīt visiem.",
+    "seconds": 2.18,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.38,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mad": {
+   "code": "mad",
+   "forward": {
+    "output": "Selamat pagi, sapa-sapa.",
+    "seconds": 3.15,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mag": {
+   "code": "mag",
+   "forward": {
+    "output": "सभे के सुप्रभात।",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.5,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mai": {
+   "code": "mai",
+   "forward": {
+    "output": "सभे के सुप्रभात।",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.5,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mak": {
+   "code": "mak",
+   "forward": {
+    "output": "Salam pagi, sininna taue.",
+    "seconds": 3.13,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.8,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mam": {
+   "code": "mam",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.45,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mas": {
+   "code": "mas",
+   "forward": {
+    "output": "o Good morning, everyone.",
+    "seconds": 2.82,
+    "flag": null
+   },
+   "reverse": {
+    "output": "o Good morning, everyone.",
+    "seconds": 2.85,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.958,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "maz": {
+   "code": "maz",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.52,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.45,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mbt": {
+   "code": "mbt",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.45,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "mdf": {
+   "code": "mdf",
+   "forward": {
+    "output": "Доброе утро, все.",
+    "seconds": 3.14,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "meo": {
+   "code": "meo",
+   "forward": {
+    "output": "Selamat pagi semua.",
+    "seconds": 2.4,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.37,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "meu": {
+   "code": "meu",
+   "forward": {
+    "output": "10 Bona dina, taunabunai.",
+    "seconds": 5.36,
+    "flag": null
+   },
+   "reverse": {
+    "output": "10 Good day to you.",
+    "seconds": 4.48,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.476,
+   "status": "passed",
+   "flags": []
+  },
+  "mfe": {
+   "code": "mfe",
+   "forward": {
+    "output": "Bon matin, tou dimoun.",
+    "seconds": 3.07,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.74,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mg": {
+   "code": "mg",
+   "forward": {
+    "output": "Arahaba maraina ry zalahy.",
+    "seconds": 3.77,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning guys.",
+    "seconds": 2.44,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.732,
+   "status": "passed",
+   "flags": []
+  },
+  "mgh": {
+   "code": "mgh",
+   "forward": {
+    "output": "Aano, atthu a Muluku.",
+    "seconds": 3.08,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Aano, the people of God.",
+    "seconds": 3.41,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.17,
+   "status": "passed",
+   "flags": []
+  },
+  "mh": {
+   "code": "mh",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.07,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "mi": {
+   "code": "mi",
+   "forward": {
+    "output": "Moana te rā, a te katoa.",
+    "seconds": 4.22,
+    "flag": null
+   },
+   "reverse": {
+    "output": "All right, all right.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.227,
+   "status": "passed",
+   "flags": []
+  },
+  "min": {
+   "code": "min",
+   "forward": {
+    "output": "Selamat pagi, kawan-kawan.",
+    "seconds": 3.13,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, guys.",
+    "seconds": 2.96,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.762,
+   "status": "passed",
+   "flags": []
+  },
+  "miq": {
+   "code": "miq",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.97,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.84,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "mk": {
+   "code": "mk",
+   "forward": {
+    "output": "Добро утро на сите.",
+    "seconds": 3.7,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mkn": {
+   "code": "mkn",
+   "forward": {
+    "output": "Selamat pagi, samua orang.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "passed",
+   "flags": []
+  },
+  "ml": {
+   "code": "ml",
+   "forward": {
+    "output": "എല്ലാവര്‍ക്കും ഗുഡ് മോര്‍ണിംഗ്.",
+    "seconds": 5.02,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.84,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mn": {
+   "code": "mn",
+   "forward": {
+    "output": "Өглөөний мэнд.",
+    "seconds": 4.58,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning.",
+    "seconds": 2.34,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.722,
+   "status": "passed",
+   "flags": []
+  },
+  "mni": {
+   "code": "mni",
+   "forward": {
+    "output": "মী খুদিংমক, গুদ মোর্নিং।",
+    "seconds": 4.22,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Everyone, good morning.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.565,
+   "status": "passed",
+   "flags": []
+  },
+  "mps": {
+   "code": "mps",
+   "forward": {
+    "output": "2019-01-06 - Good morning, everyone.",
+    "seconds": 6.96,
+    "flag": null
+   },
+   "reverse": {
+    "output": "2019-01-06 - Good morning, everyone.",
+    "seconds": 7.2,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.78,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "mqy": {
+   "code": "mqy",
+   "forward": {
+    "output": "Selamat pagi, semuanya.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mr": {
+   "code": "mr",
+   "forward": {
+    "output": "सर्वांना सुप्रभात.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mrj": {
+   "code": "mrj",
+   "forward": {
+    "output": "Доброе утро, все.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mrw": {
+   "code": "mrw",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.23,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.81,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ms": {
+   "code": "ms",
+   "forward": {
+    "output": "Selamat pagi, semua.",
+    "seconds": 2.65,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "passed",
+   "flags": []
+  },
+  "msb": {
+   "code": "msb",
+   "forward": {
+    "output": "Magandang umaga sa tanan.",
+    "seconds": 3.07,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.49,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "msi": {
+   "code": "msi",
+   "forward": {
+    "output": "Selamat pagi semua.",
+    "seconds": 2.49,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.4,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "msm": {
+   "code": "msm",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.86,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.85,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "mt": {
+   "code": "mt",
+   "forward": {
+    "output": "Tajba filgħodu, kulħadd.",
+    "seconds": 3.83,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.97,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "mwl": {
+   "code": "mwl",
+   "forward": {
+    "output": "Bon dia a todos.",
+    "seconds": 2.5,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.44,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "my": {
+   "code": "my",
+   "forward": {
+    "output": "အားလုံး မနက်ဖြန်ကောင်းပါစေ။",
+    "seconds": 5.2,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Have a good tomorrow, everyone.",
+    "seconds": 4.48,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.704,
+   "status": "passed",
+   "flags": []
+  },
+  "myv": {
+   "code": "myv",
+   "forward": {
+    "output": "Доброе утро, все.",
+    "seconds": 3.32,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "nds": {
+   "code": "nds",
+   "forward": {
+    "output": "Good Morgen, Leute.",
+    "seconds": 3.21,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, guys.",
+    "seconds": 2.67,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.762,
+   "status": "passed",
+   "flags": []
+  },
+  "ne": {
+   "code": "ne",
+   "forward": {
+    "output": "सबैलाई सुप्रभात ।",
+    "seconds": 3.03,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "new": {
+   "code": "new",
+   "forward": {
+    "output": "शुभ सुबह, सभी.",
+    "seconds": 2.7,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.04,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ngu": {
+   "code": "ngu",
+   "forward": {
+    "output": "Buena mañana, todos.",
+    "seconds": 3.0,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.16,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "nhe": {
+   "code": "nhe",
+   "forward": {
+    "output": "Buena mañana, todos.",
+    "seconds": 3.19,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.96,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "nia": {
+   "code": "nia",
+   "forward": {
+    "output": "Salam pagi, ya'ia da'ö.",
+    "seconds": 4.39,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, ya'ia da'ö.",
+    "seconds": 4.46,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.667,
+   "status": "passed",
+   "flags": []
+  },
+  "nij": {
+   "code": "nij",
+   "forward": {
+    "output": "Selamat pagi, kawan-kawan.",
+    "seconds": 3.17,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, guys.",
+    "seconds": 2.93,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.762,
+   "status": "passed",
+   "flags": []
+  },
+  "niq": {
+   "code": "niq",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.48,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.95,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "nl": {
+   "code": "nl",
+   "forward": {
+    "output": "Goedemorgen, iedereen.",
+    "seconds": 2.96,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "nn": {
+   "code": "nn",
+   "forward": {
+    "output": "God morgon, alle saman.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "nnb": {
+   "code": "nnb",
+   "forward": {
+    "output": "Mũndũ mũtĩ wa kũu.",
+    "seconds": 4.96,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Mwanaume mwepesi wa kukuu.",
+    "seconds": 3.63,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.204,
+   "status": "passed",
+   "flags": []
+  },
+  "no": {
+   "code": "no",
+   "forward": {
+    "output": "God morgen, alle sammen.",
+    "seconds": 2.91,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "passed",
+   "flags": []
+  },
+  "noa": {
+   "code": "noa",
+   "forward": {
+    "output": "Bonjour, tous.",
+    "seconds": 2.61,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.41,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "nog": {
+   "code": "nog",
+   "forward": {
+    "output": "«Доброе утро, ребята!»",
+    "seconds": 4.43,
+    "flag": null
+   },
+   "reverse": {
+    "output": "“Good morning, guys!”",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.682,
+   "status": "passed",
+   "flags": []
+  },
+  "nr": {
+   "code": "nr",
+   "forward": {
+    "output": "Mhlawumbe, wonke umuntu.",
+    "seconds": 3.18,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Perhaps, everybody.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.476,
+   "status": "passed",
+   "flags": []
+  },
+  "nso": {
+   "code": "nso",
+   "forward": {
+    "output": "Motšeng o mobotse, batho bohle.",
+    "seconds": 4.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "In a good place, all of you.",
+    "seconds": 4.13,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.392,
+   "status": "passed",
+   "flags": []
+  },
+  "nus": {
+   "code": "nus",
+   "forward": {
+    "output": "Cäŋ mi̱ gɔaa, nɛy diaal.",
+    "seconds": 3.79,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 3.31,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "nut": {
+   "code": "nut",
+   "forward": {
+    "output": "Chào buổi sáng, mọi người.",
+    "seconds": 3.8,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everybody.",
+    "seconds": 2.81,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.894,
+   "status": "passed",
+   "flags": []
+  },
+  "nv": {
+   "code": "nv",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.75,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.75,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ny": {
+   "code": "ny",
+   "forward": {
+    "output": "Lachisanu, anthu onse.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Friday, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.6,
+   "status": "passed",
+   "flags": []
+  },
+  "nyu": {
+   "code": "nyu",
+   "forward": {
+    "output": "M'mawa wabwino, anthu onse.",
+    "seconds": 3.45,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "nzi": {
+   "code": "nzi",
+   "forward": {
+    "output": "Moalɛ, bɛdabɛ noko.",
+    "seconds": 3.1,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Moalala, theirs.",
+    "seconds": 3.08,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.359,
+   "status": "passed",
+   "flags": []
+  },
+  "oc": {
+   "code": "oc",
+   "forward": {
+    "output": "Bonjorn a totes.",
+    "seconds": 3.73,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.38,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "oj": {
+   "code": "oj",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.41,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "om": {
+   "code": "om",
+   "forward": {
+    "output": "Dhugumatti, guyyaa gaarii, namoota hundaaf.",
+    "seconds": 4.64,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Indeed, it is a happy day for all people.",
+    "seconds": 5.21,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.281,
+   "status": "passed",
+   "flags": []
+  },
+  "or": {
+   "code": "or",
+   "forward": {
+    "output": "ସମସ୍ତଙ୍କୁ ଶୁଭ ସକାଳ ।",
+    "seconds": 3.53,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "os": {
+   "code": "os",
+   "forward": {
+    "output": "Хорз бон, нæ адæм.",
+    "seconds": 4.46,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, our people.",
+    "seconds": 2.81,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.75,
+   "status": "passed",
+   "flags": []
+  },
+  "otq": {
+   "code": "otq",
+   "forward": {
+    "output": "Ya buenos días, todos.",
+    "seconds": 3.09,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "pa": {
+   "code": "pa",
+   "forward": {
+    "output": "ਸਾਰਿਆਂ ਨੂੰ ਸ਼ੁਭ ਸਵੇਰ।",
+    "seconds": 4.16,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.45,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "pag": {
+   "code": "pag",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.74,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.7,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "pap": {
+   "code": "pap",
+   "forward": {
+    "output": "Bon mainta, tur hende.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.82,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "pau": {
+   "code": "pau",
+   "forward": {
+    "output": "Me a diak a diak, kid.",
+    "seconds": 3.59,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Me a diak a diak, kid.",
+    "seconds": 3.63,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.267,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "pck": {
+   "code": "pck",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.82,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "pis": {
+   "code": "pis",
+   "forward": {
+    "output": "Good morning, olketa.",
+    "seconds": 2.56,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, brothers.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.739,
+   "status": "passed",
+   "flags": []
+  },
+  "pl": {
+   "code": "pl",
+   "forward": {
+    "output": "Dzień dobry wszystkim.",
+    "seconds": 3.2,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.53,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "pon": {
+   "code": "pon",
+   "forward": {
+    "output": "Koht ketin kupwuramwahwih kumwail.",
+    "seconds": 3.24,
+    "flag": null
+   },
+   "reverse": {
+    "output": "May God bless you.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.39,
+   "status": "passed",
+   "flags": []
+  },
+  "ppk": {
+   "code": "ppk",
+   "forward": {
+    "output": "Salam' -kai, ompi' -ompi' hampepangalaa' -ni.",
+    "seconds": 6.45,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Greetings, my colleagues.",
+    "seconds": 4.58,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.417,
+   "status": "passed",
+   "flags": []
+  },
+  "prs": {
+   "code": "prs",
+   "forward": {
+    "output": "صبح بخیر به همه.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ps": {
+   "code": "ps",
+   "forward": {
+    "output": "هرڅوک، ښه ماښام.",
+    "seconds": 3.74,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Everyone, good evening.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.391,
+   "status": "passed",
+   "flags": []
+  },
+  "pt": {
+   "code": "pt",
+   "forward": {
+    "output": "Bom dia a todos.",
+    "seconds": 2.8,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.39,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "qu": {
+   "code": "qu",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.38,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "qub": {
+   "code": "qub",
+   "forward": {
+    "output": "Bon matin, tous.",
+    "seconds": 3.22,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.8,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "quc": {
+   "code": "quc",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.04,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "quf": {
+   "code": "quf",
+   "forward": {
+    "output": "13 Tayta, tukuyla tukuyla.",
+    "seconds": 4.05,
+    "flag": null
+   },
+   "reverse": {
+    "output": "13 Father, blessed be thy name.",
+    "seconds": 4.53,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.185,
+   "status": "passed",
+   "flags": []
+  },
+  "quh": {
+   "code": "quh",
+   "forward": {
+    "output": "Buenas mañanas, todos.",
+    "seconds": 3.04,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.82,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "qup": {
+   "code": "qup",
+   "forward": {
+    "output": "Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios Yaya Dios",
+    "seconds": 11.37,
+    "flag": "repetition_loop"
+   },
+   "reverse": {
+    "output": "How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God How God",
+    "seconds": 31.1,
+    "flag": "repetition_loop"
+   },
+   "roundtrip_similarity": 0.0,
+   "status": "degraded",
+   "flags": [
+    "repetition_loop",
+    "repetition_loop"
+   ]
+  },
+  "quy": {
+   "code": "quy",
+   "forward": {
+    "output": "Buenas mañanas, todos.",
+    "seconds": 3.19,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "qvc": {
+   "code": "qvc",
+   "forward": {
+    "output": "13:10 Tayta, tukuy runakuna, tukuy imata munankichischu.",
+    "seconds": 6.49,
+    "flag": null
+   },
+   "reverse": {
+    "output": "13:10 Father, all people, you are all things.",
+    "seconds": 7.52,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.235,
+   "status": "passed",
+   "flags": []
+  },
+  "qvi": {
+   "code": "qvi",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "qvz": {
+   "code": "qvz",
+   "forward": {
+    "output": "2018-01-15 - Buenas mañanas, todos.",
+    "seconds": 7.48,
+    "flag": null
+   },
+   "reverse": {
+    "output": "2018-01-15 - Good morning, everyone.",
+    "seconds": 6.78,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.78,
+   "status": "passed",
+   "flags": []
+  },
+  "qxr": {
+   "code": "qxr",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 4.51,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.44,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "raj": {
+   "code": "raj",
+   "forward": {
+    "output": "गुड मॉर्निंग, सबको.",
+    "seconds": 3.77,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "rcf": {
+   "code": "rcf",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.05,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "rki": {
+   "code": "rki",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.75,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.72,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "rm": {
+   "code": "rm",
+   "forward": {
+    "output": "Buon giorno a tutti.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.48,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "rmc": {
+   "code": "rmc",
+   "forward": {
+    "output": "Dobré ráno, všichni.",
+    "seconds": 3.64,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "rn": {
+   "code": "rn",
+   "forward": {
+    "output": "Mu gitondo cyiza, mwese.",
+    "seconds": 3.96,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.95,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ro": {
+   "code": "ro",
+   "forward": {
+    "output": "Bună dimineaţa, tuturor.",
+    "seconds": 4.21,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.03,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "rom": {
+   "code": "rom",
+   "forward": {
+    "output": "Dobro jutro, sviđa mi se.",
+    "seconds": 4.11,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, I like it.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.681,
+   "status": "passed",
+   "flags": []
+  },
+  "ru": {
+   "code": "ru",
+   "forward": {
+    "output": "Всем доброе утро.",
+    "seconds": 3.11,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "rw": {
+   "code": "rw",
+   "forward": {
+    "output": "< guibutton > Byose",
+    "seconds": 3.38,
+    "flag": null
+   },
+   "reverse": {
+    "output": "All",
+    "seconds": 1.45,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.0,
+   "status": "passed",
+   "flags": []
+  },
+  "rwo": {
+   "code": "rwo",
+   "forward": {
+    "output": "11 Yo, ngu oningga ngu, gabogaboyi tewa.",
+    "seconds": 5.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "11 Yea, yea, yea, yea, yea, yea, yea, yea, yea, yea, yea, yea, yea, yea, yea, yea, ye",
+    "seconds": 18.59,
+    "flag": "repetition_loop"
+   },
+   "roundtrip_similarity": 0.13,
+   "status": "degraded",
+   "flags": [
+    "repetition_loop"
+   ]
+  },
+  "sa": {
+   "code": "sa",
+   "forward": {
+    "output": "नमस्कार, सर्वेभ्यः।",
+    "seconds": 3.46,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everyone.",
+    "seconds": 2.12,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.615,
+   "status": "passed",
+   "flags": []
+  },
+  "sah": {
+   "code": "sah",
+   "forward": {
+    "output": "Дьоллоох аһылык, дьоҥҥо.",
+    "seconds": 4.58,
+    "flag": null
+   },
+   "reverse": {
+    "output": "\"Dolores, Diego\".",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.15,
+   "status": "passed",
+   "flags": []
+  },
+  "sc": {
+   "code": "sc",
+   "forward": {
+    "output": "Bona die a totus.",
+    "seconds": 2.95,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good day to all.",
+    "seconds": 2.59,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.41,
+   "status": "passed",
+   "flags": []
+  },
+  "scn": {
+   "code": "scn",
+   "forward": {
+    "output": "Buongiornu a tutti.",
+    "seconds": 3.4,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to all.",
+    "seconds": 2.56,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.698,
+   "status": "passed",
+   "flags": []
+  },
+  "sd": {
+   "code": "sd",
+   "forward": {
+    "output": "سڀاڻي جو مبارڪون.",
+    "seconds": 3.8,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Congratulations on tomorrow.",
+    "seconds": 3.41,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.392,
+   "status": "passed",
+   "flags": []
+  },
+  "sda": {
+   "code": "sda",
+   "forward": {
+    "output": "Salam pagi, tau iato mai.",
+    "seconds": 3.31,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, people.",
+    "seconds": 3.52,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.818,
+   "status": "passed",
+   "flags": []
+  },
+  "se": {
+   "code": "se",
+   "forward": {
+    "output": "Buot!",
+    "seconds": 1.77,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Everyone!",
+    "seconds": 1.68,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "seh": {
+   "code": "seh",
+   "forward": {
+    "output": "M’mawa wabwino, anthu onsene.",
+    "seconds": 3.41,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "sg": {
+   "code": "sg",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.04,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "sh": {
+   "code": "sh",
+   "forward": {
+    "output": "Dobro jutro svima.",
+    "seconds": 3.18,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.72,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "shn": {
+   "code": "shn",
+   "forward": {
+    "output": "ၵၢင်ဝၼ်းလီယူႇ ၵူႊၵေႃႉ။",
+    "seconds": 4.12,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.52,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "shp": {
+   "code": "shp",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.43,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "si": {
+   "code": "si",
+   "forward": {
+    "output": "සුබ උදෑසනක්, හැමෝටම.",
+    "seconds": 4.46,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "sja": {
+   "code": "sja",
+   "forward": {
+    "output": "¡Buenos días a todos!",
+    "seconds": 3.37,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone!",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.933,
+   "status": "passed",
+   "flags": []
+  },
+  "sk": {
+   "code": "sk",
+   "forward": {
+    "output": "Dobré ráno všetkým.",
+    "seconds": 3.89,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "skr": {
+   "code": "skr",
+   "forward": {
+    "output": "ہر کوئی، صبح بخیر۔",
+    "seconds": 3.13,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Everyone, good morning.",
+    "seconds": 2.88,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.565,
+   "status": "passed",
+   "flags": []
+  },
+  "sl": {
+   "code": "sl",
+   "forward": {
+    "output": "Dobro jutro vsem.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.51,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "sm": {
+   "code": "sm",
+   "forward": {
+    "output": "Alofa, tagata uma.",
+    "seconds": 2.86,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.52,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "smt": {
+   "code": "smt",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "sn": {
+   "code": "sn",
+   "forward": {
+    "output": "Manheru akanaka, vese.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good evening, everyone.",
+    "seconds": 2.86,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.87,
+   "status": "passed",
+   "flags": []
+  },
+  "so": {
+   "code": "so",
+   "forward": {
+    "output": "Subax wanaagsan, dhammaantiin.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, all of you.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.708,
+   "status": "passed",
+   "flags": []
+  },
+  "spp": {
+   "code": "spp",
+   "forward": {
+    "output": "11 Jyɛre, mii ɲyɛ a ɲyɛ mɛ mɛ.",
+    "seconds": 5.73,
+    "flag": null
+   },
+   "reverse": {
+    "output": "11 Yere, mii na mii na mii.",
+    "seconds": 5.02,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.28,
+   "status": "passed",
+   "flags": []
+  },
+  "sq": {
+   "code": "sq",
+   "forward": {
+    "output": "Mirëmëngjes të gjithëve.",
+    "seconds": 3.82,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.92,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "sr": {
+   "code": "sr",
+   "forward": {
+    "output": "Добро јутро свима.",
+    "seconds": 3.56,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.98,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "srm": {
+   "code": "srm",
+   "forward": {
+    "output": "Good morning, sëmbë.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, man.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.78,
+   "status": "passed",
+   "flags": []
+  },
+  "srn": {
+   "code": "srn",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.81,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ss": {
+   "code": "ss",
+   "forward": {
+    "output": "Kulungile, bonke.",
+    "seconds": 2.39,
+    "flag": null
+   },
+   "reverse": {
+    "output": "All right, everyone.",
+    "seconds": 2.72,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.558,
+   "status": "passed",
+   "flags": []
+  },
+  "st": {
+   "code": "st",
+   "forward": {
+    "output": "Motšehare o monate, bohle.",
+    "seconds": 3.75,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Have a nice evening, everyone.",
+    "seconds": 3.12,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.604,
+   "status": "passed",
+   "flags": []
+  },
+  "stq": {
+   "code": "stq",
+   "forward": {
+    "output": "Good morning, all.",
+    "seconds": 2.4,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, all.",
+    "seconds": 2.44,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.732,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "su": {
+   "code": "su",
+   "forward": {
+    "output": "Selamat pagi, semuanya.",
+    "seconds": 2.42,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.71,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "sus": {
+   "code": "sus",
+   "forward": {
+    "output": "Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama",
+    "seconds": 11.04,
+    "flag": "repetition_loop"
+   },
+   "reverse": {
+    "output": "Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama Alama",
+    "seconds": 23.1,
+    "flag": "repetition_loop"
+   },
+   "roundtrip_similarity": 0.042,
+   "status": "degraded",
+   "flags": [
+    "repetition_loop",
+    "repetition_loop"
+   ]
+  },
+  "suz": {
+   "code": "suz",
+   "forward": {
+    "output": "11:13 11:14 11:15 11:16 11:17 1",
+    "seconds": 11.47,
+    "flag": null
+   },
+   "reverse": {
+    "output": "11:13 11:14 11:15 11:16 11:17 1",
+    "seconds": 14.82,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.074,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "sv": {
+   "code": "sv",
+   "forward": {
+    "output": "God morgon allihopa.",
+    "seconds": 3.33,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.61,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "sw": {
+   "code": "sw",
+   "forward": {
+    "output": "asubuhi, kila mtu.",
+    "seconds": 3.72,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "sxn": {
+   "code": "sxn",
+   "forward": {
+    "output": "Selamat pagi, siạ.",
+    "seconds": 3.0,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, sir.",
+    "seconds": 2.99,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.78,
+   "status": "passed",
+   "flags": []
+  },
+  "syr": {
+   "code": "syr",
+   "forward": {
+    "output": "................",
+    "seconds": 11.59,
+    "flag": null
+   },
+   "reverse": {
+    "output": "................",
+    "seconds": 1.87,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.051,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "szl": {
+   "code": "szl",
+   "forward": {
+    "output": "Dobry dzień, wszyscy.",
+    "seconds": 4.52,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 3.35,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "ta": {
+   "code": "ta",
+   "forward": {
+    "output": "காலை வணக்கம், அனைவருக்கும்.",
+    "seconds": 4.51,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.95,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "tab": {
+   "code": "tab",
+   "forward": {
+    "output": "«Гьюрметлу гъурху, гъурху, гъурху!»",
+    "seconds": 6.94,
+    "flag": null
+   },
+   "reverse": {
+    "output": "\"Gürmetlu ğurhu, ğurhu, ğurhu!\"",
+    "seconds": 6.75,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.222,
+   "status": "passed",
+   "flags": []
+  },
+  "taj": {
+   "code": "taj",
+   "forward": {
+    "output": "मुबा ग्‍लारी खजी।",
+    "seconds": 4.0,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Mubārak Khazī.",
+    "seconds": 3.16,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.108,
+   "status": "passed",
+   "flags": []
+  },
+  "taq": {
+   "code": "taq",
+   "forward": {
+    "output": "Ašal ahusken i addinat fuk",
+    "seconds": 3.5,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good day to all.",
+    "seconds": 2.78,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.41,
+   "status": "passed",
+   "flags": []
+  },
+  "tbz": {
+   "code": "tbz",
+   "forward": {
+    "output": "Bună dimineaţa, tuturor.",
+    "seconds": 4.05,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.79,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "tca": {
+   "code": "tca",
+   "forward": {
+    "output": "Bonjour, Bonjour, bonjour, bonjour.",
+    "seconds": 4.7,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, Hello, Hello, Hello.",
+    "seconds": 4.52,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.32,
+   "status": "passed",
+   "flags": []
+  },
+  "tcy": {
+   "code": "tcy",
+   "forward": {
+    "output": "गुड मॉर्निंग, everyone.",
+    "seconds": 4.42,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "tdx": {
+   "code": "tdx",
+   "forward": {
+    "output": "Salama maraina, ry havana.",
+    "seconds": 3.85,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, dear friends.",
+    "seconds": 3.16,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.72,
+   "status": "passed",
+   "flags": []
+  },
+  "te": {
+   "code": "te",
+   "forward": {
+    "output": "గుడ్ మార్నింగ్, ప్రతి ఒక్కరూ.",
+    "seconds": 4.21,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.81,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "teo": {
+   "code": "teo",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.19,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.47,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "tet": {
+   "code": "tet",
+   "forward": {
+    "output": "Boas manhã ba imi hotu.",
+    "seconds": 3.08,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning to you all.",
+    "seconds": 3.09,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.681,
+   "status": "passed",
+   "flags": []
+  },
+  "tg": {
+   "code": "tg",
+   "forward": {
+    "output": "Субҳи нек!",
+    "seconds": 2.6,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning!",
+    "seconds": 1.73,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.667,
+   "status": "passed",
+   "flags": []
+  },
+  "th": {
+   "code": "th",
+   "forward": {
+    "output": "อรุณสวัสดิ์ ทุกคน",
+    "seconds": 4.11,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ti": {
+   "code": "ti",
+   "forward": {
+    "output": "ምሽት ምሽት፣ ኵላትኩም።",
+    "seconds": 4.8,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good evening, everyone.",
+    "seconds": 3.21,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.87,
+   "status": "passed",
+   "flags": []
+  },
+  "tiv": {
+   "code": "tiv",
+   "forward": {
+    "output": "Aôndo yô, aôndo yô, aôndo yô, aôndo yô, aôndo yô, aôndo yô, aô",
+    "seconds": 11.27,
+    "flag": null
+   },
+   "reverse": {
+    "output": "God, God, God, God, God, God, God, God",
+    "seconds": 8.03,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.23,
+   "status": "passed",
+   "flags": []
+  },
+  "tk": {
+   "code": "tk",
+   "forward": {
+    "output": "Her kim, ertirlik.",
+    "seconds": 3.23,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Everyone, good morning.",
+    "seconds": 2.85,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.565,
+   "status": "passed",
+   "flags": []
+  },
+  "tks": {
+   "code": "tks",
+   "forward": {
+    "output": "سلام و خسته نباشید، همه.",
+    "seconds": 4.33,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello and good luck, everybody.",
+    "seconds": 4.06,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.519,
+   "status": "passed",
+   "flags": []
+  },
+  "tlh": {
+   "code": "tlh",
+   "forward": {
+    "output": "'ay', everyone.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "'ay', everyone.",
+    "seconds": 3.26,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.579,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "tll": {
+   "code": "tll",
+   "forward": {
+    "output": "Bonjour, tous.",
+    "seconds": 3.25,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "tn": {
+   "code": "tn",
+   "forward": {
+    "output": "Mongwe le mongwe.",
+    "seconds": 4.34,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Each and every one.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.524,
+   "status": "passed",
+   "flags": []
+  },
+  "to": {
+   "code": "to",
+   "forward": {
+    "output": "Mo'ui lelei, ko e tangata kotoa.",
+    "seconds": 4.28,
+    "flag": null
+   },
+   "reverse": {
+    "output": "A good life, is every human being.",
+    "seconds": 4.85,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.561,
+   "status": "passed",
+   "flags": []
+  },
+  "toj": {
+   "code": "toj",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.56,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "tr": {
+   "code": "tr",
+   "forward": {
+    "output": "Herkese günaydın.",
+    "seconds": 2.75,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.77,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "trp": {
+   "code": "trp",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.58,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "ts": {
+   "code": "ts",
+   "forward": {
+    "output": "Ndlela leyinene, vanhu hinkwavo.",
+    "seconds": 3.54,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good way, all of you.",
+    "seconds": 3.27,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.455,
+   "status": "passed",
+   "flags": []
+  },
+  "tsc": {
+   "code": "tsc",
+   "forward": {
+    "output": "Masikati manene, vanhu hinkwavo.",
+    "seconds": 3.39,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, all of you.",
+    "seconds": 3.09,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.708,
+   "status": "passed",
+   "flags": []
+  },
+  "tsg": {
+   "code": "tsg",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.72,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.73,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "tt": {
+   "code": "tt",
+   "forward": {
+    "output": "Һәркемгә иртәдән үк сәлам.",
+    "seconds": 3.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "All of you are blessed.",
+    "seconds": 3.09,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.261,
+   "status": "passed",
+   "flags": []
+  },
+  "tuc": {
+   "code": "tuc",
+   "forward": {
+    "output": "12:13 Good morning, everyone.",
+    "seconds": 4.36,
+    "flag": null
+   },
+   "reverse": {
+    "output": "12:13 Good morning, everyone.",
+    "seconds": 4.99,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.885,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "tvl": {
+   "code": "tvl",
+   "forward": {
+    "output": "A te taeao, a tino katoa.",
+    "seconds": 4.12,
+    "flag": null
+   },
+   "reverse": {
+    "output": "In the morning, everyone.",
+    "seconds": 3.02,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "twu": {
+   "code": "twu",
+   "forward": {
+    "output": "Bonjour, tout le monde.",
+    "seconds": 3.36,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.67,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "tyv": {
+   "code": "tyv",
+   "forward": {
+    "output": "Чогаалчыннар, бүгүдеге байыр чедирер.",
+    "seconds": 5.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "\"Gökhan Özyakup\".",
+    "seconds": 3.62,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.2,
+   "status": "passed",
+   "flags": []
+  },
+  "tyz": {
+   "code": "tyz",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.45,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.93,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "tzh": {
+   "code": "tzh",
+   "forward": {
+    "output": "Buen día, todos.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.43,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "tzj": {
+   "code": "tzj",
+   "forward": {
+    "output": "Buenos días, a todos.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.61,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "tzm": {
+   "code": "tzm",
+   "forward": {
+    "output": "ⴰⵙⵙ ⵏ ⵓⵛⵔⴰⵉ ⵉ ⴽⵓⵍⵍ.",
+    "seconds": 4.13,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Goodbye to Cole.",
+    "seconds": 2.5,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.513,
+   "status": "passed",
+   "flags": []
+  },
+  "tzo": {
+   "code": "tzo",
+   "forward": {
+    "output": "Bonjour, à tous.",
+    "seconds": 2.81,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everyone.",
+    "seconds": 2.67,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.615,
+   "status": "passed",
+   "flags": []
+  },
+  "ubu": {
+   "code": "ubu",
+   "forward": {
+    "output": "Bom dia a todos.",
+    "seconds": 2.58,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.43,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "udm": {
+   "code": "udm",
+   "forward": {
+    "output": "Доброе утро, всем.",
+    "seconds": 3.21,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.83,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ug": {
+   "code": "ug",
+   "forward": {
+    "output": "ھەممىڭلارغا سائەت نەچچە؟",
+    "seconds": 3.97,
+    "flag": null
+   },
+   "reverse": {
+    "output": "What time is it for you all?",
+    "seconds": 3.6,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.275,
+   "status": "passed",
+   "flags": []
+  },
+  "uk": {
+   "code": "uk",
+   "forward": {
+    "output": "Доброго ранку всім.",
+    "seconds": 3.53,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.76,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "ur": {
+   "code": "ur",
+   "forward": {
+    "output": "صبح بخیر، سب.",
+    "seconds": 3.12,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, Sab.",
+    "seconds": 2.57,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.732,
+   "status": "passed",
+   "flags": []
+  },
+  "uz": {
+   "code": "uz",
+   "forward": {
+    "output": "Ҳаммангизга хуш келибсиз.",
+    "seconds": 3.59,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Welcome to all of you.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.356,
+   "status": "passed",
+   "flags": []
+  },
+  "ve": {
+   "code": "ve",
+   "forward": {
+    "output": "Tshifhedziso tshihulu, vhathu vhoṱhe.",
+    "seconds": 4.22,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Great effort, all people.",
+    "seconds": 2.86,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.417,
+   "status": "passed",
+   "flags": []
+  },
+  "vec": {
+   "code": "vec",
+   "forward": {
+    "output": "Buongiorno a tuti.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.54,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "vi": {
+   "code": "vi",
+   "forward": {
+    "output": "Chào mọi người.",
+    "seconds": 3.54,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Hello, everybody.",
+    "seconds": 2.44,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.5,
+   "status": "passed",
+   "flags": []
+  },
+  "wa": {
+   "code": "wa",
+   "forward": {
+    "output": "Bondjoû a tos.",
+    "seconds": 3.81,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Goodbye to cough.",
+    "seconds": 3.26,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.4,
+   "status": "passed",
+   "flags": []
+  },
+  "wal": {
+   "code": "wal",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.9,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.81,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "war": {
+   "code": "war",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.86,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.87,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "wo": {
+   "code": "wo",
+   "forward": {
+    "output": "Maare, moomoo.",
+    "seconds": 2.97,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Maare, moomoo.",
+    "seconds": 2.88,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 0.27,
+   "status": "degraded",
+   "flags": [
+    "echoes_input"
+   ]
+  },
+  "wuu": {
+   "code": "wuu",
+   "forward": {
+    "output": "早上好，大家好。",
+    "seconds": 3.53,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.99,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "xal": {
+   "code": "xal",
+   "forward": {
+    "output": "Добрый день, все.",
+    "seconds": 3.11,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 2.96,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "xh": {
+   "code": "xh",
+   "forward": {
+    "output": "Mhla olungileyo, wonke umntu.",
+    "seconds": 3.69,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good afternoon, everyone.",
+    "seconds": 2.9,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.792,
+   "status": "passed",
+   "flags": []
+  },
+  "yap": {
+   "code": "yap",
+   "forward": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.13,
+    "flag": "echoes_input"
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 3.07,
+    "flag": "echoes_input"
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "degraded",
+   "flags": [
+    "echoes_input",
+    "echoes_input"
+   ]
+  },
+  "yi": {
+   "code": "yi",
+   "forward": {
+    "output": "גוטן מאָרגן, אַלעמען.",
+    "seconds": 4.26,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.93,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "yo": {
+   "code": "yo",
+   "forward": {
+    "output": "Ọjọ́ kọkanlá, gbogbo ẹ̀yìn.",
+    "seconds": 5.45,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Sunday, everybody.",
+    "seconds": 2.88,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.488,
+   "status": "passed",
+   "flags": []
+  },
+  "yua": {
+   "code": "yua",
+   "forward": {
+    "output": "Buenos días a todos.",
+    "seconds": 2.98,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.59,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "zap": {
+   "code": "zap",
+   "forward": {
+    "output": "Buenos días a todos.",
+    "seconds": 2.55,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning everyone.",
+    "seconds": 2.46,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.978,
+   "status": "passed",
+   "flags": []
+  },
+  "zh": {
+   "code": "zh",
+   "forward": {
+    "output": "早上好，大家。",
+    "seconds": 3.14,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.93,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  },
+  "zne": {
+   "code": "zne",
+   "forward": {
+    "output": "Gu regbo re, gu boro re.",
+    "seconds": 3.44,
+    "flag": null
+   },
+   "reverse": {
+    "output": "In the meantime, we'll be back.",
+    "seconds": 5.3,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.333,
+   "status": "passed",
+   "flags": []
+  },
+  "zu": {
+   "code": "zu",
+   "forward": {
+    "output": "Enkosi, wonke umuntu.",
+    "seconds": 2.97,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Thank you, everybody.",
+    "seconds": 2.87,
+    "flag": null
+   },
+   "roundtrip_similarity": 0.455,
+   "status": "passed",
+   "flags": []
+  },
+  "zza": {
+   "code": "zza",
+   "forward": {
+    "output": "Günaydın, herkes.",
+    "seconds": 2.82,
+    "flag": null
+   },
+   "reverse": {
+    "output": "Good morning, everyone.",
+    "seconds": 2.98,
+    "flag": null
+   },
+   "roundtrip_similarity": 1.0,
+   "status": "passed",
+   "flags": []
+  }
+ }
+}

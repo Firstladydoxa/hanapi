@@ -37,11 +37,13 @@ ROOT = Path(__file__).resolve().parents[1]
 HOME = Path.home()
 VENV_HAN, VENV_INF = HOME / ".han-venvs" / "han" / "bin", HOME / ".han-venvs" / "inference" / "bin"
 MODEL_DIR = HOME / "han-models" / ".hf"
-PORTS = {"frontend": 3030, "backend": 8030, "inference": 9030}
+PORTS = {"frontend": 3030, "backend": 8030, "inference": 9030, "assistant": 9031}
+CHAT_MODEL = HOME / "han-models" / "chat" / "qwen2.5-1.5b-instruct-q4_k_m.gguf"
+EMBED_MODEL = HOME / "han-models" / "embed" / "multilingual-e5-small"
 MODEL_ID, MODEL_KEY = "google/madlad400-3b-mt", "madlad-400-3b-mt"
-SERVICES = ("inference", "backend", "frontend")
-MARKER = {"inference": "server:app", "backend": "app.main:app", "frontend": "next"}  # substring of /proc/<pid>/cmdline
-FAIL_LIMIT = {"inference": 20, "backend": 3, "frontend": 3}  # consecutive failed `ensure` runs (about minutes) before a restart
+SERVICES = ("inference", "assistant", "backend", "frontend")
+MARKER = {"inference": "server:app", "assistant": "assistant:app", "backend": "app.main:app", "frontend": "next"}  # substring of /proc/<pid>/cmdline
+FAIL_LIMIT = {"inference": 20, "assistant": 10, "backend": 3, "frontend": 3}  # consecutive failed `ensure` runs (about minutes) before a restart
 PATH = "/usr/local/bin:/usr/bin:/bin"
 
 PROFILES = {
@@ -89,6 +91,7 @@ class Stack:
     def backend_env(self, sec: dict, db_url: str) -> dict:
         env = {**os.environ, **sec, "PATH": PATH, "HAN_ENV": self.cfg["env"], "HAN_DATABASE_URL": db_url, "HAN_ENABLE_MOCK_PROVIDER": "0",
                "HAN_JOBS_BACKGROUND": "1", "HAN_JOBS_EAGER": "0", "HAN_MADLAD_URL": f"http://127.0.0.1:{PORTS['inference']}",
+               "HAN_ASSISTANT_URL": f"http://127.0.0.1:{PORTS['assistant']}",
                "HAN_PROVIDER_TIMEOUT_S": "240" if self.is_prod else "180", "HAN_PROVIDER_RETRIES": "0", "HAN_LOG_LEVEL": "INFO",
                "PYTHONPATH": str(ROOT / "backend")}
         if self.is_prod:  # behind Apache's reverse proxy; the model processes 4,000 characters per request at most
@@ -128,7 +131,11 @@ class Stack:
     def commands(self, sec: dict, db_url: str) -> dict:
         inf_env = {**os.environ, "PATH": PATH, "HF_HOME": str(MODEL_DIR), "HF_HUB_OFFLINE": "1", "HAN_INFERENCE_TOKEN": sec["HAN_INFERENCE_TOKEN"],
                    "HAN_INFERENCE_MODEL_MADLAD": MODEL_ID, "HAN_INFERENCE_PRELOAD": "madlad"}
+        asst_env = {**os.environ, "PATH": PATH, "HAN_INFERENCE_TOKEN": sec["HAN_INFERENCE_TOKEN"], "HAN_ASSISTANT_CHAT_MODEL": str(CHAT_MODEL),
+                    "HAN_ASSISTANT_EMBED_MODEL": str(EMBED_MODEL), "HAN_ASSISTANT_THREADS": "10", "HAN_ASSISTANT_PRELOAD": "1"}
         return {
+            "assistant": ([str(VENV_INF / "python"), "-m", "uvicorn", "assistant:app", "--host", "127.0.0.1", "--port", str(PORTS["assistant"])],
+                          ROOT / "inference", asst_env),
             "inference": ([str(VENV_INF / "python"), "-m", "uvicorn", "server:app", "--host", "127.0.0.1", "--port", str(PORTS["inference"])],
                           ROOT / "inference", inf_env),
             "backend": ([str(VENV_HAN / "python"), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(PORTS["backend"]),
@@ -137,6 +144,10 @@ class Stack:
                          ROOT / "frontend", {**os.environ, "PATH": PATH, "NODE_ENV": "production", "NEXT_TELEMETRY_DISABLED": "1",
                                               "HAN_BACKEND_URL": f"http://127.0.0.1:{PORTS['backend']}"}),
         }
+
+    @staticmethod
+    def assistant_ready() -> bool:
+        return CHAT_MODEL.exists() and EMBED_MODEL.is_dir()
 
     def healthy(self, name: str) -> bool:
         import httpx
@@ -234,6 +245,10 @@ class Stack:
         self.bootstrap(sec, db_url)
         cmds = self.commands(sec, db_url)
         self.spawn("inference", *cmds["inference"])
+        if self.assistant_ready():
+            self.spawn("assistant", *cmds["assistant"])
+        else:
+            self.say("  assistant: model files not found; HAN will use its built-in rule-based replies (see docs/assistant.md)")
         self.spawn("backend", *cmds["backend"])
         self.wait_http("backend", 90)
         self.enable_model()
@@ -241,6 +256,8 @@ class Stack:
         self.wait_http("frontend", 90)
         self.say("  inference: loading the model (1-3 minutes); translations wait until it is ready")
         self.wait_http("inference", 600)
+        if self.assistant_ready():
+            self.wait_http("assistant", 300)
         self.say(f"\nHAN ({self.profile}) is running:  {self.cfg['url']}\nLogins:  cat {self.cred_file}\nStop:    han_stack.py --profile {self.profile} stop")
 
     def stop(self) -> None:
@@ -271,6 +288,8 @@ class Stack:
         db_url = self.db_url()
         cmds = self.commands(sec, db_url)
         for name in SERVICES:
+            if name == "assistant" and not self.assistant_ready():
+                continue
             fails = self.run / f"{name}.fails"
             if self.alive(name) and not self.healthy(name):
                 n = (int(fails.read_text()) if fails.exists() else 0) + 1
@@ -301,6 +320,10 @@ class Stack:
         for old in sorted(self.backups.glob("han-*.dump"))[:-14]:
             old.unlink()
         self.say(f"backup written: {out} ({out.stat().st_size // 1024} KiB)")
+        try:  # retention: permanently remove conversations deleted longer ago than the retention period
+            self.manage(["purge-conversations"])
+        except subprocess.CalledProcessError:
+            self.say("conversation purge failed (will retry tomorrow)")
 
     def install_cron(self) -> None:
         script = f"{VENV_HAN / 'python'} -W ignore {Path(__file__).resolve()} --profile {self.profile}"

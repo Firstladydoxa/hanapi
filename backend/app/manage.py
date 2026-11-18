@@ -59,6 +59,20 @@ def reset_password(email: str) -> int:
     return 0
 
 
+def maintenance(cmd: str) -> int:
+    from . import knowledge
+    from .han import conversations
+
+    with SessionLocal() as db:
+        if cmd == "purge-conversations":
+            print(f"purged {conversations.purge_deleted(db)} conversation(s)")
+        elif cmd == "seed-knowledge":
+            print(knowledge.seed_platform_guide(db))
+        else:
+            print(f"indexed {knowledge.reindex_missing_embeddings(db)} chunk(s)")
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -68,7 +82,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     a.add_argument("emails", nargs="+")
     r = sub.add_parser("reset-password")
     r.add_argument("email")
+    sub.add_parser("purge-conversations", help="permanently remove conversations deleted longer ago than the retention period")
+    sub.add_parser("seed-knowledge", help="load and index the built-in HAN platform guide")
+    sub.add_parser("reindex-knowledge", help="compute missing embeddings for approved knowledge")
     args = ap.parse_args(argv)
+    if args.cmd in ("purge-conversations", "seed-knowledge", "reindex-knowledge"):
+        return maintenance(args.cmd)
     return add_users(args.project, args.role, args.emails) if args.cmd == "add-users" else reset_password(args.email)
 
 

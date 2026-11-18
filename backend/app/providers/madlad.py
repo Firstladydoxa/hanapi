@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 from ..models.internal_schemas import ProviderRequest
 from .base import InferenceServiceAdapter, UnsupportedLanguage
-from .language_codes import MADLAD_EXCEPTIONS, MADLAD_SUPPORTED
+from .language_codes import madlad_token
 
 
 class MadladAdapter(InferenceServiceAdapter):
@@ -14,10 +14,10 @@ class MadladAdapter(InferenceServiceAdapter):
     external = False
 
     def map_language(self, code: str) -> str:
-        c = code.lower()
-        if c not in MADLAD_SUPPORTED:
+        token = madlad_token(code)
+        if token is None:
             raise UnsupportedLanguage(code)
-        return MADLAD_EXCEPTIONS.get(c, c)
+        return token
 
     def build_payload(self, req: ProviderRequest) -> Dict[str, Any]:
         self.map_language(req.source_code)  # source is not sent, but must be a supported language

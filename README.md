@@ -209,6 +209,10 @@ Translator -> Next.js app (/v1 proxy) -> FastAPI (auth, CSRF, RBAC, response whi
 3. In *Administration → Language readiness*: set a tier per direction **after** evaluating it with TNI translators.
 4. For external providers, switch on *allow external processing* for the specific project.
 
+## Conversations, knowledge base and language expansion
+
+See [docs/HAN-INTELLIGENCE-UPGRADE.md](docs/HAN-INTELLIGENCE-UPGRADE.md) (audit, 6-7 pairs root cause, assistant, knowledge governance, limits, deploy and rollback).
+
 ## Configuration
 
 See `.env.example` (placeholders only). Production refuses to start with a missing/short `HAN_SECRET_KEY`.

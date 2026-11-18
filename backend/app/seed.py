@@ -15,6 +15,7 @@ from typing import List, Optional, Tuple
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from . import languages
 from .config import get_settings
 from .database import SessionLocal
 from .models.db import Language, LanguageDirection, Project, ProjectMember, User
@@ -122,9 +123,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Seed HAN reference data")
     parser.add_argument("--demo", action="store_true", help="create demo project/users/directions (non-production only)")
     parser.add_argument("--pilot", action="store_true", help="create the pilot project and experimental language pairs (allowed in production)")
+    parser.add_argument("--expand-languages", action="store_true",
+                        help="open technically verified English<->X pairs for CONTROLLED TESTING (experimental, pilot projects only)")
     args = parser.parse_args(argv)
     with SessionLocal() as db:
         print(f"languages added: {seed_languages(db)}")
+        print(f"catalog languages added: {languages.seed_language_catalog(db)}; probe evidence rows: {languages.import_probe_evidence(db)}")
+        from . import knowledge
+
+        print(knowledge.seed_platform_guide(db))
+        if args.expand_languages:
+            print(f"directions opened for controlled testing: {languages.enable_pilot_directions(db)}")
         print(f"registry rows added: {seed_registry(db)} (all disabled until an administrator enables and licence-clears them)")
         if ensure_mock_model(db):
             print("development mock model registered (non-production only; output is labelled [MOCK DRAFT])")

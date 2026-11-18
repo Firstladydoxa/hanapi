@@ -21,7 +21,8 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from pgvector.sqlalchemy import Vector
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -110,6 +111,11 @@ class Language(Base):
     script: Mapped[Optional[str]] = mapped_column(String(32))
     region: Mapped[Optional[str]] = mapped_column(String(64))
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    native_name: Mapped[Optional[str]] = mapped_column(String(200))
+    # engine family -> that engine's own language token, e.g. {"madlad": "sw"}. Absent family = the engine does not support it.
+    model_codes: Mapped[Optional[Any]] = mapped_column(JSONType)
+    reviewed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)  # passed TNI language evaluation
+    notes: Mapped[Optional[str]] = mapped_column(Text)
 
 
 class LanguageDirection(Base):
@@ -121,6 +127,11 @@ class LanguageDirection(Base):
     benchmark_ref: Mapped[Optional[str]] = mapped_column(String(200))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     updated_by: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"))
+    # Stage 1 (technical verification) and Stage 2 (human validation) are recorded separately from the tier.
+    technical_status: Mapped[str] = mapped_column(String(16), nullable=False, default="untested", server_default="untested")
+    technical_checked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    technical_detail: Mapped[Optional[Any]] = mapped_column(JSONType)
+    validation_status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending", server_default="pending")
     __table_args__ = (
         CheckConstraint("readiness_tier in ('production','assisted','experimental','unsupported')", name="ck_direction_tier"),
     )
@@ -289,6 +300,7 @@ class ModelRegistry(Base):
     avg_latency_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=1000)
     priority: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
     notes: Mapped[Optional[str]] = mapped_column(Text)
+    capability: Mapped[str] = mapped_column(String(16), nullable=False, default="translation", server_default="translation")  # translation | chat | embedding
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     __table_args__ = (
         CheckConstraint("deployment_status in ('not_deployed','deployed','degraded','retired')", name="ck_model_deploy"),
@@ -365,19 +377,90 @@ class AuditEvent(Base):
 
 
 class ChatConversation(Base):
+    """A translator's persistent HAN conversation. Owned by one user; project is optional."""
+
     __tablename__ = "chat_conversations"
     id: Mapped[uuid.UUID] = _uuid_pk()
-    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), nullable=False)
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
-    state: Mapped[Optional[Any]] = mapped_column(JSONType)
+    project_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("projects.id"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    title: Mapped[Optional[str]] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="active", server_default="active")  # active | archived | deleted
+    state: Mapped[Optional[Any]] = mapped_column(JSONType)  # working context: pending clarification, last language pair, ...
+    summary: Mapped[Optional[str]] = mapped_column(Text)  # rolling summary of OLDER messages; never authoritative over the messages
+    summary_upto: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")  # messages (by seq) the summary covers
     created_at: Mapped[datetime] = _now()
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    last_message_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), index=True)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (CheckConstraint("status in ('active','archived','deleted')", name="ck_conversation_status"),)
 
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
     id: Mapped[uuid.UUID] = _uuid_pk()
     conversation_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("chat_conversations.id"), nullable=False, index=True)
-    role: Mapped[str] = mapped_column(String(16), nullable=False)
+    seq: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")  # strict order within the conversation
+    role: Mapped[str] = mapped_column(String(16), nullable=False)  # user | assistant
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    # Safe, non-sensitive metadata only: kind (greeting|translation|answer|...), translation payload (public schema), knowledge sources.
+    meta: Mapped[Optional[Any]] = mapped_column("metadata", JSONType)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (UniqueConstraint("conversation_id", "seq", name="uq_message_seq"),)
+
+
+KNOWLEDGE_CATEGORIES = ("institutional", "guidelines", "terminology", "language_resources", "platform", "faq")
+
+
+class KnowledgeDocument(Base):
+    """A governed source of TNI knowledge. Only `approved` documents are retrievable, and only their approved version."""
+
+    __tablename__ = "knowledge_documents"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    category: Mapped[str] = mapped_column(String(32), nullable=False)
+    languages: Mapped[Optional[Any]] = mapped_column(JSONType)  # language codes the content applies to; empty/null = all
+    audience_roles: Mapped[Optional[Any]] = mapped_column(JSONType)  # user roles allowed to receive it; empty/null = every signed-in user
+    project_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("projects.id"), index=True)  # null = organisation-wide
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")  # draft | approved | inactive
+    approved_version_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True))
+    effective_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    system_managed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)  # shipped with HAN (platform guide)
+    owner_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = _now()
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    __table_args__ = (
+        CheckConstraint("status in ('draft','approved','inactive')", name="ck_knowledge_status"),
+        CheckConstraint("category in ('institutional','guidelines','terminology','language_resources','platform','faq')", name="ck_knowledge_category"),
+    )
+
+
+class KnowledgeVersion(Base):
+    __tablename__ = "knowledge_versions"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    document_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("knowledge_documents.id"), nullable=False, index=True)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    filename: Mapped[Optional[str]] = mapped_column(String(300))
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    note: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = _now()
+    approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    approved_by: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"))
+    __table_args__ = (UniqueConstraint("document_id", "version_number", name="uq_knowledge_version"),)
+
+
+EMBEDDING_DIMENSIONS = 384  # multilingual-e5-small; changing the embedding model needs a migration
+
+
+class KnowledgeChunk(Base):
+    __tablename__ = "knowledge_chunks"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    document_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("knowledge_documents.id"), nullable=False, index=True)
+    version_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("knowledge_versions.id"), nullable=False, index=True)
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
+    heading: Mapped[Optional[str]] = mapped_column(String(300))
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    embedding: Mapped[Optional[Any]] = mapped_column(Vector(EMBEDDING_DIMENSIONS))
+    tsv: Mapped[Optional[Any]] = mapped_column(TSVECTOR)
     created_at: Mapped[datetime] = _now()

@@ -58,8 +58,12 @@ def plan_route(
     *,
     only_model: Optional[str] = None,
     evaluation: bool = False,
+    technical_test: bool = False,
 ) -> RoutePlan:
     """Raises DirectionUnsupported when the direction is unsupported (or experimental without pilot opt-in).
+
+    `technical_test=True` (administrator language checks only) skips the readiness-tier gate so a direction can be verified
+    BEFORE it is enabled; every other gate (licence, health, data policy, language coverage) still applies.
 
     `evaluation=True` (benchmark tooling only, never in production) skips the licence gate so a
     research-only model can be measured; it still requires the model to be enabled and deployed.
@@ -68,10 +72,11 @@ def plan_route(
     if evaluation and s.is_production:
         raise PermissionError("evaluation routing is not available in production")
     tier = direction_tier(db, source, target)
-    if tier == "unsupported":
-        raise DirectionUnsupported(tier)
-    if tier == "experimental" and not project.pilot_opt_in:
-        raise DirectionUnsupported("experimental-without-pilot")
+    if not technical_test:
+        if tier == "unsupported":
+            raise DirectionUnsupported(tier)
+        if tier == "experimental" and not project.pilot_opt_in:
+            raise DirectionUnsupported("experimental-without-pilot")
 
     scores = {
         r.model_key: r.benchmark_score
@@ -88,6 +93,8 @@ def plan_route(
             continue
         reject = None
         adapter = adapter_for(m)
+        if m.capability != "translation":
+            continue  # conversational and embedding models are never translation candidates
         if not m.enabled:
             reject = "provider_disabled"
         elif not m.license_cleared and not evaluation:

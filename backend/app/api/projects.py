@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .. import languages as languages_service
 from ..database import get_db
 from ..deps import get_current_user
 from ..models import schemas as S
@@ -18,6 +19,7 @@ router = APIRouter(prefix="/v1", tags=["projects"])
 
 def _directions(db: Session, project: Project | None = None) -> List[S.DirectionOut]:
     rows = list(db.execute(select(LanguageDirection).order_by(LanguageDirection.source_code, LanguageDirection.target_code)).scalars())
+    rows = [d for d in rows if d.readiness_tier != "unsupported"]  # translators only ever see directions that can actually be used
     if project is not None:
         allowed = {(d.source_code, d.target_code) for d in db.execute(select(ProjectDirection).where(ProjectDirection.project_id == project.id)).scalars()}
         rows = [d for d in rows if (not allowed or (d.source_code, d.target_code) in allowed)
@@ -43,7 +45,13 @@ def get_project(project_id: str, user: User = Depends(get_current_user), db: Ses
 @router.get("/languages", response_model=List[S.LanguageOut])
 def languages(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     rows = db.execute(select(Language).where(Language.active.is_(True)).order_by(Language.display_name)).scalars()
-    return [S.LanguageOut(code=l.code, display_name=l.display_name, script=l.script) for l in rows]
+    return [S.LanguageOut(code=l.code, display_name=l.display_name, script=l.script, native_name=l.native_name) for l in rows]
+
+
+@router.get("/language-support", response_model=List[S.LanguageSupportOut])
+def language_support(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Every registered language with how far it is enabled (validated / assisted / controlled testing / not enabled)."""
+    return [S.LanguageSupportOut(**r) for r in languages_service.language_support(db)]
 
 
 @router.get("/language-directions", response_model=List[S.DirectionOut])

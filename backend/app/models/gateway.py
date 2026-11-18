@@ -105,12 +105,13 @@ class ModelGateway:
         segment_id: Optional[uuid.UUID] = None,
         only_model: Optional[str] = None,
         evaluation: bool = False,
+        technical_test: bool = False,
     ) -> GatewayResult:
         request_id = request_id_var.get()
         base = dict(request_id=request_id, project_id=project.id, user_id=user_id, segment_id=segment_id,
                     source_code=source, target_code=target, chars=len(text))
         used = self._check_quota(db, project, len(text))
-        plan = plan_route(db, project, source, target, len(text), only_model=only_model, evaluation=evaluation)
+        plan = plan_route(db, project, source, target, len(text), only_model=only_model, evaluation=evaluation, technical_test=technical_test)
 
         candidates: List[Candidate] = []
         limit = project.monthly_spend_limit

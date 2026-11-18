@@ -196,7 +196,7 @@ def test_chat_unsupported_pair_and_unavailable(login, world):
 def test_chat_greeting_and_conversation_isolation(login, world):
     alice, rita = login("alice"), login("rita")
     cid = chat(alice, world, "hello")["conversation_id"]
-    assert "I'm HAN" in chat(alice, world, "hello", cid)["reply"]
+    assert chat(alice, world, "hello", cid)["reply"].strip()
     r = rita.post("/v1/chat", {"project_id": str(world.projects["p1"].id), "message": "hi", "conversation_id": cid})
     assert r.status_code == 404, "another user's conversation is not accessible"
 

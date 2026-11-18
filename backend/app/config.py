@@ -60,6 +60,22 @@ class Settings(BaseSettings):
     # Optional semantic TM hook (off by default; see memory/embeddings.py)
     semantic_tm: bool = False
 
+    # Assistant service (chat model + embeddings). Unset = HAN falls back to deterministic answers.
+    assistant_url: Optional[str] = None
+    assistant_timeout_s: float = 90.0
+    chat_max_tokens: int = 380
+    chat_temperature: float = 0.4
+    chat_context_chars: int = 7000  # budget for conversation history in a prompt (about 1,750 tokens)
+    chat_recent_messages: int = 10
+    conversation_summary_threshold: int = 16  # messages in a conversation before older ones are summarised
+    conversation_retention_days: int = 30  # soft-deleted conversations are purged after this many days
+
+    # Knowledge base
+    knowledge_max_upload_bytes: int = 5_000_000
+    knowledge_chunk_chars: int = 900
+    knowledge_top_k: int = 4
+    knowledge_min_similarity: float = 0.78  # cosine similarity floor for semantic hits (multilingual-e5 scores cluster high)
+
     @field_validator("env")
     @classmethod
     def _env(cls, v: str) -> str:

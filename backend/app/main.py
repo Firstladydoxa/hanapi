@@ -23,13 +23,13 @@ def create_app() -> FastAPI:
     install_error_handlers(app)
     if settings.cors_origin_list:
         app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origin_list, allow_credentials=True,
-                           allow_methods=["GET", "POST", "PUT", "PATCH"], allow_headers=["Content-Type", "X-CSRF-Token"])
+                           allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type", "X-CSRF-Token"])
     app.add_middleware(EngineConfidentialityMiddleware)
     app.add_middleware(RequestContextMiddleware)
 
-    from .api import admin, approvals, auth, chat, jobs, memory, projects, qa, terminology, translate, translations
+    from .api import admin, approvals, auth, chat, conversations, jobs, knowledge, memory, projects, qa, terminology, translate, translations
 
-    for module in (auth, projects, translate, translations, approvals, memory, terminology, qa, jobs, chat, admin):
+    for module in (auth, projects, translate, translations, approvals, memory, terminology, qa, jobs, chat, conversations, knowledge, admin):
         app.include_router(module.router)
 
     @app.get("/healthz", include_in_schema=False)

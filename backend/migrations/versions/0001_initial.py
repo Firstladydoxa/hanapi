@@ -1,8 +1,9 @@
 """Initial HAN schema: projects, users, languages, jobs, segments, immutable versions/approvals, TM, terminology,
 model registry, routing events, usage and audit.
 
-The tables come from the SQLAlchemy models as of this revision (this is the baseline; later revisions must be
-explicit). Immutability of `translation_versions` and `approvals` is enforced by database triggers (spec §10.1).
+The tables come from the SQLAlchemy models (create_all). On a FRESH database this therefore already creates everything that
+later revisions add; those revisions are written with IF NOT EXISTS so they are no-ops there and perform the real change on an
+existing database (e.g. the live one, which was created at this revision before the upgrade). Immutability of `translation_versions` and `approvals` is enforced by database triggers (spec §10.1).
 """
 from alembic import op
 
@@ -19,6 +20,8 @@ IMMUTABLE = ("translation_versions", "approvals")
 
 def upgrade() -> None:
     bind = op.get_bind()
+    # The models now include a pgvector column (knowledge base), so the extension must exist before create_all.
+    op.execute("CREATE EXTENSION IF NOT EXISTS vector")
     Base.metadata.create_all(bind=bind)
     op.execute(
         """

@@ -119,7 +119,10 @@ def test_madlad_payload_and_mapping():
     ADAPTERS["madlad"](h).translate(REQ)
     assert captured["text"] == "<2de> Hello world" and captured["target_lang"] == "de"
     a = MadladAdapter("http://i")
-    assert a.map_language("zh-hant") == "zh_Hant" and a.map_language("he") == "iw" and a.map_language("tl") == "fil"
+    assert a.map_language("zh-hant") == "zh_Hant" and a.map_language("he") == "he" and a.map_language("tl") == "fil"
+    # tokens come from the checkpoint audit: the old hand-written list (50 codes) hid hundreds of real languages and mapped he -> iw, which is not a token
+    assert a.map_language("iw") == "he" and a.map_language("nb") == "no" and a.map_language("ace") == "ace" and a.map_language("abt") == "abt"
+    assert len(MADLAD_SUPPORTED) >= 419
     with pytest.raises(UnsupportedLanguage):
         a.map_language("xx")
     assert a.supports("en", "sw") and not a.supports("en", "xx")

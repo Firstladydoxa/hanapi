@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import audit
+from .. import languages as languages_service
 from ..config import get_settings
 from ..database import get_db
 from ..deps import client_ip, get_current_user, get_user_no_csrf
@@ -27,6 +28,10 @@ from ..security.permissions import ADMIN_ROLES, AUDIT_ROLES, has_engine_access, 
 from ..terminology import terminology as term_service
 
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
+
+
+def _n(code: str) -> str:
+    return code.strip().lower().replace("_", "-")
 
 
 def admin_user(request: Request, user: User = Depends(get_current_user)) -> User:
@@ -251,14 +256,19 @@ def patch_term(term_id: str, body: S.TermPatch, request: Request, actor: User = 
 
 
 # ------------------------------------------------------------------ language readiness
-@router.get("/language-directions", response_model=List[S.DirectionOut])
+def _admin_direction(d: LanguageDirection) -> S.AdminDirectionOut:
+    return S.AdminDirectionOut(source_code=d.source_code, target_code=d.target_code, readiness_tier=d.readiness_tier, review_note=d.review_note,
+                               technical_status=d.technical_status, technical_checked_at=d.technical_checked_at,
+                               technical_detail=d.technical_detail, validation_status=d.validation_status)
+
+
+@router.get("/language-directions", response_model=List[S.AdminDirectionOut])
 def admin_directions(actor: User = Depends(admin_read), db: Session = Depends(get_db)):
     rows = db.execute(select(LanguageDirection).order_by(LanguageDirection.source_code, LanguageDirection.target_code)).scalars()
-    return [S.DirectionOut(source_code=d.source_code, target_code=d.target_code, readiness_tier=d.readiness_tier, review_note=d.review_note)
-            for d in rows]
+    return [_admin_direction(d) for d in rows]
 
 
-@router.put("/language-directions", response_model=List[S.DirectionOut])
+@router.put("/language-directions", response_model=List[S.AdminDirectionOut])
 def put_directions(body: S.DirectionsPut, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
     for d in body.directions:
         if db.get(Language, d.source_code) is None or db.get(Language, d.target_code) is None or d.source_code == d.target_code:
@@ -282,6 +292,62 @@ def put_language(body: S.LanguagePut, request: Request, actor: User = Depends(ad
     db.commit()
     audit.record("admin.language_updated", actor=actor, object_type="language", object_id=body.code, ip=client_ip(request))
     return S.LanguageOut(code=row.code, display_name=row.display_name, script=row.script)
+
+
+@router.put("/language-directions/validation", response_model=S.AdminDirectionOut)
+def put_validation(body: S.DirectionValidationPut, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """Record the outcome of the Stage-2 human evaluation. It does not change availability by itself."""
+    row = db.get(LanguageDirection, (_n(body.source_code), _n(body.target_code)))
+    if row is None:
+        raise not_found("Language direction")
+    row.validation_status, row.updated_by = body.validation_status, actor.id
+    if body.note:
+        row.review_note = body.note
+    db.commit()
+    audit.record("admin.direction_validation", actor=actor, object_type="language_direction", details={"status": body.validation_status},
+                 ip=client_ip(request))
+    return _admin_direction(row)
+
+
+@router.post("/languages/enable-pilot")
+def enable_pilot(body: S.PilotEnableIn, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """Open technically verified English<->X directions for CONTROLLED TESTING only (never production)."""
+    changed = languages_service.enable_pilot_directions(db, [_n(c) for c in body.codes] if body.codes is not None else None, actor.id)
+    audit.record("admin.pilot_languages_enabled", actor=actor, object_type="language_direction", details={"directions": changed}, ip=client_ip(request))
+    return {"directions_enabled": changed}
+
+
+@router.post("/language-directions/test", response_model=S.DirectionTestOut)
+def test_direction(body: S.DirectionTestIn, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """Stage-1 check of one direction (works before it is enabled). Records the result; never reveals which engine answered."""
+    from ..models.gateway import ModelGateway, QuotaExceeded, TranslationUnavailable
+    from ..providers.base import degenerate_flag
+
+    src, tgt = _n(body.source_code), _n(body.target_code)
+    row = db.get(LanguageDirection, (src, tgt))
+    if row is None:
+        raise not_found("Language direction")
+    project = db.execute(select(Project).where(Project.pilot_opt_in.is_(True), Project.allow_external_processing.is_(False))
+                         .order_by(Project.created_at)).scalars().first()
+    if project is None:
+        raise ApiError(409, "no_test_project", "Create a pilot project to run language checks.")
+    try:
+        result = ModelGateway().translate(db, project, src, tgt, body.text, user_id=actor.id, technical_test=True)
+        out, flag = result.text, degenerate_flag(result.text, body.text)
+        status = "degraded" if flag else "passed"
+    except (TranslationUnavailable, QuotaExceeded):
+        out, flag, status = "", "unavailable", "failed"
+    row.technical_status, row.technical_checked_at = status, datetime.now(timezone.utc)
+    row.technical_detail = {"flag": flag, "probe": "admin check"}
+    db.commit()
+    audit.record("admin.direction_tested", actor=actor, object_type="language_direction", details={"status": status}, ip=client_ip(request))
+    return S.DirectionTestOut(source_code=src, target_code=tgt, output=out, flag=flag, technical_status=status)
+
+
+@router.get("/models/language-codes")
+def engine_language_codes(actor: User = Depends(engine_read), db: Session = Depends(get_db)):
+    """ENGINE-PROTECTED: each language's engine-specific token. Only users with engine-details permission may read this."""
+    return [{"code": l.code, "model_codes": l.model_codes} for l in db.execute(select(Language).order_by(Language.code)).scalars()]
 
 
 # ------------------------------------------------------------------ audit

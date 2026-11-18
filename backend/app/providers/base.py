@@ -145,3 +145,23 @@ class InferenceServiceAdapter(ProviderAdapter):
             return True
         except ProviderError:
             return False
+
+
+def degenerate_flag(output: str, source: str):
+    """Cheap sanity check on a translation: returns echoes_input / repetition_loop / runaway_length / empty, or None."""
+    import zlib
+
+    t = (output or "").strip()
+    if not t:
+        return "empty"
+    if t.casefold() == source.strip().casefold():
+        return "echoes_input"
+    raw = t.encode()
+    if len(raw) > 40 and len(zlib.compress(raw)) / len(raw) < 0.22:
+        return "repetition_loop"
+    words = t.split()
+    if len(words) >= 6 and len(set(words)) / len(words) < 0.25:
+        return "repetition_loop"
+    if len(t) > 12 * max(len(source), 1):
+        return "runaway_length"
+    return None

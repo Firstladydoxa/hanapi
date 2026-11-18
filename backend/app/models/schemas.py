@@ -63,6 +63,17 @@ class LanguageOut(Public):
     code: str
     display_name: str
     script: Optional[str] = None
+    native_name: Optional[str] = None
+
+
+class LanguageSupportOut(Public):
+    code: str
+    name: str
+    native_name: Optional[str] = None
+    script: Optional[str] = None
+    tier: Tier
+    availability: Literal["enabled", "enabled_with_review", "controlled_testing", "not_enabled"]
+    reviewed: bool = False
 
 
 class DirectionOut(Public):
@@ -327,6 +338,8 @@ class ChatRequest(Req):
     conversation_id: Optional[str] = Field(default=None, max_length=64)
     source_language: Optional[LangCode] = None
     target_language: Optional[LangCode] = None
+    # Optional: the ONE translation/segment the translator is asking about. Only this item is shared with HAN as context.
+    context_translation_id: Optional[str] = Field(default=None, max_length=64)
 
     @field_validator("source_language", "target_language")
     @classmethod
@@ -337,6 +350,14 @@ class ChatRequest(Req):
 class Clarification(Public):
     question: str
     field: str
+
+
+class SourceRef(Public):
+    """A TNI knowledge source an answer was grounded in (visible only to users authorised for that document)."""
+
+    title: str
+    category: str
+    version: int
 
 
 class ChatAction(Public):
@@ -350,6 +371,68 @@ class ChatResponse(Public):
     translation: Optional[TranslateResponse] = None
     clarification: Optional[Clarification] = None
     actions: List[ChatAction] = []
+    # additive fields (older clients ignore them)
+    sources: List[SourceRef] = []
+    message_id: Optional[str] = None
+    title: Optional[str] = None
+
+
+# ---------------------------------------------------------------- persistent conversations
+ConversationStatus = Literal["active", "archived"]
+
+
+class ConversationCreate(Req):
+    project_id: Optional[str] = Field(default=None, max_length=64)
+    title: Optional[str] = Field(default=None, max_length=200)
+
+
+class ConversationPatch(Req):
+    title: Optional[Annotated[str, StringConstraints(min_length=1, max_length=200)]] = None
+    status: Optional[ConversationStatus] = None
+
+
+class MessageIn(Req):
+    message: str = Field(min_length=1, max_length=20_000)
+    source_language: Optional[LangCode] = None
+    target_language: Optional[LangCode] = None
+    context_translation_id: Optional[str] = Field(default=None, max_length=64)
+
+
+class MessageOut(Public):
+    id: str
+    seq: int
+    role: Literal["user", "assistant"]
+    content: str
+    kind: str = "text"  # greeting | text | translation | clarification | answer
+    created_at: datetime
+    translation: Optional[TranslateResponse] = None
+    clarification: Optional[Clarification] = None
+    actions: List[ChatAction] = []
+    sources: List[SourceRef] = []
+
+
+class ConversationOut(Public):
+    id: str
+    project_id: Optional[str] = None
+    project_name: Optional[str] = None
+    title: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    last_message_at: Optional[datetime] = None
+    message_count: int = 0
+    preview: Optional[str] = None
+
+
+class ConversationDetail(ConversationOut):
+    messages: List[MessageOut]
+    has_more_before: bool = False
+    starters: List[str] = []
+
+
+class MessagesPage(Public):
+    messages: List[MessageOut]
+    has_more_before: bool
 
 
 # ---------------------------------------------------------------- admin (non-engine)
@@ -530,3 +613,35 @@ class AuditEventOut(Public):
 class ErrorBody(BaseModel):
     code: str
     message: str
+
+
+class AdminDirectionOut(DirectionOut):
+    technical_status: str = "untested"
+    technical_checked_at: Optional[datetime] = None
+    technical_detail: Optional[Dict[str, Any]] = None
+    validation_status: str = "pending"
+
+
+class DirectionValidationPut(Req):
+    source_code: LangCode
+    target_code: LangCode
+    validation_status: Literal["pending", "in_review", "validated", "rejected"]
+    note: Optional[str] = Field(default=None, max_length=2000)
+
+
+class PilotEnableIn(Req):
+    codes: Optional[List[Annotated[str, StringConstraints(max_length=16)]]] = Field(default=None, max_length=500)
+
+
+class DirectionTestIn(Req):
+    source_code: LangCode
+    target_code: LangCode
+    text: Annotated[str, StringConstraints(min_length=1, max_length=500)] = "Good morning, everyone."
+
+
+class DirectionTestOut(Public):
+    source_code: str
+    target_code: str
+    output: str
+    flag: Optional[str] = None
+    technical_status: str

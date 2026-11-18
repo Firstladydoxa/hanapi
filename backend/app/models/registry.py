@@ -32,6 +32,14 @@ DEFAULT_MODELS: List[Dict[str, Any]] = [
     dict(key="cloud-translation-v2", provider="google", model_name="Cloud Translation Basic v2", license="commercial API terms",
          runtime="external API", is_external=True, max_chars=5000, cost_per_1k_chars=0.02, avg_latency_ms=400, priority=50,
          notes="External processor: only for projects with allow_external_processing."),
+    dict(key="han-chat-qwen2.5-1.5b", provider="llamacpp", model_name="Qwen/Qwen2.5-1.5B-Instruct (GGUF Q4_K_M)", capability="chat",
+         license="Apache-2.0", license_cleared=True, license_evidence="Model card states Apache-2.0 (verified at download).",
+         runtime="local assistant service (llama.cpp, CPU)", enabled=True, deployment_status="deployed", max_chars=24000, avg_latency_ms=6000,
+         priority=100, notes="Conversational help only; it never produces translations and is not a source of TNI policy."),
+    dict(key="han-embed-e5-small", provider="transformers", model_name="intfloat/multilingual-e5-small", capability="embedding",
+         license="MIT", license_cleared=True, license_evidence="Model card states MIT (verified at download).",
+         runtime="local assistant service (transformers, CPU)", enabled=True, deployment_status="deployed", max_chars=2000, avg_latency_ms=150,
+         priority=100, notes="Embeddings for knowledge-base retrieval (384 dimensions)."),
 ]
 
 MOCK_MODEL = dict(

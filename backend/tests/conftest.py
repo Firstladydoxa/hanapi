@@ -147,6 +147,9 @@ class Session:
     def put(self, url, json=None, csrf=True, **kw):
         return self.client.put(url, json=json, headers=self._h(csrf), **kw)
 
+    def delete(self, url, csrf=True, **kw):
+        return self.client.delete(url, headers=self._h(csrf), **kw)
+
     def patch(self, url, json=None, csrf=True, **kw):
         return self.client.patch(url, json=json, headers=self._h(csrf), **kw)
 

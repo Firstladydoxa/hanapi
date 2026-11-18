@@ -7,6 +7,9 @@ cards before a direction is promoted (see docs: language readiness).
 """
 from __future__ import annotations
 
+import json
+from functools import lru_cache
+from pathlib import Path
 from typing import Dict, Optional
 
 # FLORES-200 codes used by NLLB-family models.
@@ -32,13 +35,27 @@ AFRINLLB_CODES = {
     "ti", "sn", "st", "tn", "ny", "mg",
 }
 
-# MADLAD-400 uses short ISO codes in the `<2xx>` target prefix. Exceptions mapped explicitly.
-MADLAD_EXCEPTIONS: Dict[str, str] = {"zh-hant": "zh_Hant", "pt-br": "pt", "tl": "fil", "he": "iw"}
-MADLAD_SUPPORTED = {
-    "en", "de", "fr", "es", "pt", "it", "nl", "pl", "ru", "uk", "tr", "ar", "he", "fa", "hi", "bn", "ur", "ta",
-    "th", "vi", "id", "ms", "tl", "zh", "zh-hant", "ja", "ko", "sw", "yo", "ha", "ig", "am", "zu", "xh", "af",
-    "so", "rw", "ln", "lg", "wo", "om", "ti", "sn", "st", "tn", "ny", "mg", "qu", "gn", "ay",
-}
+# MADLAD-400: the supported `<2xx>` tokens are read from the checkpoint itself (app/data/madlad_languages.json, produced by
+# scripts/language_audit.py + scripts/build_language_data.py), never typed by hand. HAN codes are lower-case; aliases map the few
+# HAN/ISO codes that differ from the checkpoint's token (tl -> fil, nb -> no, zh-hant -> zh_Hant ...).
+_DATA = Path(__file__).resolve().parents[1] / "data" / "madlad_languages.json"
+
+
+@lru_cache(maxsize=1)
+def madlad_table() -> Dict[str, str]:
+    """HAN code (lower-case) -> the exact MADLAD target token."""
+    d = json.loads(_DATA.read_text())
+    table = {t: t for t in d["plain"]}
+    table.update({v.lower().replace("_", "-"): v for v in d["variants"] if "_" in v and v[0].islower()})
+    table.update(d["aliases"])
+    return table
+
+
+def madlad_token(code: str) -> Optional[str]:
+    return madlad_table().get(code.lower())
+
+
+MADLAD_SUPPORTED = frozenset(madlad_table())
 
 GOOGLE_EXCEPTIONS: Dict[str, str] = {
     "zh": "zh-CN", "zh-hans": "zh-CN", "zh-hant": "zh-TW", "tl": "fil", "he": "iw", "pt-br": "pt", "nb": "no",
