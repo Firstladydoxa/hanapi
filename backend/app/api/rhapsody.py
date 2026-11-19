@@ -198,8 +198,6 @@ def get_edition(edition_id: str, user: User = Depends(get_current_user), db: Ses
 @router.post("/editions/{edition_id}/sources", status_code=201)
 async def upload_source(edition_id: str, request: Request, file: UploadFile = File(...), actor: User = Depends(admin_user), db: Session = Depends(get_db)):
     edition = _get_edition(db, edition_id)
-    if edition.status == "active":
-        raise ApiError(409, "edition_active", "An active edition is immutable. Create a new draft edition or master version.")
     filename = Path(file.filename or "source").name
     ext = Path(filename).suffix.lower()
     fmt = ALLOWED_EXTENSIONS.get(ext)
@@ -242,8 +240,6 @@ async def upload_source(edition_id: str, request: Request, file: UploadFile = Fi
 @router.post("/editions/{edition_id}/ingest")
 def ingest_source(edition_id: str, request: Request, source_file_id: str = Form(...), actor: User = Depends(admin_user), db: Session = Depends(get_db)):
     edition = _get_edition(db, edition_id)
-    if edition.status == "active":
-        raise ApiError(409, "edition_active", "An active edition is immutable.")
     source = db.get(RhapsodySourceFile, parse_uuid(source_file_id, "source file"))
     if source is None or source.edition_id != edition.id:
         raise not_found("source file")
@@ -282,7 +278,8 @@ def ingest_source(edition_id: str, request: Request, source_file_id: str = Form(
     for item in segments:
         db.add(RhapsodySegment(master_version_id=version.id, section_id=section_ids[item["section_key"]], stable_key=item["stable_key"],
             source_text=item["source_text"], source_markup=item.get("source_markup"), sequence=item["sequence"], metadata_json=item.get("metadata", {})))
-    edition.status = "ready"
+    if edition.active_master_version_id is None:
+        edition.status = "ready"
     db.commit()
     db.refresh(version)
     audit.record("rhapsody.master_ingested", actor=actor, object_type="rhapsody_master_version", object_id=version.id,
