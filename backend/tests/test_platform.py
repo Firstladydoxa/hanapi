@@ -163,8 +163,6 @@ def test_chat_asks_one_question_at_a_time_and_remembers(login, world):
     r = chat(alice, world, "Translate this into German")
     assert r["clarification"]["field"] == "text" and r["reply"] == "What text would you like me to translate?"
     r = chat(alice, world, "Thank you very much", r["conversation_id"])
-    assert r["clarification"]["field"] == "source_language"
-    r = chat(alice, world, "English", r["conversation_id"])
     assert r["translation"]["source_text"] == "Thank you very much" and r["translation"]["target_language"] == "de"
 
 

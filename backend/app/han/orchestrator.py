@@ -102,6 +102,10 @@ def respond(db: Session, user: User, conv: ChatConversation, project: Optional[P
         return _ask(db, conv, message, cid, R.ASK_TEXT, "text", {"text": text, "source": source, "target": target})
     if not target:
         return _ask(db, conv, message, cid, R.ASK_TARGET, "target_language", {"text": text, "source": source, "target": target})
+    if not source and text:
+        from . import detect
+
+        source = detect.detect_source(text, target)
     if not source:
         return _ask(db, conv, message, cid, R.ASK_SOURCE, "source_language", {"text": text, "source": source, "target": target})
     if len(text) > get_settings().max_text_chars:

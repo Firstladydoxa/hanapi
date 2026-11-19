@@ -79,6 +79,15 @@ def test_unapproved_knowledge_is_never_used_and_no_policy_is_invented(login, wor
     assert r["sources"] and r["sources"][0]["title"] == "Turnaround policy" and "five working days" in r["reply"]
 
 
+def test_source_language_is_detected_not_asked(login, world):
+    alice = login("alice")
+    cid = _new(alice, world)["id"]
+    r = _say(alice, cid, 'Translate "Good morning, how are you today?" into German')
+    assert r["translation"] and not r.get("clarification")
+    r = _say(alice, _new(alice, world)["id"], "Translate this into German: Hello")
+    assert r["clarification"]["field"] == "source_language"  # too short to detect confidently
+
+
 def test_knowledge_deactivation_audience_and_access(login, world):
     alice, tina, rita = login("alice"), login("tina"), login("rita")
     assert alice.get("/v1/admin/knowledge/documents").status_code == 403
