@@ -416,6 +416,8 @@ def save_segment(assignment_id: str, segment_id: str, body: SegmentSave, request
     if tr is None:
         raise not_found("segment")
     current = db.get(RhapsodyTranslationVersion, tr.current_version_id) if tr.current_version_id else None
+    if current is not None and body.expected_version_id is None:
+        raise ApiError(409, "version_conflict", "Reload the latest paragraph version before saving your changes.")
     if body.expected_version_id is not None and (current is None or str(current.id) != body.expected_version_id):
         raise ApiError(409, "version_conflict", "This paragraph has changed since you opened it. Reload the latest version before saving.")
     number = (current.version_number + 1) if current else 1
