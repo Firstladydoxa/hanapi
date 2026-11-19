@@ -221,7 +221,7 @@ async def upload_source(edition_id: str, request: Request, file: UploadFile = Fi
 
 
 @router.post("/editions/{edition_id}/ingest")
-def ingest_source(edition_id: str, source_file_id: str = Form(...), request: Request = None, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+def ingest_source(edition_id: str, request: Request, source_file_id: str = Form(...), actor: User = Depends(admin_user), db: Session = Depends(get_db)):
     edition = _get_edition(db, edition_id)
     if edition.status == "active":
         raise ApiError(409, "edition_active", "An active edition is immutable.")
