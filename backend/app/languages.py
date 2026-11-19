@@ -109,6 +109,24 @@ def enable_pilot_directions(db: Session, codes: Optional[List[str]] = None, user
     return n
 
 
+def enable_all_directions(db: Session, user_id=None) -> int:
+    """Open every English<->X direction that has not failed its technical check for CONTROLLED TESTING (experimental)."""
+    n = 0
+    rows = db.execute(select(LanguageDirection).where(LanguageDirection.readiness_tier == "unsupported",
+                                                      LanguageDirection.technical_status != "failed")).scalars().all()
+    for row in rows:
+        if PIVOT not in (row.source_code, row.target_code):
+            continue
+        row.readiness_tier = "experimental"
+        row.review_note = ("Controlled testing: the technical check showed weaker output for this language. Expect errors and review every draft carefully."
+                           if row.technical_status == "degraded" else
+                           "Controlled testing: not yet evaluated by TNI translators. Review every draft carefully.")
+        row.updated_by = user_id
+        n += 1
+    db.commit()
+    return n
+
+
 def language_support(db: Session) -> List[Dict]:
     """One row per active language with its best availability against the pivot, for the public Languages page."""
     rank = {"production": 3, "assisted": 2, "experimental": 1, "unsupported": 0}

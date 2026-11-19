@@ -30,6 +30,16 @@ def test_catalog_import_does_not_enable_anything(world):
         assert not any(d.readiness_tier == "production" and d.technical_status != "passed" for d in db.execute(select(LanguageDirection)).scalars())
 
 
+def test_enable_all_opens_everything_except_failed_and_never_production(world):
+    _seed()
+    with SessionLocal() as db:
+        assert languages.enable_all_directions(db) > 300
+        rows = db.execute(select(LanguageDirection)).scalars().all()
+        assert not any(d.readiness_tier == "unsupported" and d.technical_status != "failed" for d in rows)
+        assert db.get(LanguageDirection, ("en", "de")).readiness_tier == "assisted"
+        assert not any(d.readiness_tier == "production" for d in rows if d.technical_status != "passed")
+
+
 def test_public_lists_hide_unsupported_and_engine_codes(world):
     _seed()
     alice = Session().login("alice@example.test")

@@ -60,12 +60,14 @@ def reset_password(email: str) -> int:
 
 
 def maintenance(cmd: str) -> int:
-    from . import knowledge
+    from . import knowledge, languages
     from .han import conversations
 
     with SessionLocal() as db:
         if cmd == "purge-conversations":
             print(f"purged {conversations.purge_deleted(db)} conversation(s)")
+        elif cmd == "enable-all-languages":
+            print(f"opened {languages.enable_all_directions(db)} direction(s) for controlled testing")
         elif cmd == "seed-knowledge":
             print(knowledge.seed_platform_guide(db))
         else:
@@ -83,10 +85,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     r = sub.add_parser("reset-password")
     r.add_argument("email")
     sub.add_parser("purge-conversations", help="permanently remove conversations deleted longer ago than the retention period")
+    sub.add_parser("enable-all-languages", help="open every English<->X direction (not failed) for controlled testing")
     sub.add_parser("seed-knowledge", help="load and index the built-in HAN platform guide")
     sub.add_parser("reindex-knowledge", help="compute missing embeddings for approved knowledge")
     args = ap.parse_args(argv)
-    if args.cmd in ("purge-conversations", "seed-knowledge", "reindex-knowledge"):
+    if args.cmd in ("purge-conversations", "seed-knowledge", "reindex-knowledge", "enable-all-languages"):
         return maintenance(args.cmd)
     return add_users(args.project, args.role, args.emails) if args.cmd == "add-users" else reset_password(args.email)
 
