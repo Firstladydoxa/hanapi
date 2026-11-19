@@ -22,7 +22,7 @@ from .admin import admin_read, admin_user
 
 router = APIRouter(prefix="/v1/admin/knowledge", tags=["knowledge"])
 MAX_UPLOAD = 5 * 1024 * 1024
-ROLES = {"translator", "reviewer", "project_manager", "tni_admin", "technical_admin", "auditor"}
+ROLES = {"translator", "reviewer", "project_manager", "team_leader", "tni_admin", "technical_admin", "auditor"}
 
 
 class DocIn(S.Req):

@@ -29,7 +29,7 @@ from ..database import Base
 
 JSONType = JSON().with_variant(JSONB(), "postgresql")
 
-USER_ROLES = ("translator", "reviewer", "project_manager", "tni_admin", "technical_admin", "auditor")
+USER_ROLES = ("translator", "reviewer", "project_manager", "team_leader", "tni_admin", "technical_admin", "auditor")
 MEMBER_ROLES = ("translator", "reviewer", "project_manager")
 READINESS_TIERS = ("production", "assisted", "experimental", "unsupported")
 SEGMENT_STATUSES = ("not_started", "draft", "in_review", "approved", "rejected", "needs_attention")
@@ -55,7 +55,7 @@ class User(Base):
     created_at: Mapped[datetime] = _now()
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     __table_args__ = (
-        CheckConstraint("role in ('translator','reviewer','project_manager','tni_admin','technical_admin','auditor')", name="ck_users_role"),
+        CheckConstraint("role in ('translator','reviewer','project_manager','team_leader','tni_admin','technical_admin','auditor')", name="ck_users_role"),
         CheckConstraint("status in ('active','disabled')", name="ck_users_status"),
     )
 
@@ -408,7 +408,7 @@ class ChatMessage(Base):
     __table_args__ = (UniqueConstraint("conversation_id", "seq", name="uq_message_seq"),)
 
 
-KNOWLEDGE_CATEGORIES = ("institutional", "guidelines", "terminology", "language_resources", "platform", "faq")
+KNOWLEDGE_CATEGORIES = ("institutional", "guidelines", "terminology", "language_resources", "platform", "faq", "doctrine")
 
 
 class KnowledgeDocument(Base):
@@ -430,7 +430,7 @@ class KnowledgeDocument(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     __table_args__ = (
         CheckConstraint("status in ('draft','approved','inactive')", name="ck_knowledge_status"),
-        CheckConstraint("category in ('institutional','guidelines','terminology','language_resources','platform','faq')", name="ck_knowledge_category"),
+        CheckConstraint("category in ('institutional','guidelines','terminology','language_resources','platform','faq','doctrine')", name="ck_knowledge_category"),
     )
 
 
@@ -491,3 +491,35 @@ class LanguageReview(Base):
         CheckConstraint("severity in ('none','minor','major','critical')", name="ck_review_severity"),
         CheckConstraint("content_type in ('general','scripture','ministry','terminology','other')", name="ck_review_content"),
     )
+
+
+class GlossaryEntry(Base):
+    """A frequently translated word, expression or sentence with its TNI-approved translation in one language (English source)."""
+
+    __tablename__ = "glossary_entries"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    language: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    source_text: Mapped[str] = mapped_column(Text, nullable=False)
+    source_key: Mapped[str] = mapped_column(String(64), nullable=False)  # hash of the normalised source text: exact lookup and uniqueness
+    target_text: Mapped[str] = mapped_column(Text, nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False, default="word")  # word | expression | sentence
+    notes: Mapped[Optional[str]] = mapped_column(Text)
+    created_by: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"))
+    updated_by: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = _now()
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    __table_args__ = (
+        UniqueConstraint("language", "source_key", name="uq_glossary_language_source"),
+        CheckConstraint("kind in ('word','expression','sentence')", name="ck_glossary_kind"),
+    )
+
+
+class GlossaryLead(Base):
+    """Assigns a team leader to the language glossaries they maintain."""
+
+    __tablename__ = "glossary_leads"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    language: Mapped[str] = mapped_column(String(16), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (UniqueConstraint("user_id", "language", name="uq_glossary_lead"),)

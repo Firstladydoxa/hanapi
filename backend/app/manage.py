@@ -88,6 +88,7 @@ def maintenance(cmd: str) -> int:
             print(f"opened {languages.enable_all_directions(db)} direction(s) for controlled testing")
         elif cmd == "seed-knowledge":
             print(knowledge.seed_platform_guide(db))
+            print(knowledge.seed_doctrine_reference(db))
         else:
             print(f"indexed {knowledge.reindex_missing_embeddings(db)} chunk(s)")
     return 0

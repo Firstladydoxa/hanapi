@@ -11,6 +11,7 @@ import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 from sqlalchemy import delete, func, select, text as sql
@@ -23,7 +24,7 @@ from .models.db import KNOWLEDGE_CATEGORIES, KnowledgeChunk, KnowledgeDocument, 
 
 ALLOWED_EXT = (".txt", ".md", ".markdown", ".docx", ".pdf")
 STOP = set("the a an of to in on for and or is are was were be do does did how what when where why which who can could should would i you we it this that "
-           "with from my your our about me please tell hi hello han tni".split())
+           "with from my your our about me please tell hi hello han tni definition define meaning according pastor chris teaching teachings explain".split())
 HEADING = re.compile(r"^(#{1,6}\s+.+|[A-Z][^\n.!?]{2,80})$")
 
 
@@ -208,6 +209,9 @@ def retrieve(db: Session, user: User, query: str, project_id: Optional[uuid.UUID
         if not _visible(doc, user, project_id, languages):
             return
         e = scored.setdefault(chunk.id, {"chunk": chunk, "doc": doc, "ver": ver, "score": 0.0})
+        if not e.get("titled") and chunk.heading and any(t in chunk.heading.lower() for t in terms):
+            e["titled"] = True
+            e["score"] += 0.03  # a passage whose heading names the concept is the best answer to "what is X?"
         e["score"] += weight / (60 + rank)
 
     if terms:
@@ -278,3 +282,19 @@ def seed_platform_guide(db: Session) -> str:
         approve_version(db, doc, v, None)
         return "platform guide updated"
     return "platform guide up to date"
+
+
+# ------------------------------------------------------------------ the shipped doctrine reference
+DOCTRINE_TITLE = "Pastor Chris Oyakhilome: Doctrinal Terminology and Teaching Reference (v0.1, approved)"
+DOCTRINE_FILE = Path(__file__).parent / "kb_content" / "pastor-chris-doctrine-reference-v0.1.md"
+
+
+def seed_doctrine_reference(db: Session) -> str:
+    """Load the first TNI doctrine reference once. Later versions are managed by administrators in the Knowledge base page."""
+    if db.execute(select(KnowledgeDocument.id).where(KnowledgeDocument.title == DOCTRINE_TITLE)).first() is not None:
+        return "doctrine reference already present"
+    text = DOCTRINE_FILE.read_text(encoding="utf-8")
+    doc = create_document(db, None, title=DOCTRINE_TITLE, category="doctrine", text=text, filename=DOCTRINE_FILE.name,  # type: ignore[arg-type]
+                          note="v0.1 approved by TNI for use by HAN")
+    version = db.execute(select(KnowledgeVersion).where(KnowledgeVersion.document_id == doc.id)).scalar_one()
+    return f"doctrine reference loaded ({approve_version(db, doc, version, None)} passages)"

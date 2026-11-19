@@ -1,0 +1,799 @@
+{
+  "collection": "pastor-chris-doctrine",
+  "version": "0.1-draft",
+  "schema": "TNI terminology record (spec §9.2) — source-language definitions only; target_term intentionally null",
+  "note": "Entries are DRAFT until approved by a TNI doctrinal reviewer. No target-language terms are supplied; HAN must not invent them.",
+  "terms": [
+    {
+      "source_term": "righteousness",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "God's own rightness given to the believer as a gift at the New Birth; received, not earned; the same for every believer and does not increase.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Distinct from 'right living' (its expression) and from 'justification' (the legal declaration). Verbs used: imparted, given, bestowed, received.",
+      "forbidden_alternatives_note": "Do not render as mere moral uprightness, social justice, or something attained/grown.",
+      "scripture_refs": [
+        "Rom 3:21-26",
+        "Rom 5:17",
+        "2 Cor 5:21",
+        "Phil 3:9"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jun 1, Jun 2, Jul 21, Sep 26, Oct 11, 16, 17, 22, 25; May 7"
+      ],
+      "requires_doctrinal_review": true,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "right living",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "The expression of the righteous nature; result of righteousness, not the means to it.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Always contrasted with 'righteousness'.",
+      "forbidden_alternatives_note": "Do not merge with 'righteousness'.",
+      "scripture_refs": [
+        "2 Cor 5:21",
+        "Eph 2:8-9"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Oct 22"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "righteousness-consciousness",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Conscious awareness of one's settled right standing with God, giving boldness without guilt, condemnation or inferiority.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "'Consciousness' means awareness, not conscience.",
+      "forbidden_alternatives_note": "Do not translate with a word meaning only 'conscience'.",
+      "scripture_refs": [
+        "Heb 5:13"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Oct 16, Sep 26"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "justification",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "God's legal declaration that the believer is righteous / not guilty (acquittal); results in peace with God.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Court-room sense; linked to Christ's resurrection (Rom 4:25).",
+      "forbidden_alternatives_note": "Do not render as 'being forgiven' only.",
+      "scripture_refs": [
+        "Rom 3:24-26",
+        "Rom 4:25",
+        "Rom 5:1"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Sep 30, Oct 17"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "Holy Spirit",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "A divine Person and God Himself, one with the Father and the Son; lives in the believer and is united ('mingled') with the believer's spirit.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Capitalised; personal pronoun; contrast with the human spirit.",
+      "forbidden_alternatives_note": "Do not use words for 'force', 'influence', 'energy' or 'junior' God.",
+      "scripture_refs": [
+        "John 14:16-17",
+        "John 16:13",
+        "1 Cor 6:17",
+        "Acts 5:3-4"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 3, 5, 6; Jun 24; Sep 11, 21"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "anointing",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "The Holy Spirit in the believer; there is no separate or higher 'extra anointing' to pursue.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Teaching emphasises activating what is already received.",
+      "forbidden_alternatives_note": "Do not imply levels of anointing.",
+      "scripture_refs": [
+        "1 John 2:20",
+        "1 John 2:27"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities May 2, May 9"
+      ],
+      "requires_doctrinal_review": true,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "filled with the Spirit",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Continuous, ongoing filling (Greek sense) — a way of life, not an occasional experience.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Eph 5:18 explained from the Greek.",
+      "forbidden_alternatives_note": "Do not render as a one-time event.",
+      "scripture_refs": [
+        "Eph 5:18"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Sep 12, Nov 17"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "Word of God",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "God's Word carries His life (spirit and life); seed, food, environment and instruction manual for the believer; also a title of Jesus, the living Word.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Capitalise 'Word'.",
+      "forbidden_alternatives_note": "Do not reduce to 'information' or 'message'.",
+      "scripture_refs": [
+        "John 1:1",
+        "John 6:63",
+        "1 Pet 1:23",
+        "Josh 1:8"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 8, 4; Jun 3; Sep 20, 27; Oct 28"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "truth",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Integrity/honesty that stands on its own; God's Word; the revelation of God's reality in Christ.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "'Grace and truth' (John 1:17) is a fixed pair.",
+      "forbidden_alternatives_note": "Do not split the pair.",
+      "scripture_refs": [
+        "John 1:17",
+        "John 8:32",
+        "John 17:17"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities May 1, Jul 26, Oct 12"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "grace",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Divine favour — God's influence on a life; in Christ, His loving disposition expressed in salvation. Can increase; all-promoting.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Hebrew chen; Greek lambano for receiving it. Contrast: righteousness cannot grow, grace can.",
+      "forbidden_alternatives_note": "Do not equate with mercy or with pardon only.",
+      "scripture_refs": [
+        "Rom 5:17",
+        "Rom 5:20-21",
+        "James 4:6",
+        "2 Pet 1:2",
+        "Heb 4:16"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities May 7, 29; Jul 26, 27; Oct 1, 12, 24"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "mercy",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Already obtained by the believer; the Old Testament hesed — covenant kindness not based on merit, flowing from greater to lesser.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Not something the believer begs for.",
+      "forbidden_alternatives_note": "Do not render hesed as pity only.",
+      "scripture_refs": [
+        "1 Pet 2:10",
+        "Heb 4:16",
+        "2 Sam 9"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Oct 1, May 29, May 31"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "kindness of God",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "David's term for covenant kindness shown to one who has no claim (Mephibosheth).",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Fixed phrase.",
+      "forbidden_alternatives_note": "",
+      "scripture_refs": [
+        "2 Sam 9:3"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities May 31"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "benevolence",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "God's benefaction — His constant readiness to do the believer good; no qualification required.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Do not render as 'charity'.",
+      "scripture_refs": [
+        "Ps 145:9"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jul 30"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "love (God's love)",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Jesus is the true definition of God's love (agape) — love in human flesh.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Human definitions do not decide what God's love is.",
+      "forbidden_alternatives_note": "",
+      "scripture_refs": [
+        "1 John 4:8",
+        "John 1:14"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities May 12"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "compassion",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "NO REFERENCE ON FILE: the word does not occur in the six editions reviewed.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "HAN must not invent a definition; see mercy, kindness of God, benevolence, love.",
+      "forbidden_alternatives_note": "",
+      "scripture_refs": [],
+      "source_refs": [
+        "Rhapsody of Realities (none)"
+      ],
+      "requires_doctrinal_review": true,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "wisdom",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Christ made wisdom to the believer; divine wisdom indwelling the spirit, giving discernment; can grow; distinct from human reasoning.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Do not render as 'cleverness' or 'intelligence'.",
+      "scripture_refs": [
+        "1 Cor 1:30",
+        "1 Cor 2:15",
+        "Col 3:16"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 19, 25; Oct 7; May 29"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "knowledge (of God)",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Experiential, relational knowing of God, of one's identity in Christ, and of the Word; strength of faith is rooted in it.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Do not render as information only.",
+      "scripture_refs": [
+        "Dan 11:32",
+        "Col 1:10",
+        "2 Pet 3:18",
+        "1 John 5:13"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 16, Jul 5, Sep 20"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "consciousness",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Conscious awareness of a truth already settled in Christ (e.g. consciousness of the indwelling Spirit, of victory).",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "A signature term (~116 uses).",
+      "forbidden_alternatives_note": "Do not confuse with 'conscience'.",
+      "scripture_refs": [],
+      "source_refs": [
+        "Rhapsody of Realities Nov 1, 9, 20; Sep 26; Oct 16"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "new creation / new creature",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "The born-again believer: born of God, with God's life and nature; traced to Christ not ancestry.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Keep consistent across 2 Cor 5:17 quotations.",
+      "forbidden_alternatives_note": "Do not render as 'reformed' or 'converted to a religion'.",
+      "scripture_refs": [
+        "2 Cor 5:17",
+        "1 Pet 1:23",
+        "Eph 2:10"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 26, Jul 9, Oct 30, Sep 21"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "New Birth / born again",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Receiving God's life and nature; being immersed into Christ by the Holy Spirit; not joining a church or religion.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "'Immersed' is the author's wording for 1 Cor 12:13 (not water baptism).",
+      "forbidden_alternatives_note": "",
+      "scripture_refs": [
+        "1 Cor 12:13",
+        "John 3:5-6"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 2, Jul 9"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "divine nature / God-kind",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "From 2 Pet 1:4 (koinonoi theias physeos): associates/companions of the God-kind; fully of God's kind though not yet knowing all experientially.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "HIGH SENSITIVITY — qualifications must be kept.",
+      "forbidden_alternatives_note": "Do not soften or inflate; do not imply equality with God.",
+      "scripture_refs": [
+        "2 Pet 1:4",
+        "Ps 82:6"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Sep 21, Jul 9, Jul 5"
+      ],
+      "requires_doctrinal_review": true,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "spirit, soul and body",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Human being is a spirit, has a soul, lives in a body; temple model: body=outer court, soul=holy place, spirit=most holy place.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Keep three terms distinct.",
+      "forbidden_alternatives_note": "Do not merge spirit/soul/heart.",
+      "scripture_refs": [
+        "1 Thess 5:23",
+        "1 Cor 3:16"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jul 15, 16; Nov 9"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "faith",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Expectation of the fulfilment of God's Word and acting accordingly; founded on the Word, not feelings.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Do not render as intellectual belief only.",
+      "scripture_refs": [
+        "Rom 4:20-21",
+        "2 Cor 5:7",
+        "Heb 11:6"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities May 8, Nov 11, Jul 21"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "offering",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "A holy act of worship and testimony of faith before God; distinct from a donation.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Do not use fundraising language.",
+      "scripture_refs": [
+        "1 Chr 16:29",
+        "Prov 3:9-10"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 12"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "fellowship / communion (koinonia)",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Greek koinonia: fellowship, partnership and distribution; fellowship gives birth to partnership, which gives birth to distribution.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Three-part sense must be preserved.",
+      "forbidden_alternatives_note": "Do not reduce to ritual communion.",
+      "scripture_refs": [
+        "2 Cor 13:14",
+        "1 Cor 1:9",
+        "1 John 1:3"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 23, 29, 6"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "Holy Communion",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "A divine ordinance with real spiritual participation in Christ's body and blood; 'discerning the Lord's body' means recognising accurately, understanding spiritually and responding with faith.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "HIGH SENSITIVITY.",
+      "forbidden_alternatives_note": "Do not replace 'is' with 'represents'.",
+      "scripture_refs": [
+        "1 Cor 10:16",
+        "1 Cor 11:29",
+        "Matt 26:26"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Sep 6"
+      ],
+      "requires_doctrinal_review": true,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "Gospel",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "The power of God unto salvation; reveals the righteousness of God; the revelation of divine substitution.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Capitalise.",
+      "forbidden_alternatives_note": "",
+      "scripture_refs": [
+        "Rom 1:16-17",
+        "2 Cor 5:21"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jul 20, Jun 20, Sep 19"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "salvation",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Deliverance from spiritual death (separation from God) into union and fellowship; a present reality.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Do not imply annihilation for 'death'.",
+      "scripture_refs": [
+        "Ps 27:1",
+        "Rom 1:16",
+        "Isa 59:2"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jul 22, Nov 30"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "redemption",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Substitution and ransom in Christ; the author distinguishes redemption from the curse of the Law (for the Jews) from the Christian being reborn.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Nuanced.",
+      "forbidden_alternatives_note": "Do not harmonise the Oct 18 distinction.",
+      "scripture_refs": [
+        "Gal 3:13",
+        "Eph 2:12"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Oct 18, Nov 4"
+      ],
+      "requires_doctrinal_review": true,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "substitution",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Jesus took the believer's place (sin, judgment, separation) so the believer could take His (righteousness, life).",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "",
+      "scripture_refs": [
+        "2 Cor 5:21",
+        "Isa 53:6"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Sep 19, Nov 4, Nov 7"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "Church",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "The people of God, not a building; Christ's Body and fullness; built on Christ the rock.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "Capitalise for the universal Body.",
+      "forbidden_alternatives_note": "Do not render as 'building'.",
+      "scripture_refs": [
+        "Eph 1:22-23",
+        "Matt 16:18"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jul 13, Nov 22, May 22"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "Kingdom of God",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "A nation without borders; believers are citizens, ambassadors and reigning champions; seated with Christ above all principality.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "",
+      "scripture_refs": [
+        "Phil 3:20",
+        "Eph 2:6"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Nov 24, Nov 1"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "dominion",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Reigning in life through grace and righteousness; positive, spiritual authority.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Avoid political/oppressive connotations.",
+      "scripture_refs": [
+        "Rom 5:17"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jul 27, Nov 1"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    },
+    {
+      "source_term": "Satan (defeated foe)",
+      "source_language": "en",
+      "target_term": null,
+      "target_language": null,
+      "definition": "Has a structured kingdom but is defeated and under the believer's feet; not to be feared.",
+      "domain": "christian_doctrine/pastor_chris_oyakhilome",
+      "part_of_speech": "noun",
+      "usage_note": "",
+      "forbidden_alternatives_note": "Do not soften to 'limited'.",
+      "scripture_refs": [
+        "Col 2:15",
+        "Mark 3:27"
+      ],
+      "source_refs": [
+        "Rhapsody of Realities Jun 5, Nov 14"
+      ],
+      "requires_doctrinal_review": false,
+      "status": "draft_pending_review",
+      "owner": "TNI doctrinal reviewer (to be assigned)",
+      "project_scope": "TNI-Rhapsody-and-PCO-materials",
+      "approval_history": []
+    }
+  ]
+}

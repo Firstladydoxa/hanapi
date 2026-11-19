@@ -60,6 +60,9 @@ def respond(db: Session, user: User, conv: ChatConversation, project: Optional[P
         a = intelligence.answer(db, user, conv, project, message, intent, idx, state, (parsed.source, parsed.target), context_translation_id)
         return _finish(db, conv, message, reply(a.reply, sources=a.sources), state, a.kind)
 
+    if intelligence.classify(message) == "glossary":  # "give me the translation of X in German, per the glossary" is a lookup, not a draft request
+        return talk("glossary")
+
     if parsed.kind == "engine":
         return _finish(db, conv, message, reply(R.ENGINE_DEFLECTION), state)
     if parsed.kind == "approve":
@@ -80,7 +83,7 @@ def respond(db: Session, user: User, conv: ChatConversation, project: Optional[P
     elif parsed.kind == "translate":
         # a question about translation ("how do I translate X?") is conversation, not a request for a draft
         intent = intelligence.classify(message)
-        if not parsed.text and not pending and intent in ("language_support", "platform_help", "terminology", "tni_info", "grammar", "cultural", "review", "rewrite", "explain"):
+        if not parsed.text and not pending and intent in ("language_support", "platform_help", "terminology", "tni_info", "grammar", "cultural", "review", "rewrite", "explain", "doctrine"):
             return talk(intent)
         text = parsed.text or text
         source = parsed.source or source

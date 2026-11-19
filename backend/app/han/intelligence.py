@@ -22,10 +22,13 @@ from .intents import LanguageIndex
 from .system_prompt import build_system
 
 INTENTS = [  # order matters: the first match wins
+    ("glossary", r"\bglossar(y|ies)\b"),
     ("language_support", r"\b(which|what) languages\b|\bdo you (support|speak|handle)\b|\blanguages? (are )?(available|supported|enabled)\b|"
                          r"\bcan (you|han) translate (to|into|from)\b|\b(is|are) \w+ (supported|available)\b"),
     ("platform_help", r"\b(how (do|can|to|does)|where (do|can|is)|explain how)\b.*\b(han|platform|workspace|quick translate|chat|project|button|panel|history|"
                       r"upload|save|version|translation memory|use)\b|\bwhat can (you|han) do\b|\busing han\b|\bhow to use\b|\bhelp me use\b"),
+    ("doctrine", r"\bpastor chris|\boyakhilome\b|\bdoctrin|\brhapsody\b|\bdefinition of\b|\bdefine\b|\b(what is|what's|what are) (the )?(meaning|definition)\b|"
+                 r"\b(teach(es|ing|ings)?|says?)\b.*\babout\b"),
     ("terminology", r"\bterminolog|\bglossary\b|\bterm for\b|\b(word|term) for\b|\bhow (do|would) (i|you) (say|translate) (the )?(word|term)\b"),
     ("review", r"\b(review|proofread|check|critique|evaluate)\b.*\b(my|this|the)\b.*\b(translation|draft|text|version)\b|\bis this (translation|draft)\b"),
     ("rewrite", r"\b(more natural|natural(er| expression)|rephrase|reword|rewrite|polish|shorten|simplify|more (formal|informal|polite)|improve (this|my))\b"),
@@ -34,6 +37,7 @@ INTENTS = [  # order matters: the first match wins
     ("tni_info", r"\btni\b|\borgani[sz]ation|\bour (policy|policies|guidelines|standards|mission|vision|values)\b|\bstyle guide\b|\bguidelines?\b|"
                  r"\bpolic(y|ies)\b|\bstandards?\b|\bprocedure|\bturnaround|\bdeadline"),
     ("explain", r"\b(explain|difference between|what does .* mean|meaning of|why (is|does|do))\b"),
+    ("concept", r"^\W*(han\W+)?(what is|what's|what are|who is|tell me about)\b[^?]{1,60}\??\W*$"),  # a short "what is X?" may be a doctrine term
 ]
 NO_TNI_INFO = [
     "I don't have approved TNI information on that yet, so I won't guess. Please check with a TNI administrator, or ask them to add the document to HAN's knowledge base.",
@@ -52,6 +56,13 @@ GREETING_REPLIES = [
 ]
 UNVERIFIED_TERM = "\n\nNote: there is no approved TNI term for this, so please treat any suggestion as unverified and check it with a reviewer."
 TERM_FOUND = "The approved terminology for this project has:\n{lines}\n\nPlease use these terms in your translation."
+NO_DOCTRINE = [
+    "I don't have a reference on file for that in the TNI doctrine material, so I won't improvise a definition. A TNI doctrinal reviewer can confirm it, or the term can be added to the knowledge base.",
+    "That term isn't covered in the doctrine reference I have access to. Please check with a TNI doctrinal reviewer rather than rely on a guess from me.",
+]
+DOCTRINE_RULES = ("Answer ONLY from the TNI SOURCES, which summarise Pastor Chris Oyakhilome's teaching as used by TNI translators. State the meaning as the sources give it, "
+                  "mention the Rhapsody of Realities date or title they cite, and add the translation notes that matter. This is the APPROVED TNI doctrine reference, so begin the answer with \"According to the approved TNI doctrine reference:\"."
+                  " Do not invent a target-language term; for how to translate it, point to the approved glossary. Do not quote long passages.")
 GENERAL_NOTE = {
     "terminology": UNVERIFIED_TERM,
 }
@@ -182,6 +193,62 @@ def terminology_answer(db: Session, user: User, project: Optional[Project], mess
     return Answer(TERM_FOUND.format(lines="\n".join(lines[:6]))) if lines else None
 
 
+def _language_in(message: str, idx: LanguageIndex) -> Optional[str]:
+    """A non-English language named in the message, ignoring anything inside quotation marks."""
+    bare = re.sub(r"[\"“«].+?[\"”»]", " ", message)
+    best = None
+    for name in sorted(idx.by_name, key=len, reverse=True):
+        m = re.search(r"(?<![\w-])" + re.escape(name) + r"(?![\w-])", bare, re.I)
+        if m and idx.by_name[name] != "en" and (best is None or m.start() < best[0]):
+            best = (m.start(), idx.by_name[name])
+    return best[1] if best else None
+
+
+def _phrase_in(message: str) -> Optional[str]:
+    m = re.search(r"[\"“«](.+?)[\"”»]", message, re.S) or re.search(r"(?<![\w])['‘](.+?)['’](?![\w])", message, re.S)
+    if m and m.group(1).strip():
+        return m.group(1).strip()
+    m = re.search(r"\b(?:word|term|expression|phrase|sentence|idiom)\s+([^?]+?)(?=\s+(?:is|are|was|has|have|been|be|translated|translate|rendered|said|expressed|written|in|into|to|from|based|according|using|per)\b|[?.!]|$)", message, re.I)
+    return m.group(1).strip() if m else None
+
+
+def glossary_answer(db: Session, message: str, idx: LanguageIndex, state: Dict, req_langs, segment: Optional[Dict[str, str]]) -> Answer:
+    from .. import glossary
+    from ..models.db import Language
+
+    code = _language_in(message, idx) or req_langs[1] or (req_langs[0] if req_langs[0] not in (None, "en") else None) or state.get("tgt")
+    if not code and segment:
+        code = idx.resolve(segment.get("Target language"))
+    if code == "en":
+        code = None
+    if not code:
+        return Answer("Which language's glossary should I check? Tell me the language, for example: \"in Swahili\".", "clarification")
+    lang = db.get(Language, code)
+    name = lang.display_name if lang else code
+    ref = [S.SourceRef(title=f"TNI glossary: {name}", category="glossary", version=1)]
+    phrase = _phrase_in(message)
+    text = phrase or (segment or {}).get("Source text") or message
+    exact = glossary.get_exact(db, code, phrase) if phrase else None
+    if exact:
+        note = f"\n\nNote: {exact.notes}" if exact.notes else ""
+        return Answer(f"In the approved TNI {name} glossary, \"{exact.source_text}\" is translated as:\n\n{exact.target_text}{note}", "answer", ref)
+    found = glossary.find_in_text(db, code, text)
+    if found:
+        lines = "\n".join(f"- \"{e.source_text}\" → {e.target_text}" + (f" ({e.notes})" if e.notes else "") for e in found[:10])
+        lead = (f"The {name} glossary has no entry for the whole of \"{phrase}\", but it does have these parts:" if phrase and len(found) and
+                glossary.normalise(found[0].source_text) != glossary.normalise(phrase) else f"From the approved TNI {name} glossary:")
+        return Answer(f"{lead}\n{lines}\n\nPlease check them against your sentence; I haven't translated the rest from the glossary.", "answer", ref)
+    near = glossary.similar(db, code, phrase) if phrase else []
+    if near:
+        lines = "\n".join(f"- \"{e.source_text}\" → {e.target_text}" for e in near)
+        return Answer(f"The {name} glossary has no entry for \"{phrase}\" itself. These related entries exist:\n{lines}", "answer", ref)
+    what = f"\"{phrase}\"" if phrase else "that"
+    total, _ = glossary.search(db, code, limit=1)
+    if not total:
+        return Answer(f"The {name} glossary is empty so far, so I can't give an approved translation for {what}. Your language team leader can add it in the Glossary page.")
+    return Answer(f"There is no entry for {what} in the approved TNI {name} glossary, so I won't guess. Ask your language team leader to add it, or check the Glossary page.")
+
+
 def answer(db: Session, user: User, conv: ChatConversation, project: Optional[Project], message: str, intent: str, idx: LanguageIndex,
            state: Dict, req_langs=(None, None), context_translation_id: Optional[str] = None) -> Answer:
     n = _count(db, conv)
@@ -190,6 +257,19 @@ def answer(db: Session, user: User, conv: ChatConversation, project: Optional[Pr
 
     segment = _segment_context(db, user, context_translation_id)
     pid = project.id if project else None
+    if intent == "glossary":
+        return glossary_answer(db, message, idx, state, req_langs, segment)
+    if intent in ("doctrine", "concept", "explain"):
+        hits = knowledge.retrieve(db, user, message, pid, categories=["doctrine"])
+        if hits:
+            text = _ask_model(db, conv, project, message, hits, segment, True, DOCTRINE_RULES)
+            if text:
+                lead = "According to the approved TNI doctrine reference:"
+                text = text if text.lstrip().lower().startswith("according to the approved") else f"{lead}\n\n{text}"
+            return Answer(text or _excerpt(hits), "answer", _refs(hits))
+        if intent == "doctrine":
+            return Answer(_pick(NO_DOCTRINE, n))
+        intent = "general" if intent == "concept" else intent
     if intent == "terminology":
         term = terminology_answer(db, user, project, message, idx, state, req_langs)
         if term:

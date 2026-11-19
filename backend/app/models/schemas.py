@@ -24,7 +24,7 @@ def _norm_lang(v: str) -> str:
 LangCode = Annotated[str, StringConstraints(max_length=16)]
 Tier = Literal["production", "assisted", "experimental", "unsupported"]
 MemberRole = Literal["translator", "reviewer", "project_manager"]
-UserRole = Literal["translator", "reviewer", "project_manager", "tni_admin", "technical_admin", "auditor"]
+UserRole = Literal["translator", "reviewer", "project_manager", "team_leader", "tni_admin", "technical_admin", "auditor"]
 
 
 class Public(BaseModel):

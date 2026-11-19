@@ -132,6 +132,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         from . import knowledge
 
         print(knowledge.seed_platform_guide(db))
+        print(knowledge.seed_doctrine_reference(db))
         if args.expand_languages:
             print(f"directions opened for controlled testing: {languages.enable_pilot_directions(db)}")
         print(f"registry rows added: {seed_registry(db)} (all disabled until an administrator enables and licence-clears them)")
