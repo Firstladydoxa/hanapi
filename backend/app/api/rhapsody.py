@@ -24,7 +24,8 @@ from ..deps import client_ip, get_current_user
 from ..errors import ApiError, not_found
 from ..models.db import (
     Language, RhapsodyAssignment, RhapsodyEdition, RhapsodyMasterVersion,
-    RhapsodySegment, RhapsodySection, RhapsodySourceFile, RhapsodySegmentTranslation,\n    RhapsodyTranslationVersion, RhapsodyComment, RhapsodyReview, User,
+    RhapsodySegment, RhapsodySection, RhapsodySourceFile, RhapsodySegmentTranslation,
+    RhapsodyTranslationVersion, RhapsodyComment, RhapsodyReview, User,
 )
 from ..security.permissions import ADMIN_ROLES, parse_uuid, require_roles
 
@@ -45,7 +46,25 @@ class EditionCreate(BaseModel):
     title: Optional[str] = Field(default=None, max_length=200)
 
 
-class SegmentSave(BaseModel):\n    model_config = ConfigDict(extra="forbid")\n    target_text: str = Field(min_length=1, max_length=200000)\n    expected_version_id: Optional[str] = None\n\n\nclass ReviewIn(BaseModel):\n    model_config = ConfigDict(extra="forbid")\n    decision: str = Field(pattern="^(approved|changes_requested)$")\n    note: Optional[str] = Field(default=None, max_length=3000)\n\n\nclass CommentIn(BaseModel):\n    model_config = ConfigDict(extra="forbid")\n    body: str = Field(min_length=1, max_length=3000)\n    segment_id: Optional[str] = None\n\n\nclass AssignmentCreate(BaseModel):
+class SegmentSave(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target_text: str = Field(min_length=1, max_length=200000)
+    expected_version_id: Optional[str] = None
+
+
+class ReviewIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: str = Field(pattern="^(approved|changes_requested)$")
+    note: Optional[str] = Field(default=None, max_length=3000)
+
+
+class CommentIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    body: str = Field(min_length=1, max_length=3000)
+    segment_id: Optional[str] = None
+
+
+class AssignmentCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     master_version_id: str
     target_language: str = Field(min_length=2, max_length=16)
