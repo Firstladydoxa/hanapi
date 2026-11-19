@@ -223,3 +223,12 @@ See [docs/SPEC-COMPLIANCE.md](docs/SPEC-COMPLIANCE.md). Highlights: Docker artef
 the Google cloud adapter was never contacted and no translation quality evaluation has been done (the local MADLAD path was run for real); rate limiting is per-process; no MFA/password recovery;
 no document import/export beyond plain text; no formal security review, load test or backup/restore drill; model licences
 and provider data-processing terms must be verified by legal before use.
+
+
+## Rhapsody of Realities module
+
+The Rhapsody publication workflow is a native HAN API domain under `/v1/rhapsody` (reuses HAN auth, CSRF, roles, languages, PostgreSQL and audit). Apply Alembic migrations through `0009_rhapsody_drafting`. Set `HAN_RHAPSODY_STORAGE_DIR` to a persistent private volume outside the web root.
+
+- **Layout:** an administrator uploads the monthly English DOCX (and, only if it changed, the InDesign XLIFF template) and tells HAN, e.g. “Han, start the layout of Rhapsody for the month of November 2026 using the word document I uploaded”. HAN recognises the 30/31 articles (weekday/date checked), reuses the cover and introduction from the previous master with the month/year updated, builds the master, and the administrator reviews and activates it. URLs, e-mails and Bible-version codes are locked and not translated.
+- **Translation:** a translator says “Han, start the translation of Rhapsody in French for the month of November” (or uses the Rhapsody page). HAN drafts each paragraph in order of authority: approved TNI glossary, translation memory, then the model, protecting layout tags. Drafts are labelled `ai` and must be confirmed or edited before submission; proofreaders approve or request changes; the result can be exported to DOCX or printed to PDF.
+- **Not yet done:** theological retrieval during drafting, translation-memory feeding from approved issues, InDesign-compatible export and native PDF generation.

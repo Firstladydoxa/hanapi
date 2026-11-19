@@ -28,3 +28,7 @@ scripts/shots/
 # source documents and design archives supplied by TNI are not part of the code repository
 *.docx
 *.zip
+
+# Uploaded Rhapsody manuscripts and generated source artifacts
+var/rhapsody/
+backend/var/rhapsody/

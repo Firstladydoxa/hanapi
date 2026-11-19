@@ -9,7 +9,7 @@ import re
 from datetime import datetime
 from typing import Annotated, Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_serializer
 
 LANG_RE = re.compile(r"^[a-z]{2,3}(-[a-z0-9]{2,8})?$")
 
@@ -361,8 +361,14 @@ class SourceRef(Public):
 
 
 class ChatAction(Public):
-    type: Literal["open_in_workspace"]
-    translation_id: str
+    type: Literal["open_in_workspace", "open_rhapsody"]
+    translation_id: Optional[str] = None
+    path: Optional[str] = None
+    label: Optional[str] = None
+
+    @model_serializer(mode="wrap")
+    def _drop_empty(self, handler):
+        return {k: v for k, v in handler(self).items() if v is not None}
 
 
 class ChatResponse(Public):
