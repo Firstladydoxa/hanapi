@@ -325,9 +325,14 @@ def list_assignments(request: Request, user: User = Depends(get_current_user), d
             stmt = stmt.where(RhapsodyAssignment.reviewer_id == user.id)
         else:
             stmt = stmt.where(RhapsodyAssignment.translator_id == user.id)
-    return [{"id": str(a.id), "master_version_id": str(a.master_version_id), "target_language": a.target_language,
-             "translator_id": str(a.translator_id), "reviewer_id": str(a.reviewer_id) if a.reviewer_id else None,
-             "due_at": a.due_at, "status": a.status} for a in db.execute(stmt).scalars()]
+    output = []
+    for a in db.execute(stmt).scalars():
+        master = db.get(RhapsodyMasterVersion, a.master_version_id)
+        edition = db.get(RhapsodyEdition, master.edition_id) if master else None
+        output.append({"id": str(a.id), "master_version_id": str(a.master_version_id), "target_language": a.target_language,
+            "translator_id": str(a.translator_id), "reviewer_id": str(a.reviewer_id) if a.reviewer_id else None,
+            "due_at": a.due_at, "status": a.status, "edition_title": edition.title if edition else "Rhapsody edition"})
+    return output
 
 
 
