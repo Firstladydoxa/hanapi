@@ -301,6 +301,9 @@ def create_assignment(body: AssignmentCreate, request: Request, actor: User = De
     row = RhapsodyAssignment(master_version_id=master.id, target_language=lang, translator_id=translator.id, reviewer_id=reviewer_id,
         due_at=body.due_at, created_by=actor.id)
     db.add(row)
+    db.flush()
+    for segment in db.execute(select(RhapsodySegment).where(RhapsodySegment.master_version_id == master.id)).scalars():
+        db.add(RhapsodySegmentTranslation(assignment_id=row.id, segment_id=segment.id))
     try:
         db.commit()
     except IntegrityError:
