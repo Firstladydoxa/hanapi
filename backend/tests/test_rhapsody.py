@@ -20,9 +20,9 @@ def test_docx_parser_groups_day_headings_and_keeps_run_formatting():
 
     sections, segments = _parse_docx(stream.getvalue())
     assert [s["stable_key"] for s in sections] == ["front-matter", "day-1"]
-    assert len(segments) == 3
-    assert segments[2]["section_key"] == "day-1"
-    assert segments[2]["metadata"]["runs"][0]["bold"] is True
+    assert len(segments) == 4
+    assert segments[3]["section_key"] == "day-1"
+    assert segments[3]["metadata"]["runs"][0]["bold"] is True
 
 
 def test_xliff_parser_preserves_trans_unit_id_and_inline_markup():
