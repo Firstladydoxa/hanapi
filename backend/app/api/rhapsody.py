@@ -255,7 +255,19 @@ def ingest_source(edition_id: str, request: Request, source_file_id: str = Form(
         raise ApiError(422, "empty_source", "No non-empty paragraphs or translatable segments were found.")
     latest = db.execute(select(RhapsodyMasterVersion).where(RhapsodyMasterVersion.edition_id == edition.id).order_by(RhapsodyMasterVersion.version_number.desc())).scalars().first()
     version_number = (latest.version_number + 1) if latest else 1
-    validation = {"segment_count": len(segments), "section_count": len(sections), "warnings": [], "blocking_errors": []}
+    from calendar import monthrange
+    detected_days = [item.get("day_number") for item in sections if item.get("day_number") is not None]
+    expected_days = set(range(1, monthrange(edition.year, edition.month)[1] + 1))
+    missing_days = sorted(expected_days - set(detected_days))
+    duplicate_days = sorted({day for day in detected_days if detected_days.count(day) > 1})
+    validation_warnings = []
+    if not detected_days:
+        validation_warnings.append("No numbered daily article headings were detected; verify the monthly article structure manually.")
+    elif missing_days:
+        validation_warnings.append("Daily article headings missing: " + ", ".join(str(day) for day in missing_days))
+    if duplicate_days:
+        validation_warnings.append("Duplicate daily article headings detected: " + ", ".join(str(day) for day in duplicate_days))
+    validation = {"segment_count": len(segments), "section_count": len(sections), "warnings": validation_warnings, "blocking_errors": []}
     version = RhapsodyMasterVersion(edition_id=edition.id, version_number=version_number, source_file_id=source.id,
         structure={"sections": sections, "segments": segments, "source_format": source.format}, validation=validation, created_by=actor.id)
     db.add(version)
