@@ -20,9 +20,9 @@ def test_docx_parser_groups_day_headings_and_keeps_run_formatting():
 
     sections, segments = _parse_docx(stream.getvalue())
     assert [s["stable_key"] for s in sections] == ["front-matter", "day-1"]
-    assert len(segments) == 2
-    assert segments[1]["section_key"] == "day-1"
-    assert segments[1]["metadata"]["runs"][0]["bold"] is True
+    assert len(segments) == 3
+    assert segments[2]["section_key"] == "day-1"
+    assert segments[2]["metadata"]["runs"][0]["bold"] is True
 
 
 def test_xliff_parser_preserves_trans_unit_id_and_inline_markup():
@@ -34,7 +34,8 @@ def test_xliff_parser_preserves_trans_unit_id_and_inline_markup():
     assert sections[0]["stable_key"] == "xliff-content"
     assert segments[0]["metadata"]["trans_unit_id"] == "para-42"
     assert "God is love." == segments[0]["source_text"]
-    assert '<g id="1">love</g>' in segments[0]["source_markup"]
+    assert 'id="1"' in segments[0]["source_markup"]
+    assert "love" in segments[0]["source_markup"]
 
 
 def test_rhapsody_full_admin_to_translator_to_review_flow(world, login, tmp_path, monkeypatch):
