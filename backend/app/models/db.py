@@ -491,3 +491,96 @@ class LanguageReview(Base):
         CheckConstraint("severity in ('none','minor','major','critical')", name="ck_review_severity"),
         CheckConstraint("content_type in ('general','scripture','ministry','terminology','other')", name="ck_review_content"),
     )
+
+
+# ---------------------------------------------------------------- Rhapsody of Realities publication module
+class RhapsodyEdition(Base):
+    __tablename__ = "rhapsody_editions"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    month: Mapped[int] = mapped_column(Integer, nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
+    active_master_version_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True))
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    __table_args__ = (
+        UniqueConstraint("year", "month", name="uq_rhapsody_edition_period"),
+        CheckConstraint("month between 1 and 12", name="ck_rhapsody_month"),
+        CheckConstraint("year between 2000 and 2200", name="ck_rhapsody_year"),
+        CheckConstraint("status in ('draft','ready','active','archived')", name="ck_rhapsody_edition_status"),
+    )
+
+
+class RhapsodySourceFile(Base):
+    __tablename__ = "rhapsody_source_files"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    edition_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_editions.id", ondelete="CASCADE"), nullable=False, index=True)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    media_type: Mapped[str] = mapped_column(String(120), nullable=False)
+    format: Mapped[str] = mapped_column(String(12), nullable=False)
+    storage_key: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    byte_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    uploaded_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (CheckConstraint("format in ('docx','xliff')", name="ck_rhapsody_source_format"),)
+
+
+class RhapsodyMasterVersion(Base):
+    __tablename__ = "rhapsody_master_versions"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    edition_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_editions.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_file_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_source_files.id"), nullable=False)
+    structure: Mapped[Any] = mapped_column(JSONType, nullable=False)
+    validation: Mapped[Any] = mapped_column(JSONType, nullable=False, default=dict)
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    activated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (UniqueConstraint("edition_id", "version_number", name="uq_rhapsody_master_version"),)
+
+
+class RhapsodySection(Base):
+    __tablename__ = "rhapsody_sections"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    master_version_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_master_versions.id", ondelete="CASCADE"), nullable=False, index=True)
+    parent_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("rhapsody_sections.id", ondelete="CASCADE"))
+    stable_key: Mapped[str] = mapped_column(String(200), nullable=False)
+    section_type: Mapped[str] = mapped_column(String(40), nullable=False, default="content")
+    title: Mapped[Optional[str]] = mapped_column(String(500))
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    day_number: Mapped[Optional[int]] = mapped_column(Integer)
+    formatting: Mapped[Any] = mapped_column(JSONType, nullable=False, default=dict)
+    __table_args__ = (UniqueConstraint("master_version_id", "stable_key", name="uq_rhapsody_section_key"),)
+
+
+class RhapsodySegment(Base):
+    __tablename__ = "rhapsody_segments"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    master_version_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_master_versions.id", ondelete="CASCADE"), nullable=False, index=True)
+    section_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_sections.id", ondelete="CASCADE"), nullable=False, index=True)
+    stable_key: Mapped[str] = mapped_column(String(240), nullable=False)
+    source_text: Mapped[str] = mapped_column(Text, nullable=False)
+    source_markup: Mapped[Optional[str]] = mapped_column(Text)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    metadata_json: Mapped[Any] = mapped_column(JSONType, nullable=False, default=dict)
+    __table_args__ = (UniqueConstraint("master_version_id", "stable_key", name="uq_rhapsody_segment_key"),)
+
+
+class RhapsodyAssignment(Base):
+    __tablename__ = "rhapsody_assignments"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    master_version_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_master_versions.id"), nullable=False, index=True)
+    target_language: Mapped[str] = mapped_column(ForeignKey("languages.code"), nullable=False)
+    translator_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    reviewer_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"))
+    due_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="assigned")
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (
+        UniqueConstraint("master_version_id", "target_language", "translator_id", name="uq_rhapsody_assignment"),
+        CheckConstraint("status in ('assigned','in_progress','submitted','in_review','changes_requested','approved','published')", name="ck_rhapsody_assignment_status"),
+    )
