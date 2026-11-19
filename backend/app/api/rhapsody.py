@@ -287,6 +287,21 @@ def ingest_source(edition_id: str, request: Request, source_file_id: str = Form(
     return {"edition_id": str(edition.id), "master_version_id": str(version.id), "version_number": version_number, "validation": validation}
 
 
+@router.get("/editions/{edition_id}/masters/{master_version_id}")
+def get_master_preview(edition_id: str, master_version_id: str, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    edition = _get_edition(db, edition_id)
+    version = db.get(RhapsodyMasterVersion, parse_uuid(master_version_id, "master version"))
+    if version is None or version.edition_id != edition.id:
+        raise not_found("master version")
+    sections = list(db.execute(select(RhapsodySection).where(RhapsodySection.master_version_id == version.id).order_by(RhapsodySection.sequence)).scalars())
+    segments = list(db.execute(select(RhapsodySegment).where(RhapsodySegment.master_version_id == version.id).order_by(RhapsodySegment.sequence)).scalars())
+    return {
+        "id": str(version.id), "version_number": version.version_number, "validation": version.validation,
+        "sections": [{"id": str(s.id), "stable_key": s.stable_key, "type": s.section_type, "title": s.title, "sequence": s.sequence, "day_number": s.day_number} for s in sections],
+        "segments": [{"id": str(s.id), "stable_key": s.stable_key, "section_id": str(s.section_id), "source_text": s.source_text, "source_markup": s.source_markup, "sequence": s.sequence, "metadata": s.metadata_json} for s in segments],
+    }
+
+
 @router.post("/editions/{edition_id}/activate")
 def activate_master(edition_id: str, master_version_id: str, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
     edition = _get_edition(db, edition_id)
