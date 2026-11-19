@@ -90,6 +90,11 @@ def test_rhapsody_full_admin_to_translator_to_review_flow(world, login, tmp_path
         {"target_text": "Christ est notre vie."},
     )
     assert saved.status_code == 200, saved.text
+    stale = translator.put(
+        f"/v1/rhapsody/assignments/{assignment_id}/segments/{segment['id']}",
+        {"target_text": "stale edit", "expected_version_id": "00000000-0000-0000-0000-000000000000"},
+    )
+    assert stale.status_code == 409
     submitted = translator.post(f"/v1/rhapsody/assignments/{assignment_id}/submit", {})
     assert submitted.status_code == 200, submitted.text
 
