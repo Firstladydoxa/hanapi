@@ -33,7 +33,7 @@ ENGINE_PATH_PREFIXES = (
 CONTENT_KEYS = {
     "translated_text", "source_text", "target_text", "text", "context", "reply", "message", "definition", "usage_note",
     "comment", "change_note", "title", "question", "instructions", "review_note", "source_term", "target_term", "display_name",
-    "name", "client", "email", "style", "domain", "forbidden", "note", "span", "changes", "from", "to",
+    "name", "client", "email", "draft_text", "reviewer", "style", "domain", "forbidden", "note", "span", "changes", "from", "to",
     "content", "preview", "starters", "filename", "heading", "summary", "output", "excerpt", "native_name", "label", "prompt", "query", "q",
 }
 _TOKEN = re.compile(r"[a-z0-9][a-z0-9._/-]*")

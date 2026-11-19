@@ -46,6 +46,24 @@ def add_users(project_name: str, role: str, emails: List[str]) -> int:
     return 0
 
 
+def create_user(email: str, name: str, role: str, password: str, project_name: Optional[str]) -> int:
+    with SessionLocal() as db:
+        email = email.strip().lower()
+        if db.execute(select(User).where(func.lower(User.email) == email)).scalar_one_or_none():
+            print("user already exists (use reset-password)", file=sys.stderr)
+            return 2
+        user = User(email=email, display_name=name, role=role, password_hash=sec.hash_password(password))
+        db.add(user)
+        db.flush()
+        if project_name:
+            project = db.execute(select(Project).where(Project.name == project_name)).scalar_one_or_none()
+            if project is not None:
+                db.add(ProjectMember(project_id=project.id, user_id=user.id, role="reviewer", can_approve=True))
+        db.commit()
+        print(f"created {email} as {role}")
+    return 0
+
+
 def reset_password(email: str) -> int:
     with SessionLocal() as db:
         user = db.execute(select(User).where(func.lower(User.email) == email.strip().lower())).scalar_one_or_none()
@@ -84,6 +102,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     a.add_argument("emails", nargs="+")
     r = sub.add_parser("reset-password")
     r.add_argument("email")
+    c = sub.add_parser("create-user", help="create an account with a chosen password")
+    c.add_argument("email")
+    c.add_argument("--name", required=True)
+    c.add_argument("--role", choices=["translator", "reviewer", "project_manager", "tni_admin"], required=True)
+    c.add_argument("--password", required=True)
+    c.add_argument("--project")
     sub.add_parser("purge-conversations", help="permanently remove conversations deleted longer ago than the retention period")
     sub.add_parser("enable-all-languages", help="open every English<->X direction (not failed) for controlled testing")
     sub.add_parser("seed-knowledge", help="load and index the built-in HAN platform guide")
@@ -91,6 +115,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = ap.parse_args(argv)
     if args.cmd in ("purge-conversations", "seed-knowledge", "reindex-knowledge", "enable-all-languages"):
         return maintenance(args.cmd)
+    if args.cmd == "create-user":
+        return create_user(args.email, args.name, args.role, args.password, args.project)
     return add_users(args.project, args.role, args.emails) if args.cmd == "add-users" else reset_password(args.email)
 
 

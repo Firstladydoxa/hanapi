@@ -464,3 +464,30 @@ class KnowledgeChunk(Base):
     embedding: Mapped[Optional[Any]] = mapped_column(Vector(EMBEDDING_DIMENSIONS))
     tsv: Mapped[Optional[Any]] = mapped_column(TSVECTOR)
     created_at: Mapped[datetime] = _now()
+
+
+class LanguageReview(Base):
+    """One reviewer's scored judgement of one HAN draft in one direction (Stage-2 human evaluation evidence)."""
+
+    __tablename__ = "language_reviews"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    source_code: Mapped[str] = mapped_column(String(16), nullable=False)
+    target_code: Mapped[str] = mapped_column(String(16), nullable=False)
+    reviewer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    version_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("translation_versions.id"))
+    source_text: Mapped[str] = mapped_column(Text, nullable=False)
+    draft_text: Mapped[str] = mapped_column(Text, nullable=False)
+    text_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    adequacy: Mapped[int] = mapped_column(Integer, nullable=False)
+    fluency: Mapped[int] = mapped_column(Integer, nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    comment: Mapped[Optional[str]] = mapped_column(String(2000))
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (
+        UniqueConstraint("reviewer_id", "source_code", "target_code", "text_hash", name="uq_language_review_once"),
+        Index("ix_language_reviews_direction", "source_code", "target_code"),
+        CheckConstraint("adequacy between 1 and 5 and fluency between 1 and 5", name="ck_review_scores"),
+        CheckConstraint("severity in ('none','minor','major','critical')", name="ck_review_severity"),
+        CheckConstraint("content_type in ('general','scripture','ministry','terminology','other')", name="ck_review_content"),
+    )
