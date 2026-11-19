@@ -223,3 +223,8 @@ See [docs/SPEC-COMPLIANCE.md](docs/SPEC-COMPLIANCE.md). Highlights: Docker artef
 the Google cloud adapter was never contacted and no translation quality evaluation has been done (the local MADLAD path was run for real); rate limiting is per-process; no MFA/password recovery;
 no document import/export beyond plain text; no formal security review, load test or backup/restore drill; model licences
 and provider data-processing terms must be verified by legal before use.
+
+
+## Rhapsody of Realities module
+
+The Rhapsody publication workflow is implemented as a native HAN API domain under `/v1/rhapsody`. It reuses HAN authentication, CSRF protection, administrator role checks, language registry, PostgreSQL and audit logging. Apply Alembic migrations through `0007_rhapsody_workflow` before using the new routes. Configure `HAN_RHAPSODY_STORAGE_DIR` to a persistent private volume outside the web root; uploaded manuscripts must not be stored in a public static directory. The current ingestion slice accepts DOCX and XLIFF individually, builds a versioned canonical segment structure, and supports assignment, paragraph save/versioning, submission and human review. Paired DOCX/XLIFF reconciliation, HAN-generated drafts, theological retrieval and publication exports remain follow-on work.
