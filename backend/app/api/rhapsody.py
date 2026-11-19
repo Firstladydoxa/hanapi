@@ -24,7 +24,7 @@ from ..deps import client_ip, get_current_user
 from ..errors import ApiError, not_found
 from ..models.db import (
     Language, RhapsodyAssignment, RhapsodyEdition, RhapsodyMasterVersion,
-    RhapsodySegment, RhapsodySection, RhapsodySourceFile, User,
+    RhapsodySegment, RhapsodySection, RhapsodySourceFile, RhapsodySegmentTranslation,\n    RhapsodyTranslationVersion, RhapsodyComment, RhapsodyReview, User,
 )
 from ..security.permissions import ADMIN_ROLES, parse_uuid, require_roles
 
@@ -45,7 +45,7 @@ class EditionCreate(BaseModel):
     title: Optional[str] = Field(default=None, max_length=200)
 
 
-class AssignmentCreate(BaseModel):
+class SegmentSave(BaseModel):\n    model_config = ConfigDict(extra="forbid")\n    target_text: str = Field(min_length=1, max_length=200000)\n    expected_version_id: Optional[str] = None\n\n\nclass ReviewIn(BaseModel):\n    model_config = ConfigDict(extra="forbid")\n    decision: str = Field(pattern="^(approved|changes_requested)$")\n    note: Optional[str] = Field(default=None, max_length=3000)\n\n\nclass CommentIn(BaseModel):\n    model_config = ConfigDict(extra="forbid")\n    body: str = Field(min_length=1, max_length=3000)\n    segment_id: Optional[str] = None\n\n\nclass AssignmentCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     master_version_id: str
     target_language: str = Field(min_length=2, max_length=16)
@@ -325,3 +325,141 @@ def list_assignments(request: Request, user: User = Depends(get_current_user), d
     return [{"id": str(a.id), "master_version_id": str(a.master_version_id), "target_language": a.target_language,
              "translator_id": str(a.translator_id), "reviewer_id": str(a.reviewer_id) if a.reviewer_id else None,
              "due_at": a.due_at, "status": a.status} for a in db.execute(stmt).scalars()]
+
+
+
+def _load_assignment(db: Session, assignment_id: str) -> RhapsodyAssignment:
+    row = db.get(RhapsodyAssignment, parse_uuid(assignment_id, "assignment"))
+    if row is None:
+        raise not_found("assignment")
+    return row
+
+
+def _can_access_assignment(row: RhapsodyAssignment, user: User) -> bool:
+    return user.role in ADMIN_ROLES or row.translator_id == user.id or (user.role == "reviewer" and row.reviewer_id == user.id)
+
+
+@router.get("/assignments/{assignment_id}")
+def get_assignment(assignment_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    assignment = _load_assignment(db, assignment_id)
+    if not _can_access_assignment(assignment, user):
+        raise not_found("assignment")
+    master = db.get(RhapsodyMasterVersion, assignment.master_version_id)
+    edition = db.get(RhapsodyEdition, master.edition_id)
+    segments = list(db.execute(select(RhapsodySegment).where(RhapsodySegment.master_version_id == master.id).order_by(RhapsodySegment.sequence)).scalars())
+    section_rows = list(db.execute(select(RhapsodySection).where(RhapsodySection.master_version_id == master.id).order_by(RhapsodySection.sequence)).scalars())
+    section_map = {str(s.id): s for s in section_rows}
+    translations = {t.segment_id: t for t in db.execute(select(RhapsodySegmentTranslation).where(RhapsodySegmentTranslation.assignment_id == assignment.id)).scalars()}
+    result_segments = []
+    for seg in segments:
+        tr = translations.get(seg.id)
+        version = db.get(RhapsodyTranslationVersion, tr.current_version_id) if tr and tr.current_version_id else None
+        result_segments.append({
+            "id": str(seg.id), "stable_key": seg.stable_key, "section_id": str(seg.section_id),
+            "source_text": seg.source_text, "source_markup": seg.source_markup, "sequence": seg.sequence,
+            "metadata": seg.metadata_json, "translation_status": tr.status if tr else "not_started",
+            "translation_id": str(tr.id) if tr else None,
+            "current_version_id": str(version.id) if version else None,
+            "version_number": version.version_number if version else None,
+            "target_text": version.target_text if version else "",
+        })
+    return {
+        "id": str(assignment.id), "edition": {"id": str(edition.id), "title": edition.title, "month": edition.month, "year": edition.year},
+        "master_version_id": str(master.id), "target_language": assignment.target_language, "status": assignment.status,
+        "due_at": assignment.due_at,
+        "sections": [{"id": str(s.id), "stable_key": s.stable_key, "type": s.section_type, "title": s.title, "sequence": s.sequence, "day_number": s.day_number} for s in section_rows],
+        "segments": result_segments,
+    }
+
+
+@router.put("/assignments/{assignment_id}/segments/{segment_id}")
+def save_segment(assignment_id: str, segment_id: str, body: SegmentSave, request: Request,
+                 user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    assignment = _load_assignment(db, assignment_id)
+    if assignment.translator_id != user.id and user.role not in ADMIN_ROLES:
+        raise not_found("assignment")
+    if assignment.status not in {"assigned", "in_progress", "changes_requested"}:
+        raise ApiError(409, "assignment_locked", "This assignment is no longer editable.")
+    segment = db.get(RhapsodySegment, parse_uuid(segment_id, "segment"))
+    if segment is None or segment.master_version_id != assignment.master_version_id:
+        raise not_found("segment")
+    tr = db.execute(select(RhapsodySegmentTranslation).where(
+        RhapsodySegmentTranslation.assignment_id == assignment.id,
+        RhapsodySegmentTranslation.segment_id == segment.id).with_for_update()).scalar_one_or_none()
+    if tr is None:
+        raise not_found("segment")
+    current = db.get(RhapsodyTranslationVersion, tr.current_version_id) if tr.current_version_id else None
+    if body.expected_version_id is not None and (current is None or str(current.id) != body.expected_version_id):
+        raise ApiError(409, "version_conflict", "This paragraph has changed since you opened it. Reload the latest version before saving.")
+    number = (current.version_number + 1) if current else 1
+    version = RhapsodyTranslationVersion(segment_translation_id=tr.id, version_number=number, target_text=body.target_text,
+        origin="human", created_by=user.id, parent_version_id=current.id if current else None)
+    db.add(version)
+    db.flush()
+    tr.current_version_id = version.id
+    tr.status = "draft"
+    assignment.status = "in_progress"
+    db.commit()
+    db.refresh(version)
+    audit.record("rhapsody.segment_saved", actor=user, object_type="rhapsody_translation_version", object_id=version.id,
+                 details={"assignment_id": str(assignment.id), "segment_id": str(segment.id), "version": number}, ip=client_ip(request))
+    return {"segment_id": str(segment.id), "version_id": str(version.id), "version_number": number, "target_text": version.target_text, "status": tr.status}
+
+
+@router.post("/assignments/{assignment_id}/submit")
+def submit_assignment(assignment_id: str, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    assignment = _load_assignment(db, assignment_id)
+    if assignment.translator_id != user.id:
+        raise not_found("assignment")
+    if assignment.status not in {"assigned", "in_progress", "changes_requested"}:
+        raise ApiError(409, "assignment_state", "This assignment cannot be submitted in its current state.")
+    rows = list(db.execute(select(RhapsodySegmentTranslation).where(RhapsodySegmentTranslation.assignment_id == assignment.id)).scalars())
+    if not rows or any(not row.current_version_id for row in rows):
+        raise ApiError(409, "incomplete_assignment", "Translate every required paragraph before submitting this edition.")
+    for row in rows:
+        row.status = "in_review"
+    assignment.status = "submitted"
+    db.commit()
+    audit.record("rhapsody.assignment_submitted", actor=user, object_type="rhapsody_assignment", object_id=assignment.id,
+                 details={"segment_count": len(rows)}, ip=client_ip(request))
+    return {"assignment_id": str(assignment.id), "status": assignment.status, "submitted_segments": len(rows)}
+
+
+@router.post("/assignments/{assignment_id}/comments", status_code=201)
+def add_comment(assignment_id: str, body: CommentIn, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    assignment = _load_assignment(db, assignment_id)
+    if not _can_access_assignment(assignment, user):
+        raise not_found("assignment")
+    segment_id = parse_uuid(body.segment_id, "segment") if body.segment_id else None
+    if segment_id:
+        segment = db.get(RhapsodySegment, segment_id)
+        if segment is None or segment.master_version_id != assignment.master_version_id:
+            raise not_found("segment")
+    row = RhapsodyComment(assignment_id=assignment.id, segment_id=segment_id, author_id=user.id, body=body.body)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    audit.record("rhapsody.comment_added", actor=user, object_type="rhapsody_comment", object_id=row.id,
+                 details={"assignment_id": str(assignment.id), "segment_id": str(segment_id) if segment_id else None}, ip=client_ip(request))
+    return {"id": str(row.id), "body": row.body, "segment_id": str(segment_id) if segment_id else None, "created_at": row.created_at}
+
+
+@router.post("/assignments/{assignment_id}/review")
+def review_assignment(assignment_id: str, body: ReviewIn, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    assignment = _load_assignment(db, assignment_id)
+    if user.role not in ADMIN_ROLES and not (user.role == "reviewer" and assignment.reviewer_id == user.id):
+        raise not_found("assignment")
+    if assignment.status != "submitted":
+        raise ApiError(409, "not_submitted", "Only submitted assignments can be reviewed.")
+    rows = list(db.execute(select(RhapsodySegmentTranslation).where(RhapsodySegmentTranslation.assignment_id == assignment.id)).scalars())
+    if body.decision == "approved" and (not rows or any(not row.current_version_id for row in rows)):
+        raise ApiError(409, "incomplete_assignment", "An incomplete translation cannot be approved.")
+    review = RhapsodyReview(assignment_id=assignment.id, reviewer_id=user.id, decision=body.decision, note=body.note)
+    db.add(review)
+    assignment.status = "approved" if body.decision == "approved" else "changes_requested"
+    for row in rows:
+        row.status = "approved" if body.decision == "approved" else "changes_requested"
+    db.commit()
+    audit.record("rhapsody.assignment_reviewed", actor=user, object_type="rhapsody_assignment", object_id=assignment.id,
+                 details={"decision": body.decision}, ip=client_ip(request))
+    return {"assignment_id": str(assignment.id), "status": assignment.status, "decision": body.decision}
