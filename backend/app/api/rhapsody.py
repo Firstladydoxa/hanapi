@@ -222,11 +222,21 @@ async def upload_source(edition_id: str, request: Request, file: UploadFile = Fi
             raise ApiError(422, "invalid_docx", "The uploaded Word package is corrupt.")
     settings = get_settings()
     base = Path(settings.rhapsody_storage_dir).resolve()
-    base.mkdir(parents=True, exist_ok=True)
+    base.mkdir(parents=True, exist_ok=True, mode=0o700)
+    try:
+        base.chmod(0o700)
+    except OSError:
+        pass
     storage_key = f"{edition.id}/{uuid.uuid4().hex}{ext}"
     target = _source_path(storage_key)
-    target.parent.mkdir(parents=True, exist_ok=True)
+    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     target.write_bytes(data)
+    try:
+        target.chmod(0o600)
+        target.parent.chmod(0o700)
+    except OSError:
+        target.unlink(missing_ok=True)
+        raise ApiError(500, "storage_permissions", "The server could not secure the uploaded source file.")
     row = RhapsodySourceFile(edition_id=edition.id, filename=filename[:255], media_type=file.content_type or "application/octet-stream",
         format=fmt, storage_key=storage_key, sha256=hashlib.sha256(data).hexdigest(), byte_size=len(data), uploaded_by=actor.id)
     db.add(row)
