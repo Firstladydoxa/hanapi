@@ -1,0 +1,327 @@
+"""Rhapsody publication lifecycle and secure source ingestion."""
+from __future__ import annotations
+
+import hashlib
+import re
+import uuid
+import zipfile
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, List, Optional
+from xml.etree import ElementTree as ET
+
+from docx import Document
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from .. import audit
+from ..config import get_settings
+from ..database import get_db
+from ..deps import client_ip, get_current_user
+from ..errors import ApiError, not_found
+from ..models.db import (
+    Language, RhapsodyAssignment, RhapsodyEdition, RhapsodyMasterVersion,
+    RhapsodySegment, RhapsodySection, RhapsodySourceFile, User,
+)
+from ..security.permissions import ADMIN_ROLES, parse_uuid, require_roles
+
+router = APIRouter(prefix="/v1/rhapsody", tags=["rhapsody"])
+MAX_UPLOAD = 25 * 1024 * 1024
+ALLOWED_EXTENSIONS = {".docx": "docx", ".xlf": "xliff", ".xliff": "xliff"}
+
+
+def admin_user(request: Request, user: User = Depends(get_current_user)) -> User:
+    require_roles(user, *ADMIN_ROLES, ip=client_ip(request))
+    return user
+
+
+class EditionCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    month: int = Field(ge=1, le=12)
+    year: int = Field(ge=2000, le=2200)
+    title: Optional[str] = Field(default=None, max_length=200)
+
+
+class AssignmentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    master_version_id: str
+    target_language: str = Field(min_length=2, max_length=16)
+    translator_id: str
+    reviewer_id: Optional[str] = None
+    due_at: Optional[datetime] = None
+
+
+def _edition_out(db: Session, e: RhapsodyEdition) -> dict:
+    sources = list(db.execute(select(RhapsodySourceFile).where(RhapsodySourceFile.edition_id == e.id).order_by(RhapsodySourceFile.created_at)).scalars())
+    versions = list(db.execute(select(RhapsodyMasterVersion).where(RhapsodyMasterVersion.edition_id == e.id).order_by(RhapsodyMasterVersion.version_number.desc())).scalars())
+    return {
+        "id": str(e.id), "title": e.title, "month": e.month, "year": e.year, "status": e.status,
+        "active_master_version_id": str(e.active_master_version_id) if e.active_master_version_id else None,
+        "sources": [{"id": str(s.id), "filename": s.filename, "format": s.format, "byte_size": s.byte_size, "sha256": s.sha256, "created_at": s.created_at} for s in sources],
+        "master_versions": [{"id": str(v.id), "version_number": v.version_number, "segment_count": len(v.structure.get("segments", [])), "section_count": len(v.structure.get("sections", [])), "validation": v.validation, "activated_at": v.activated_at} for v in versions],
+        "created_at": e.created_at, "updated_at": e.updated_at,
+    }
+
+
+def _get_edition(db: Session, edition_id: str) -> RhapsodyEdition:
+    row = db.get(RhapsodyEdition, parse_uuid(edition_id, "edition"))
+    if row is None:
+        raise not_found("edition")
+    return row
+
+
+def _parse_docx(data: bytes) -> tuple[list[dict], list[dict]]:
+    from io import BytesIO
+    try:
+        doc = Document(BytesIO(data))
+    except Exception:
+        raise ApiError(422, "invalid_docx", "The Word document could not be read. Please upload a valid DOCX file.")
+    sections: list[dict] = []
+    segments: list[dict] = []
+    current = {"stable_key": "front-matter", "section_type": "front_matter", "title": "Front matter", "sequence": 0, "day_number": None}
+    sections.append(current)
+    for paragraph in doc.paragraphs:
+        text = paragraph.text.strip()
+        if not text:
+            continue
+        style = paragraph.style.name if paragraph.style else ""
+        day = re.search(r"(?i)\bday\s+(\d{1,2})\b", text)
+        if day and ("heading" in style.lower() or len(text) < 100):
+            n = int(day.group(1))
+            current = {"stable_key": f"day-{n}", "section_type": "daily_article", "title": text[:500], "sequence": len(sections), "day_number": n}
+            sections.append(current)
+        elif ("heading" in style.lower() or text.isupper()) and current["section_type"] == "front_matter":
+            current["title"] = text[:500]
+        runs = [{"text": run.text, "bold": bool(run.bold), "italic": bool(run.italic), "underline": bool(run.underline), "style": style} for run in paragraph.runs if run.text]
+        segments.append({"stable_key": f"docx-p-{len(segments)+1}", "source_text": text, "source_markup": None, "sequence": len(segments), "section_key": current["stable_key"], "metadata": {"paragraph_style": style, "runs": runs}})
+    return sections, segments
+
+
+def _local(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1].lower()
+
+
+def _parse_xliff(data: bytes) -> tuple[list[dict], list[dict]]:
+    if b"<!DOCTYPE" in data.upper() or b"<!ENTITY" in data.upper():
+        raise ApiError(422, "unsafe_xml", "The XLIFF file contains unsupported XML declarations.")
+    try:
+        root = ET.fromstring(data)
+    except ET.ParseError:
+        raise ApiError(422, "invalid_xliff", "The XLIFF file is not valid XML.")
+    sections = [{"stable_key": "xliff-content", "section_type": "content", "title": "Imported XLIFF content", "sequence": 0, "day_number": None}]
+    segments = []
+    for node in root.iter():
+        name = _local(node.tag)
+        if name not in {"trans-unit", "segment"}:
+            continue
+        source = next((child for child in list(node) if _local(child.tag) == "source"), None)
+        if source is None:
+            continue
+        sid = node.attrib.get("id") or f"xliff-{len(segments)+1}"
+        txt = "".join(source.itertext()).strip()
+        if not txt:
+            continue
+        markup = ET.tostring(source, encoding="unicode")
+        segments.append({"stable_key": f"xliff-{sid}", "source_text": txt, "source_markup": markup, "sequence": len(segments), "section_key": "xliff-content", "metadata": {"trans_unit_id": sid, "xliff_element": name, "attributes": dict(node.attrib)}})
+    if not segments:
+        raise ApiError(422, "empty_xliff", "No translatable source segments were found in this XLIFF file.")
+    return sections, segments
+
+
+def _parse_source(fmt: str, data: bytes):
+    if fmt == "docx":
+        return _parse_docx(data)
+    return _parse_xliff(data)
+
+
+def _source_path(storage_key: str) -> Path:
+    base = Path(get_settings().rhapsody_storage_dir).resolve()
+    candidate = (base / storage_key).resolve()
+    if base not in candidate.parents:
+        raise ApiError(500, "storage_error", "The stored source file path is invalid.")
+    return candidate
+
+
+@router.get("/editions")
+def list_editions(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    stmt = select(RhapsodyEdition).order_by(RhapsodyEdition.year.desc(), RhapsodyEdition.month.desc())
+    if user.role not in ADMIN_ROLES:
+        stmt = stmt.where(RhapsodyEdition.status == "active")
+    return [_edition_out(db, e) for e in db.execute(stmt).scalars()]
+
+
+@router.post("/editions", status_code=201)
+def create_edition(body: EditionCreate, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    title = body.title.strip() if body.title else datetime(body.year, body.month, 1).strftime("%B %Y")
+    row = RhapsodyEdition(title=title, month=body.month, year=body.year, created_by=actor.id)
+    db.add(row)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise ApiError(409, "edition_exists", "An edition already exists for that month.")
+    db.refresh(row)
+    audit.record("rhapsody.edition_created", actor=actor, object_type="rhapsody_edition", object_id=row.id, ip=client_ip(request))
+    return _edition_out(db, row)
+
+
+@router.get("/editions/{edition_id}")
+def get_edition(edition_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    row = _get_edition(db, edition_id)
+    if row.status != "active" and user.role not in ADMIN_ROLES:
+        raise not_found("edition")
+    return _edition_out(db, row)
+
+
+@router.post("/editions/{edition_id}/sources", status_code=201)
+async def upload_source(edition_id: str, request: Request, file: UploadFile = File(...), actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    edition = _get_edition(db, edition_id)
+    if edition.status == "active":
+        raise ApiError(409, "edition_active", "An active edition is immutable. Create a new draft edition or master version.")
+    filename = Path(file.filename or "source").name
+    ext = Path(filename).suffix.lower()
+    fmt = ALLOWED_EXTENSIONS.get(ext)
+    if not fmt:
+        raise ApiError(415, "unsupported_format", "Upload a DOCX, XLF or XLIFF source file.")
+    data = await file.read(MAX_UPLOAD + 1)
+    if not data or len(data) > min(MAX_UPLOAD, get_settings().rhapsody_max_upload_bytes):
+        raise ApiError(413, "file_size", "The source file is empty or exceeds the 25 MB upload limit.")
+    if fmt == "docx" and not data.startswith(b"PK"):
+        raise ApiError(422, "invalid_docx", "The uploaded file does not appear to be a valid DOCX package.")
+    if fmt == "xliff" and not data.lstrip().startswith(b"<"):
+        raise ApiError(422, "invalid_xliff", "The uploaded file does not appear to be an XML XLIFF file.")
+    if fmt == "docx":
+        try:
+            import io
+            with zipfile.ZipFile(io.BytesIO(data)) as zf:
+                if len(zf.namelist()) > 5000 or sum(i.file_size for i in zf.infolist()) > 100_000_000:
+                    raise ApiError(413, "docx_expanded_size", "The Word document expands beyond the permitted processing size.")
+                if "word/document.xml" not in zf.namelist():
+                    raise ApiError(422, "invalid_docx", "The DOCX package is missing its main document.")
+        except zipfile.BadZipFile:
+            raise ApiError(422, "invalid_docx", "The uploaded Word package is corrupt.")
+    settings = get_settings()
+    base = Path(settings.rhapsody_storage_dir).resolve()
+    base.mkdir(parents=True, exist_ok=True)
+    storage_key = f"{edition.id}/{uuid.uuid4().hex}{ext}"
+    target = _source_path(storage_key)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    row = RhapsodySourceFile(edition_id=edition.id, filename=filename[:255], media_type=file.content_type or "application/octet-stream",
+        format=fmt, storage_key=storage_key, sha256=hashlib.sha256(data).hexdigest(), byte_size=len(data), uploaded_by=actor.id)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    audit.record("rhapsody.source_uploaded", actor=actor, object_type="rhapsody_source_file", object_id=row.id,
+                 details={"format": fmt, "bytes": len(data)}, ip=client_ip(request))
+    return {"id": str(row.id), "filename": row.filename, "format": row.format, "byte_size": row.byte_size, "sha256": row.sha256}
+
+
+@router.post("/editions/{edition_id}/ingest")
+def ingest_source(edition_id: str, source_file_id: str = Form(...), request: Request = None, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    edition = _get_edition(db, edition_id)
+    if edition.status == "active":
+        raise ApiError(409, "edition_active", "An active edition is immutable.")
+    source = db.get(RhapsodySourceFile, parse_uuid(source_file_id, "source file"))
+    if source is None or source.edition_id != edition.id:
+        raise not_found("source file")
+    data = _source_path(source.storage_key).read_bytes()
+    if hashlib.sha256(data).hexdigest() != source.sha256:
+        raise ApiError(409, "source_checksum_mismatch", "The stored source file failed its integrity check.")
+    sections, segments = _parse_source(source.format, data)
+    if not segments:
+        raise ApiError(422, "empty_source", "No non-empty paragraphs or translatable segments were found.")
+    latest = db.execute(select(RhapsodyMasterVersion).where(RhapsodyMasterVersion.edition_id == edition.id).order_by(RhapsodyMasterVersion.version_number.desc())).scalars().first()
+    version_number = (latest.version_number + 1) if latest else 1
+    validation = {"segment_count": len(segments), "section_count": len(sections), "warnings": [], "blocking_errors": []}
+    version = RhapsodyMasterVersion(edition_id=edition.id, version_number=version_number, source_file_id=source.id,
+        structure={"sections": sections, "segments": segments, "source_format": source.format}, validation=validation, created_by=actor.id)
+    db.add(version)
+    db.flush()
+    section_ids = {}
+    for item in sections:
+        section = RhapsodySection(master_version_id=version.id, stable_key=item["stable_key"], section_type=item["section_type"],
+            title=item.get("title"), sequence=item["sequence"], day_number=item.get("day_number"), formatting={})
+        db.add(section)
+        db.flush()
+        section_ids[item["stable_key"]] = section.id
+    for item in segments:
+        db.add(RhapsodySegment(master_version_id=version.id, section_id=section_ids[item["section_key"]], stable_key=item["stable_key"],
+            source_text=item["source_text"], source_markup=item.get("source_markup"), sequence=item["sequence"], metadata_json=item.get("metadata", {})))
+    edition.status = "ready"
+    db.commit()
+    db.refresh(version)
+    audit.record("rhapsody.master_ingested", actor=actor, object_type="rhapsody_master_version", object_id=version.id,
+                 details={"version": version_number, "segments": len(segments), "sections": len(sections), "format": source.format}, ip=client_ip(request) if request else None)
+    return {"edition_id": str(edition.id), "master_version_id": str(version.id), "version_number": version_number, "validation": validation}
+
+
+@router.post("/editions/{edition_id}/activate")
+def activate_master(edition_id: str, master_version_id: str, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    edition = _get_edition(db, edition_id)
+    version = db.get(RhapsodyMasterVersion, parse_uuid(master_version_id, "master version"))
+    if version is None or version.edition_id != edition.id:
+        raise not_found("master version")
+    if version.validation.get("blocking_errors"):
+        raise ApiError(409, "master_validation_failed", "Resolve blocking master validation issues before activation.")
+    if not db.execute(select(RhapsodySegment.id).where(RhapsodySegment.master_version_id == version.id).limit(1)).first():
+        raise ApiError(409, "empty_master", "A master must contain translatable content before activation.")
+    now = datetime.now(timezone.utc)
+    version.activated_at = now
+    edition.active_master_version_id = version.id
+    edition.status = "active"
+    db.commit()
+    audit.record("rhapsody.master_activated", actor=actor, object_type="rhapsody_master_version", object_id=version.id,
+                 details={"edition_id": str(edition.id), "version": version.version_number}, ip=client_ip(request))
+    return {"edition_id": str(edition.id), "active_master_version_id": str(version.id), "status": edition.status}
+
+
+@router.post("/assignments", status_code=201)
+def create_assignment(body: AssignmentCreate, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    master = db.get(RhapsodyMasterVersion, parse_uuid(body.master_version_id, "master version"))
+    if master is None:
+        raise not_found("master version")
+    edition = db.get(RhapsodyEdition, master.edition_id)
+    if edition is None or edition.status != "active" or edition.active_master_version_id != master.id:
+        raise ApiError(409, "master_not_active", "Assignments can only use the currently active English master.")
+    lang = body.target_language.strip().lower().replace("_", "-")
+    if db.get(Language, lang) is None:
+        raise ApiError(422, "unknown_language", "The target language is not registered in HAN.")
+    translator = db.get(User, parse_uuid(body.translator_id, "translator"))
+    if translator is None or translator.status != "active" or translator.role != "translator":
+        raise ApiError(422, "invalid_translator", "Choose an active HAN translator.")
+    reviewer_id = parse_uuid(body.reviewer_id, "reviewer") if body.reviewer_id else None
+    if reviewer_id:
+        reviewer = db.get(User, reviewer_id)
+        if reviewer is None or reviewer.status != "active" or reviewer.role not in {"reviewer", "tni_admin", "technical_admin"}:
+            raise ApiError(422, "invalid_reviewer", "Choose an active reviewer or administrator.")
+    row = RhapsodyAssignment(master_version_id=master.id, target_language=lang, translator_id=translator.id, reviewer_id=reviewer_id,
+        due_at=body.due_at, created_by=actor.id)
+    db.add(row)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise ApiError(409, "assignment_exists", "That translator already has an assignment for this language and master.")
+    db.refresh(row)
+    audit.record("rhapsody.assignment_created", actor=actor, object_type="rhapsody_assignment", object_id=row.id,
+                 details={"language": lang, "master_version": str(master.id)}, ip=client_ip(request))
+    return {"id": str(row.id), "master_version_id": str(row.master_version_id), "target_language": row.target_language,
+            "translator_id": str(row.translator_id), "reviewer_id": str(row.reviewer_id) if row.reviewer_id else None,
+            "due_at": row.due_at, "status": row.status}
+
+
+@router.get("/assignments")
+def list_assignments(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    stmt = select(RhapsodyAssignment).order_by(RhapsodyAssignment.created_at.desc())
+    if user.role not in ADMIN_ROLES:
+        if user.role == "reviewer":
+            stmt = stmt.where(RhapsodyAssignment.reviewer_id == user.id)
+        else:
+            stmt = stmt.where(RhapsodyAssignment.translator_id == user.id)
+    return [{"id": str(a.id), "master_version_id": str(a.master_version_id), "target_language": a.target_language,
+             "translator_id": str(a.translator_id), "reviewer_id": str(a.reviewer_id) if a.reviewer_id else None,
+             "due_at": a.due_at, "status": a.status} for a in db.execute(stmt).scalars()]
