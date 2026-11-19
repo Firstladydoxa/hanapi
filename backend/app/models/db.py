@@ -584,3 +584,55 @@ class RhapsodyAssignment(Base):
         UniqueConstraint("master_version_id", "target_language", "translator_id", name="uq_rhapsody_assignment"),
         CheckConstraint("status in ('assigned','in_progress','submitted','in_review','changes_requested','approved','published')", name="ck_rhapsody_assignment_status"),
     )
+
+
+class RhapsodySegmentTranslation(Base):
+    __tablename__ = "rhapsody_segment_translations"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    assignment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_assignments.id", ondelete="CASCADE"), nullable=False, index=True)
+    segment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_segments.id", ondelete="CASCADE"), nullable=False, index=True)
+    current_version_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True))
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="not_started")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    __table_args__ = (
+        UniqueConstraint("assignment_id", "segment_id", name="uq_rhapsody_segment_translation"),
+        CheckConstraint("status in ('not_started','draft','in_review','approved','changes_requested')", name="ck_rhapsody_segment_translation_status"),
+    )
+
+
+class RhapsodyTranslationVersion(Base):
+    __tablename__ = "rhapsody_translation_versions"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    segment_translation_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_segment_translations.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    target_text: Mapped[str] = mapped_column(Text, nullable=False)
+    origin: Mapped[str] = mapped_column(String(8), nullable=False, default="human")
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    parent_version_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("rhapsody_translation_versions.id"))
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (
+        UniqueConstraint("segment_translation_id", "version_number", name="uq_rhapsody_translation_version"),
+        CheckConstraint("origin in ('ai','human')", name="ck_rhapsody_translation_origin"),
+    )
+
+
+class RhapsodyComment(Base):
+    __tablename__ = "rhapsody_comments"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    assignment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_assignments.id", ondelete="CASCADE"), nullable=False, index=True)
+    segment_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("rhapsody_segments.id", ondelete="CASCADE"))
+    author_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    body: Mapped[str] = mapped_column(String(3000), nullable=False)
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _now()
+
+
+class RhapsodyReview(Base):
+    __tablename__ = "rhapsody_reviews"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    assignment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_assignments.id", ondelete="CASCADE"), nullable=False, index=True)
+    reviewer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    decision: Mapped[str] = mapped_column(String(24), nullable=False)
+    note: Mapped[Optional[str]] = mapped_column(String(3000))
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (CheckConstraint("decision in ('approved','changes_requested')", name="ck_rhapsody_review_decision"),)
