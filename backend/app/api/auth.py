@@ -221,7 +221,10 @@ def registration_recovery_link(body: S.RecoveryLinkRequest, request: Request, db
     user = db.get(User, claims["sub"])
     if user is None or user.email_verified:
         raise ApiError(400, "recovery_link_invalid", "This registration link is no longer valid.")
-    _send_code(db, user, "verify_email")
+    code = _issue_code(db, user, "verify_email", force=True)
+    db.commit()
+    if not mail.send_code(user.email, user.display_name, code, "verify_email", get_settings().email_code_ttl_minutes):
+        raise ApiError(503, "email_delivery_unavailable", "We could not send a new verification code. Please try again.")
     return {"ok": True, "email": user.email, "message": "A fresh verification code has been sent."}
 
 
