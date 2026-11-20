@@ -34,8 +34,14 @@ def login(body: S.LoginRequest, request: Request, response: Response, db: Sessio
         audit.record("auth.login_failed", outcome="denied", object_type="user", ip=ip)
         raise ApiError(401, "invalid_credentials", "The email or password is incorrect.")
     if not user.email_verified:
+        try:
+            code = _issue_code(db, user, "verify_email", force=True)
+            db.commit()
+            mail.send_code(user.email, user.display_name, code, "verify_email", get_settings().email_code_ttl_minutes)
+        except Exception:
+            db.rollback()
         audit.record("auth.login_unverified_email", outcome="denied", object_type="user", object_id=user.id, ip=ip)
-        raise ApiError(403, "email_not_verified", "Your registration is not complete. Verify your email address to continue.")
+        raise ApiError(403, "email_not_verified", "Your registration is not complete. We have sent a new verification code if email delivery is available.")
     if sec.needs_rehash(user.password_hash):
         user.password_hash = sec.hash_password(body.password)
     token, jti, exp = sec.create_session_token(user.id)
@@ -75,7 +81,7 @@ def _email_code_hash(user_id, purpose: str, code: str) -> str:
     return hmac.new(pepper.encode(), value, hashlib.sha256).hexdigest()
 
 
-def _issue_code(db: Session, user: User, purpose: str) -> str:
+def _issue_code(db: Session, user: User, purpose: str, force: bool = False) -> str:
     now = datetime.now(timezone.utc)
     cooldown = timedelta(seconds=get_settings().email_code_resend_cooldown_seconds)
     recent = db.execute(select(EmailAuthChallenge).where(
@@ -83,7 +89,7 @@ def _issue_code(db: Session, user: User, purpose: str) -> str:
         EmailAuthChallenge.created_at >= now - cooldown, EmailAuthChallenge.consumed_at.is_(None),
         EmailAuthChallenge.invalidated_at.is_(None)
     ).order_by(EmailAuthChallenge.created_at.desc())).scalars().first()
-    if recent:
+    if recent and not force:
         raise ApiError(429, "code_resend_cooldown", "Please wait before requesting another code.")
     db.execute(update(EmailAuthChallenge).where(
         EmailAuthChallenge.user_id == user.id, EmailAuthChallenge.purpose == purpose,
