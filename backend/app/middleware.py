@@ -39,6 +39,17 @@ CONTENT_KEYS = {
 _TOKEN = re.compile(r"[a-z0-9][a-z0-9._/-]*")
 
 
+UPLOAD_PATHS = ("/v1/rhapsody/", "/v1/knowledge", "/v1/glossary")
+
+
+def body_limit(path: str) -> int:
+    """JSON endpoints stay small; file-upload endpoints get headroom (each enforces its own, stricter file limit)."""
+    s = get_settings()
+    if path.startswith(UPLOAD_PATHS):
+        return max(s.max_body_bytes, s.rhapsody_max_upload_bytes + 1_000_000)
+    return s.max_body_bytes
+
+
 class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         incoming = request.headers.get("x-request-id", "")
@@ -46,7 +57,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         token = request_id_var.set(rid)
         try:
             length = request.headers.get("content-length")
-            if length and length.isdigit() and int(length) > get_settings().max_body_bytes:
+            if length and length.isdigit() and int(length) > body_limit(request.url.path):
                 resp: Response = JSONResponse(error_body("payload_too_large", "The submitted content is too large."), status_code=413)
             else:
                 resp = await call_next(request)

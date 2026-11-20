@@ -303,3 +303,13 @@ def test_deleting_an_edition_removes_unsubmitted_translations_and_leaves_no_orph
             assert db.execute(select(func.count()).select_from(model)).scalar() == 0, model.__name__
     again = alice.get(f"/v1/conversations/{conv}").json()
     assert all(not m["actions"] for m in again["messages"])
+
+
+def test_large_word_upload_is_not_rejected_by_the_global_body_cap(world, login, tmp_path, monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "rhapsody_storage_dir", str(tmp_path))
+    admin = login("tina")
+    edition_id = admin.post("/v1/rhapsody/editions", {"month": 11, "year": 2026}).json()["id"]
+    big = NOV + b"\0" * 3_000_000  # a manuscript with embedded images is well over 1 MB
+    r = admin.client.post(f"/v1/rhapsody/editions/{edition_id}/sources", files={"file": ("big.docx", big, "application/octet-stream")}, headers=admin._h())
+    assert r.status_code != 413, r.text
