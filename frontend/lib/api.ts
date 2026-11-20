@@ -230,6 +230,17 @@ export const api = {
     submit: (a: string) => request<{ status: string }>("POST", `/v1/rhapsody/assignments/${a}/submit`),
     review: (a: string, decision: "approved" | "changes_requested", note?: string) => request<{ status: string }>("POST", `/v1/rhapsody/assignments/${a}/review`, { decision, note }),
     exportUrl: (a: string) => `/v1/rhapsody/assignments/${a}/export.docx`,
+    layoutUrl: (a: string) => `/v1/rhapsody/assignments/${a}/layout.pdf`,
+    masterLayoutUrl: (id: string, mv: string) => `/v1/rhapsody/editions/${id}/masters/${mv}/layout.pdf`,
+  },
+  publishing: {
+    fonts: () => request<PublishingFont[]>("GET", "/v1/rhapsody/publishing/fonts"),
+    uploadFont: (f: FormData) => request<PublishingFont>("POST", "/v1/rhapsody/publishing/fonts", f),
+    deleteFont: (id: string) => request<void>("DELETE", `/v1/rhapsody/publishing/fonts/${id}`),
+    profiles: () => request<PublishingProfile[]>("GET", "/v1/rhapsody/publishing/profiles"),
+    saveProfile: (code: string, b: { direction: "ltr" | "rtl"; locale: string; fonts: Record<string, string> }) => request<PublishingProfile>("PUT", `/v1/rhapsody/publishing/profiles/${code}`, b),
+    validate: (code: string) => request<{ status: string; checks: { severity: string; message: string }[] }>("POST", `/v1/rhapsody/publishing/profiles/${code}/validate`),
+    activate: (code: string) => request<{ status: string }>("POST", `/v1/rhapsody/publishing/profiles/${code}/activate`),
   },
   glossary: {
     overview: () => request<GlossaryOverview>("GET", "/v1/glossary/overview"),
@@ -318,3 +329,6 @@ export const api = {
     health: () => request<Record<string, unknown>>("GET", "/v1/admin/health"),
   },
 };
+
+export interface PublishingFont { id: string; family: string; style: string; format: string; license_name: string; byte_size: number }
+export interface PublishingProfile { id: string | null; language_code: string; language_name: string; direction: "ltr" | "rtl"; locale: string; status: string; fonts: Record<string, PublishingFont> }

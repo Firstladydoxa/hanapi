@@ -704,3 +704,65 @@ class RegistrationReminder(Base):
     sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _now()
+
+
+# ---------------------------------------------------------------- Rhapsody language publishing profiles and managed fonts
+class RhapsodyFontAsset(Base):
+    __tablename__ = "rhapsody_font_assets"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    family: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    style: Mapped[str] = mapped_column(String(80), nullable=False, default="Regular")
+    format: Mapped[str] = mapped_column(String(8), nullable=False)
+    storage_key: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    byte_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    license_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    license_note: Mapped[Optional[str]] = mapped_column(String(1000))
+    coverage: Mapped[Any] = mapped_column(JSONType, nullable=False, default=dict)
+    uploaded_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (CheckConstraint("format in ('otf','ttf','woff','woff2')", name="ck_rhapsody_font_format"),)
+
+
+class RhapsodyLanguageProfile(Base):
+    __tablename__ = "rhapsody_language_profiles"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    language_code: Mapped[str] = mapped_column(ForeignKey("languages.code"), nullable=False, unique=True, index=True)
+    direction: Mapped[str] = mapped_column(String(3), nullable=False, default="ltr")
+    locale: Mapped[str] = mapped_column(String(24), nullable=False)
+    typography: Mapped[Any] = mapped_column(JSONType, nullable=False, default=dict)
+    localization: Mapped[Any] = mapped_column(JSONType, nullable=False, default=dict)
+    layout: Mapped[Any] = mapped_column(JSONType, nullable=False, default=dict)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    updated_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    __table_args__ = (
+        CheckConstraint("direction in ('ltr','rtl')", name="ck_rhapsody_profile_direction"),
+        CheckConstraint("status in ('draft','validated','active')", name="ck_rhapsody_profile_status"),
+    )
+
+
+class RhapsodyProfileFont(Base):
+    __tablename__ = "rhapsody_profile_fonts"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    profile_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_language_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    font_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_font_assets.id"), nullable=False)
+    role: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (UniqueConstraint("profile_id", "role", name="uq_rhapsody_profile_font_role"),)
+
+
+class RhapsodyLayoutProof(Base):
+    __tablename__ = "rhapsody_layout_proofs"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    assignment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_assignments.id", ondelete="CASCADE"), nullable=False, index=True)
+    profile_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    translation_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    manifest: Mapped[Any] = mapped_column(JSONType, nullable=False)
+    pdf_storage_key: Mapped[Optional[str]] = mapped_column(String(500))
+    pdf_sha256: Mapped[Optional[str]] = mapped_column(String(64))
+    pdf_byte_size: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()

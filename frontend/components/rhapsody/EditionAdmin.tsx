@@ -60,6 +60,7 @@ export function EditionAdmin({ editionId }: { editionId: string }) {
       {notice ? <Alert kind={notice.kind}>{notice.text}</Alert> : null}
       <div className="card"><div className="flex flex-wrap items-center justify-between gap-3">
         <div><h2 className="text-xl font-bold">{edition.title}</h2><p className="text-xs text-ink-muted">Status: {edition.status}</p></div>
+        {selected ? <a className="btn btn-secondary" href={api.rhapsody.masterLayoutUrl(editionId, selected)} target="_blank" rel="noreferrer">Preview book layout (PDF)</a> : null}
         {selected ? <button className="btn btn-primary" disabled={busy || active || !!v?.blocking_errors?.length} onClick={() => void activate()}>{active ? "Active master" : "Review done — activate for translators"}</button> : null}
       </div></div>
 

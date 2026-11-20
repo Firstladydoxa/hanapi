@@ -155,6 +155,11 @@ def test_rhapsody_full_admin_to_translator_to_review_flow(world, login, tmp_path
     assert decision.status_code == 200, decision.text
     assert decision.json()["status"] == "approved"
     assert reviewer.get(f"/v1/rhapsody/assignments/{assignment_id}/export.docx").status_code == 200
+    pdf = reviewer.get(f"/v1/rhapsody/assignments/{assignment_id}/layout.pdf")
+    assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF")
+    assert translator.get(f"/v1/rhapsody/editions/{edition_id}/masters/{master_id}/layout.pdf").status_code == 403
+    english = admin.get(f"/v1/rhapsody/editions/{edition_id}/masters/{master_id}/layout.pdf")
+    assert english.status_code == 200 and english.content.startswith(b"%PDF")
 
 
 def test_translator_starts_translation_and_han_drafts_every_paragraph_for_review(world, login, tmp_path, monkeypatch):
@@ -313,3 +318,54 @@ def test_large_word_upload_is_not_rejected_by_the_global_body_cap(world, login, 
     big = NOV + b"\0" * 3_000_000  # a manuscript with embedded images is well over 1 MB
     r = admin.client.post(f"/v1/rhapsody/editions/{edition_id}/sources", files={"file": ("big.docx", big, "application/octet-stream")}, headers=admin._h())
     assert r.status_code != 413, r.text
+
+
+def test_typesetter_lays_out_cover_daily_pages_and_notes():
+    from io import BytesIO
+    from pypdf import PdfReader
+    from app.rhapsody_typeset import typeset_pdf
+
+    sections = [{"id": "f", "key": "front-matter", "type": "front_matter", "day": None, "formatting": {}},
+                {"id": "d1", "key": "day-1", "type": "daily_article", "day": 1, "formatting": {"weekday": 6}}]
+    blocks = [{"section_id": "f", "key": "a", "role": "static", "text": "Rhapsody"}, {"section_id": "f", "key": "b", "role": "static", "text": "of Realities"},
+              {"section_id": "f", "key": "c", "role": "static", "text": "...A DAILY DEVOTIONAL"}, {"section_id": "f", "key": "d", "role": "static", "text": "Chris Oyakhilome"},
+              {"section_id": "d1", "key": "t", "role": "title", "text": "THE GRACE ADVANTAGE"}, {"section_id": "d1", "key": "s", "role": "scripture", "text": "Grace and peace"},
+              {"section_id": "d1", "key": "r", "role": "scripture_ref", "text": "2 Peter 1:2"}, {"section_id": "d1", "key": "b1", "role": "body", "text": "No matter how intelligent you are."},
+              {"section_id": "d1", "key": "c", "role": "closing", "text": "Dear Father, thank you.", "meta": {"closing_type": "prayer"}},
+              {"section_id": "d1", "key": "f", "role": "further_study", "text": "James 4:6"}]
+    pdf = typeset_pdf(sections, blocks, title="t", year=2026, month=11, month_label="November 2026")
+    doc = PdfReader(BytesIO(pdf))
+    text = "\n".join(page.extract_text() for page in doc.pages)
+    assert round(float(doc.pages[0].mediabox.width) / 72 * 25.4) == 140 and round(float(doc.pages[0].mediabox.height) / 72 * 25.4) == 220
+    assert "November 2026" in text and "SUNDAY" in text and "THE GRACE ADVANTAGE" in text and "PRAYER" in text and "(2 Peter 1:2)" in text and "Notes" in text
+
+
+def test_publishing_profile_font_proof_and_pdf(world, login, tmp_path, monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "rhapsody_font_storage_dir", str(tmp_path / "fonts"))
+    admin = login("tina")
+    edition_id, master_id, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    font = open("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", "rb").read()
+    up = admin.client.post("/v1/rhapsody/publishing/fonts", files={"file": ("d.ttf", font, "font/ttf")},
+                           data={"family": "DejaVu Serif", "license_name": "Bitstream Vera"}, headers=admin._h())
+    assert up.status_code == 201, up.text
+    fid = up.json()["id"]
+    saved = admin.client.put("/v1/rhapsody/publishing/profiles/fr", json={"direction": "ltr", "locale": "fr-FR", "fonts": {"body": fid, "heading": fid}}, headers=admin._h())
+    assert saved.status_code == 200, saved.text
+    assert admin.post("/v1/rhapsody/publishing/profiles/fr/validate", {}).json()["status"] == "validated"
+    assert admin.post("/v1/rhapsody/publishing/profiles/fr/activate", {}).status_code == 200
+    assigned = admin.post("/v1/rhapsody/assignments", {"master_version_id": master_id, "target_language": "fr", "translator_id": str(world.users["alice"].id)})
+    aid = assigned.json()["id"]
+    translator = login("alice")
+    detail = translator.get(f"/v1/rhapsody/assignments/{aid}").json()
+    for seg in detail["segments"]:
+        if not seg["metadata"].get("locked"):
+            translator.put(f"/v1/rhapsody/assignments/{aid}/segments/{seg['id']}", {"target_text": "Texte " + seg["stable_key"]})
+    assert translator.post(f"/v1/rhapsody/assignments/{aid}/submit", {}).status_code == 200
+    assert admin.post(f"/v1/rhapsody/assignments/{aid}/review", {"decision": "approved"}).status_code == 200
+    proof = admin.post(f"/v1/rhapsody/publishing/assignments/{aid}/layout-proof", {})
+    assert proof.status_code == 200, proof.text
+    pid = proof.json()["id"]
+    assert admin.post(f"/v1/rhapsody/publishing/layout-proofs/{pid}/pdf", {}).status_code == 200
+    dl = admin.get(f"/v1/rhapsody/publishing/layout-proofs/{pid}/pdf")
+    assert dl.status_code == 200 and dl.content.startswith(b"%PDF")

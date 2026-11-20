@@ -810,3 +810,77 @@ def export_docx(assignment_id: str, user: User = Depends(get_current_user), db: 
     doc.save(buf)
     return Response(buf.getvalue(), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     headers={"Content-Disposition": f'attachment; filename="rhapsody-{edition.year}-{edition.month:02d}-{assignment.target_language}.docx"'})
+
+
+# ------------------------------------------------------------------------------------------------- typeset PDF previews
+def _typeset_master(db: Session, master: RhapsodyMasterVersion, edition: RhapsodyEdition, texts: Optional[dict] = None,
+                    language: str = "en") -> bytes:
+    """Lays the master out as the printed book. `texts` maps segment id to translated text; missing entries fall back to the source."""
+    from ..models.db import RhapsodyFontAsset, RhapsodyLanguageProfile, RhapsodyProfileFont
+    from ..rhapsody_typeset import typeset_pdf
+    from .rhapsody_publishing import font_faces
+
+    sections = list(db.execute(select(RhapsodySection).where(RhapsodySection.master_version_id == master.id).order_by(RhapsodySection.sequence)).scalars())
+    segments = list(db.execute(select(RhapsodySegment).where(RhapsodySegment.master_version_id == master.id).order_by(RhapsodySegment.sequence)).scalars())
+    texts = texts or {}
+    kwargs: dict = {}
+    profile = db.execute(select(RhapsodyLanguageProfile).where(RhapsodyLanguageProfile.language_code == language)).scalar_one_or_none() if language != "en" else None
+    if profile is not None:
+        rows = db.execute(select(RhapsodyProfileFont, RhapsodyFontAsset).join(RhapsodyFontAsset, RhapsodyFontAsset.id == RhapsodyProfileFont.font_id)
+                          .where(RhapsodyProfileFont.profile_id == profile.id)).all()
+        fonts = {a.role: {"family": f.family, "format": f.format, "storage_key": f.storage_key, "sha256": f.sha256, "coverage": f.coverage or {}} for a, f in rows}
+        try:
+            kwargs["font_css"], kwargs["role_fonts"] = font_faces(fonts)
+        except ApiError:
+            pass
+        cfg = profile.layout or {}
+        try:
+            kwargs["page_mm"] = (float(cfg.get("page_width_mm", 140)), float(cfg.get("page_height_mm", 220)))
+            kwargs["margin_mm"] = float(cfg.get("margin_mm", 12))
+            kwargs["body_pt"] = float((profile.typography or {}).get("body_size_pt", 9.6))
+        except (TypeError, ValueError):
+            kwargs.pop("page_mm", None)
+        kwargs["direction"], kwargs["lang"] = profile.direction, profile.locale
+    sec_rows = [{"id": str(s.id), "key": s.stable_key, "type": s.section_type, "day": s.day_number, "formatting": s.formatting or {}} for s in sections]
+    blocks = [{"section_id": str(g.section_id), "key": g.stable_key, "role": (g.metadata_json or {}).get("role", "body"),
+               "text": texts.get(g.id) or g.source_text, "meta": g.metadata_json or {}} for g in segments]
+    return typeset_pdf(sec_rows, blocks, title=f"Rhapsody of Realities {edition.title}", year=edition.year, month=edition.month,
+                       month_label=f"{layout.MONTHS[edition.month - 1]} {edition.year}", **kwargs)
+
+
+def _pdf_response(pdf: bytes, name: str):
+    from fastapi.responses import Response
+    return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{name}"'})
+
+
+@router.get("/editions/{edition_id}/masters/{master_version_id}/layout.pdf")
+def master_layout_pdf(edition_id: str, master_version_id: str, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """The English master typeset like the printed book, so admins review the real layout before activating."""
+    edition = _get_edition(db, edition_id)
+    master = db.get(RhapsodyMasterVersion, parse_uuid(master_version_id, "master version"))
+    if master is None or master.edition_id != edition.id:
+        raise not_found("master version")
+    try:
+        pdf = _typeset_master(db, master, edition)
+    except Exception:
+        raise ApiError(422, "pdf_render_failed", "HAN could not typeset the layout. Check the server rendering dependencies.")
+    return _pdf_response(pdf, f"rhapsody-{edition.year}-{edition.month:02d}-english.pdf")
+
+
+@router.get("/assignments/{assignment_id}/layout.pdf")
+def assignment_layout_pdf(assignment_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """The translation so far typeset in the book layout; untranslated paragraphs show the English."""
+    assignment = _load_assignment(db, assignment_id)
+    if not _can_access_assignment(assignment, user):
+        raise not_found("assignment")
+    master = db.get(RhapsodyMasterVersion, assignment.master_version_id)
+    edition = db.get(RhapsodyEdition, master.edition_id)
+    texts = {}
+    for tr in db.execute(select(RhapsodySegmentTranslation).where(RhapsodySegmentTranslation.assignment_id == assignment.id)).scalars():
+        if tr.current_version_id:
+            texts[tr.segment_id] = db.get(RhapsodyTranslationVersion, tr.current_version_id).target_text
+    try:
+        pdf = _typeset_master(db, master, edition, texts, assignment.target_language)
+    except Exception:
+        raise ApiError(422, "pdf_render_failed", "HAN could not typeset the layout. Check the server rendering dependencies.")
+    return _pdf_response(pdf, f"rhapsody-{edition.year}-{edition.month:02d}-{assignment.target_language}.pdf")

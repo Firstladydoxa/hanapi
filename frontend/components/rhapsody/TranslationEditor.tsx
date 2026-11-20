@@ -81,7 +81,7 @@ export function TranslationEditor({ assignmentId }: { assignmentId: string }) {
             {a.can_edit ? <button className="btn btn-secondary" disabled={running} onClick={act(() => api.rhapsody.draftAll(a.id), "HAN is drafting the remaining paragraphs.")}>{running ? `Drafting ${a.draft.done}/${a.draft.total}…` : "Draft all with HAN"}</button> : null}
             {a.can_edit ? <button className="btn btn-primary" onClick={act(() => api.rhapsody.submit(a.id), "Submitted for proofreading.")}>Submit for review</button> : null}
             <a className="btn btn-secondary" href={api.rhapsody.exportUrl(a.id)}>Export DOCX</a>
-            <button className="btn btn-secondary" onClick={() => window.print()}>Print / PDF</button>
+            <a className="btn btn-secondary" href={api.rhapsody.layoutUrl(a.id)} target="_blank" rel="noreferrer">Preview book layout (PDF)</a>
           </div>
         </div>
         <div><div className="h-2 overflow-hidden rounded-full bg-line"><div className="h-full bg-ok" style={{ width: `${pct}%` }} /></div>
