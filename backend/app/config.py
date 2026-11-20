@@ -24,6 +24,17 @@ class Settings(BaseSettings):
     session_ttl_minutes: int = 480
     cookie_secure: Optional[bool] = None  # None -> derived from env (True in production)
     cookie_name: str = "han_session"
+
+    # Email authentication (Brevo)
+    brevo_api_key: Optional[str] = None
+    brevo_sender_email: Optional[str] = None
+    brevo_sender_name: str = "TNI HAN"
+    public_app_url: str = "http://localhost:3000"
+    email_code_ttl_minutes: int = 15
+    email_code_max_attempts: int = 5
+    email_code_resend_cooldown_seconds: int = 60
+    registration_reminder_delay_minutes: int = 30
+    email_auth_pepper: Optional[str] = None
     cors_origins: str = ""  # comma separated; empty = CORS closed
     trust_proxy: bool = False
 
@@ -112,6 +123,10 @@ class Settings(BaseSettings):
                 )
             if self.content_logging:
                 raise RuntimeError("HAN_CONTENT_LOGGING must not be enabled in production")
+            if not self.brevo_api_key or not self.brevo_sender_email:
+                raise RuntimeError("HAN_BREVO_API_KEY and HAN_BREVO_SENDER_EMAIL are required in production")
+            if not self.email_auth_pepper or len(self.email_auth_pepper) < 32:
+                raise RuntimeError("HAN_EMAIL_AUTH_PEPPER must be a random secret of at least 32 characters in production")
 
 
 @lru_cache
