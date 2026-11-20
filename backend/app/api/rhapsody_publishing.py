@@ -134,7 +134,7 @@ async def upload_font(request: Request, file: UploadFile = File(...), family: st
     data = await file.read(get_settings().rhapsody_max_font_bytes + 1)
     if not data or len(data) > get_settings().rhapsody_max_font_bytes:
         raise ApiError(413, "font_size", "The font file is empty or exceeds the 15 MB limit.")
-    signatures = {"otf": (b"OTTO",), "ttf": (b"\\x00\\x01\\x00\\x00", b"true"),
+    signatures = {"otf": (b"OTTO", b"\x00\x01\x00\x00"), "ttf": (b"\x00\x01\x00\x00", b"true"),
                   "woff": (b"wOFF",), "woff2": (b"wOF2",)}
     if not data.startswith(signatures[fmt]):
         raise ApiError(422, "invalid_font", "The file signature does not match its font extension.")
@@ -361,7 +361,7 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
             raise ApiError(409, "font_asset_integrity", f"The {role} font failed its integrity check.")
         mime = "font/otf" if info["format"] == "otf" else "font/ttf"
         family = "HAN_" + re.sub(r"[^A-Za-z0-9_]", "_", role)
-        font_css.append(f"@font-face{{font-family:'{family}';src:url(data:{mime};base64,{b64encode(raw).decode('ascii')}) format('opentype');font-weight:100 900;font-style:normal;}}")
+        font_css.append(f"@font-face{{font-family:'{family}';src:url(data:{mime};base64,{b64encode(raw).decode('ascii')}) format('opentype');font-weight:400;font-style:normal;}}")
         info["render_family"] = family
 
     role_font = {}
@@ -382,7 +382,7 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
     def safe_text(value: str) -> str:
         # XLIFF/InDesign inline markers are structural tokens, not HTML. Their exact
         # style mapping requires IDML style metadata; remove markers rather than emit markup.
-        return escape(re.sub(r"<\\d+/>|\\[\\[[A-Za-z]+/\\]\\]", "", str(value or "")))
+        return escape(re.sub(r"<\d+/>|\[\[[A-Za-z]+/\]\]", "", str(value or "")))
 
     content = []
     for section in sections:
