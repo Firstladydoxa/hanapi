@@ -181,6 +181,12 @@ const qs = (params: Record<string, string | number | undefined>): string => {
 };
 
 export const api = {
+  register: (email: string, display_name: string, password: string) => request<{ email: string; message: string }>("POST", "/v1/auth/register", { email, display_name, password }),
+  verifyEmail: (email: string, code: string) => request<{ message: string }>("POST", "/v1/auth/verify-email", { email, code }),
+  resendVerification: (email: string) => request<{ message: string }>("POST", "/v1/auth/resend-verification", { email }),
+  recoverRegistration: (token: string) => request<{ email: string; message: string }>("POST", "/v1/auth/registration/recovery-link", { token }),
+  requestPasswordReset: (email: string) => request<{ message: string }>("POST", "/v1/auth/password-reset/request", { email }),
+  confirmPasswordReset: (email: string, code: string, new_password: string) => request<{ message: string }>("POST", "/v1/auth/password-reset/confirm", { email, code, new_password }),
   login: async (email: string, password: string): Promise<Session> => {
     const s = await request<Session>("POST", "/v1/auth/login", { email, password });
     setCsrf(s.csrf_token);

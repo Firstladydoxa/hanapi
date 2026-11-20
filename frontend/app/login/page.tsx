@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { Alert } from "@/components/ui";
@@ -22,6 +23,10 @@ export default function LoginPage() {
       await api.login(email.trim(), password);
       router.replace("/projects");
     } catch (err) {
+      if (err instanceof ApiError && err.code === "email_not_verified") {
+        router.replace(`/verify-email?email=${encodeURIComponent(email.trim())}&notice=incomplete`);
+        return;
+      }
       setError(err instanceof ApiError ? err.message : "I couldn't sign you in. Please try again.");
     } finally {
       setBusy(false);
@@ -54,6 +59,7 @@ export default function LoginPage() {
           </div>
           {error ? <Alert>{error}</Alert> : null}
           <button className="btn btn-primary w-full" type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
+          <div className="flex justify-between text-sm"><Link className="underline" href="/forgot-password">Forgot password?</Link><Link className="underline" href="/register">Create account</Link></div>
         </form>
         <p className="han-login-foot">AI TRANSLATES. HUMANS UNDERSTAND. TNI DECIDES.</p>
       </div>
