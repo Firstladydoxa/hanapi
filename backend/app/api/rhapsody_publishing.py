@@ -303,8 +303,13 @@ def create_layout_proof(assignment_id: str, request: Request, user: User = Depen
         font_manifest[role]={"family":font.family,"style":font.style,"format":font.format,"sha256":font.sha256,
                              "license":font.license_name,"storage_key":font.storage_key,"coverage":font.coverage or {}}
     layout_cfg=profile.layout or {}
-    page_width=float(layout_cfg.get("page_width_mm",148)); page_height=float(layout_cfg.get("page_height_mm",210))
-    margin=float(layout_cfg.get("margin_mm",14)); font_size=float((profile.typography or {}).get("body_size_pt",10.5))
+    try:
+        page_width=float(layout_cfg.get("page_width_mm",148))
+        page_height=float(layout_cfg.get("page_height_mm",210))
+        margin=float(layout_cfg.get("margin_mm",14))
+        font_size=float((profile.typography or {}).get("body_size_pt",10.5))
+    except (TypeError, ValueError):
+        raise ApiError(422,"invalid_layout_settings","Page dimensions and typography settings must be numeric.")
     if not (90 <= page_width <= 400 and 120 <= page_height <= 500 and 4 <= margin <= 40 and 6 <= font_size <= 24):
         raise ApiError(422,"invalid_layout_settings","Page dimensions, margins or body font size are outside supported publishing limits.")
     usable_width=max(30,page_width-2*margin); usable_height=max(50,page_height-2*margin)
