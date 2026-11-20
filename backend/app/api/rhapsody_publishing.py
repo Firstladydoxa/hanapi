@@ -99,7 +99,7 @@ def _inspect_font(data: bytes) -> dict:
             "cjk": any(0x4E00 <= cp <= 0x9FFF for cp in glyphs),
         }
         result = {"family_name": family, "subfamily_name": subfamily, "glyph_count": len(glyphs),
-                  "codepoints": glyphs, "scripts": scripts, "units_per_em": units}
+                  "codepoints": glyphs, "scripts": scripts, "units_per_em": units,\n                  "embedding_restricted": bool(fs_type & 0x0002), "no_subsetting": bool(fs_type & 0x0100), "fs_type": fs_type}
         font.close()
         return result
     except Exception:
@@ -361,7 +361,7 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
             raise ApiError(409, "font_asset_integrity", f"The {role} font failed its integrity check.")
         mime = "font/otf" if info["format"] == "otf" else "font/ttf"
         family = "HAN_" + re.sub(r"[^A-Za-z0-9_]", "_", role)
-        font_css.append(f"@font-face{{font-family:'{family}';src:url(data:{mime};base64,{b64encode(raw).decode('ascii')}) format('opentype');font-weight:400;font-style:normal;}}")
+        font_css.append(f"@font-face{{font-family:'{family}';src:url(data:{mime};base64,{b64encode(raw).decode('ascii')}) format('{font_format}');font-weight:400;font-style:normal;}}")
         info["render_family"] = family
 
     role_font = {}
