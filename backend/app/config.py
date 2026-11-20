@@ -26,9 +26,12 @@ class Settings(BaseSettings):
     cookie_name: str = "han_session"
 
     # Email authentication (Brevo)
-    brevo_api_key: Optional[str] = None
-    brevo_sender_email: Optional[str] = None
-    brevo_sender_name: str = "TNI HAN"
+    smtp_host: str = "smtp-relay.brevo.com"
+    smtp_port: int = 587
+    smtp_username: Optional[str] = None
+    smtp_password: Optional[str] = None
+    mail_from_address: Optional[str] = None
+    mail_from_name: str = "TNI HAN"
     public_app_url: str = "http://localhost:3000"
     email_code_ttl_minutes: int = 15
     email_code_max_attempts: int = 5
@@ -123,8 +126,8 @@ class Settings(BaseSettings):
                 )
             if self.content_logging:
                 raise RuntimeError("HAN_CONTENT_LOGGING must not be enabled in production")
-            if not self.brevo_api_key or not self.brevo_sender_email:
-                raise RuntimeError("HAN_BREVO_API_KEY and HAN_BREVO_SENDER_EMAIL are required in production")
+            if not (self.smtp_username and self.smtp_password and self.mail_from_address):
+                raise RuntimeError("HAN_SMTP_USERNAME, HAN_SMTP_PASSWORD and HAN_MAIL_FROM_ADDRESS are required in production")
             if not self.email_auth_pepper or len(self.email_auth_pepper) < 32:
                 raise RuntimeError("HAN_EMAIL_AUTH_PEPPER must be a random secret of at least 32 characters in production")
 

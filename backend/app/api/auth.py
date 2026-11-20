@@ -35,14 +35,13 @@ def login(body: S.LoginRequest, request: Request, response: Response, db: Sessio
         audit.record("auth.login_failed", outcome="denied", object_type="user", ip=ip)
         raise ApiError(401, "invalid_credentials", "The email or password is incorrect.")
     if not user.email_verified:
+        # Resend only when no live code was issued in the cooldown window, so repeated sign-in attempts cannot flood the inbox.
         try:
-            code = _issue_code(db, user, "verify_email", force=True)
-            db.commit()
-            mail.send_code(user.email, user.display_name, code, "verify_email", get_settings().email_code_ttl_minutes)
-        except Exception:
+            _send_code(db, user, "verify_email")
+        except ApiError:
             db.rollback()
         audit.record("auth.login_unverified_email", outcome="denied", object_type="user", object_id=user.id, ip=ip)
-        raise ApiError(403, "email_not_verified", "Your registration is not complete. We have sent a new verification code if email delivery is available.")
+        raise ApiError(403, "email_not_verified", "Your registration is not complete. We have sent a verification code to your email.")
     if sec.needs_rehash(user.password_hash):
         user.password_hash = sec.hash_password(body.password)
     token, jti, exp = sec.create_session_token(user.id)
@@ -129,8 +128,8 @@ def _consume_code(db: Session, user: User, purpose: str, code: str) -> bool:
     return True
 
 
-def _send_code(db: Session, user: User, purpose: str) -> None:
-    code = _issue_code(db, user, purpose)
+def _send_code(db: Session, user: User, purpose: str, force: bool = False) -> None:
+    code = _issue_code(db, user, purpose, force=force)
     db.commit()
     if not mail.send_code(user.email, user.display_name, code, purpose, get_settings().email_code_ttl_minutes):
         raise ApiError(503, "email_delivery_unavailable", "We could not send your email right now. Please try again shortly.")
@@ -140,9 +139,17 @@ def _send_code(db: Session, user: User, purpose: str) -> None:
 def register(body: S.RegisterRequest, request: Request, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     existing = db.execute(select(User).where(func.lower(User.email) == email)).scalar_one_or_none()
-    if existing is not None:
-        # Do not disclose whether an address already has an account.
+    if existing is not None and (existing.email_verified or existing.status != "active"):
         raise ApiError(409, "registration_unavailable", "We could not start registration for this address. Try signing in or resetting your password.")
+    if existing is not None:
+        # Unverified account: restart registration with the newly supplied details and a fresh code.
+        existing.display_name = body.display_name.strip()
+        existing.password_hash = sec.hash_password(body.password)
+        db.add(RegistrationReminder(user_id=existing.id,
+            due_at=datetime.now(timezone.utc) + timedelta(minutes=get_settings().registration_reminder_delay_minutes)))
+        db.commit()
+        _send_code(db, existing, "verify_email", force=True)
+        return {"ok": True, "email": existing.email, "message": "Enter the six-digit code sent to your email."}
     user = User(email=email, display_name=body.display_name.strip(), role="translator",
         password_hash=sec.hash_password(body.password), status="active", email_verified=False)
     db.add(user)
@@ -191,7 +198,10 @@ def resend_verification(body: S.EmailOnlyRequest, request: Request, db: Session 
 def request_password_reset(body: S.EmailOnlyRequest, request: Request, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(func.lower(User.email) == body.email.strip().lower())).scalar_one_or_none()
     if user is not None and user.email_verified and user.status == "active":
-        _send_code(db, user, "reset_password")
+        try:
+            _send_code(db, user, "reset_password")
+        except ApiError:
+            db.rollback()  # cooldown or delivery failure: respond identically so account existence is not revealed
     return {"ok": True, "message": "If an eligible account exists, a password reset code has been sent."}
 
 

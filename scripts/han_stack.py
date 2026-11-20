@@ -331,6 +331,7 @@ class Stack:
         log = self.logs / "cron.log"
         wanted = [f"@reboot PATH={PATH} flock -n {lock} {script} ensure >> {log} 2>&1",
                   f"* * * * * PATH={PATH} flock -n {lock} {script} ensure >> {log} 2>&1",
+                  f"*/5 * * * * PATH={PATH} {script} reminders >> {log} 2>&1",
                   f"15 3 * * * PATH={PATH} {script} backup >> {log} 2>&1"]
         cur = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
         existing = [l for l in (cur.stdout.splitlines() if cur.returncode == 0 else []) if l.strip()]
@@ -346,6 +347,11 @@ class Stack:
         env = self.backend_env(self.secrets_env(), self.db_url())
         subprocess.run([str(VENV_HAN / "python"), "-W", "ignore", "-m", "app.manage", *args], cwd=ROOT / "backend", env=env, check=True)
 
+    def reminders(self) -> None:
+        """Send due incomplete-registration reminder emails."""
+        env = self.backend_env(self.secrets_env(), self.db_url())
+        subprocess.run([str(VENV_HAN / "python"), "-W", "ignore", "-m", "app.send_registration_reminders"], cwd=ROOT / "backend", env=env, check=True)
+
     def show_logs(self, service: str | None) -> None:
         for name in ([service] if service else SERVICES):
             f = self.logs / f"{name}.log"
@@ -357,14 +363,14 @@ class Stack:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--profile", choices=sorted(PROFILES), default="dev")
-    ap.add_argument("command", choices=["build", "start", "stop", "status", "logs", "ensure", "backup", "install-cron", "manage"])
+    ap.add_argument("command", choices=["build", "start", "stop", "status", "logs", "ensure", "backup", "install-cron", "manage", "reminders"])
     ap.add_argument("args", nargs=argparse.REMAINDER)
     a = ap.parse_args()
     s = Stack(a.profile)
     if a.command == "logs" and a.args and a.args[0] not in SERVICES:
         raise SystemExit(f"logs: service must be one of {SERVICES}")
     {"build": s.build, "start": s.start, "stop": s.stop, "status": s.status, "ensure": s.ensure, "backup": s.backup,
-     "install-cron": s.install_cron, "manage": lambda: s.manage(a.args),
+     "install-cron": s.install_cron, "reminders": s.reminders, "manage": lambda: s.manage(a.args),
      "logs": lambda: s.show_logs(a.args[0] if a.args else None)}[a.command]()
 
 

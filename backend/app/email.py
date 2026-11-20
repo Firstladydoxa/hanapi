@@ -1,36 +1,35 @@
-"""Transactional email delivery through Brevo. Secrets are read only from server env."""
+"""Transactional email delivery over Brevo SMTP (STARTTLS). Secrets are read only from server env."""
 from __future__ import annotations
 
 import logging
+import smtplib
+import ssl
+from email.message import EmailMessage
+from email.utils import formataddr
 from html import escape
-from typing import Optional
-
-import httpx
 
 from .config import get_settings
 
 log = logging.getLogger("han.email")
-BREVO_URL = "https://api.brevo.com/v3/smtp/email"
 
 
 def send_email(to_email: str, subject: str, html: str, text: str) -> bool:
-    settings = get_settings()
-    if not settings.brevo_api_key or not settings.brevo_sender_email:
+    cfg = get_settings()
+    if not (cfg.smtp_username and cfg.smtp_password and cfg.mail_from_address):
         log.warning("email_delivery_not_configured")
         return False
-    payload = {
-        "sender": {"email": settings.brevo_sender_email, "name": settings.brevo_sender_name},
-        "to": [{"email": to_email}],
-        "subject": subject,
-        "htmlContent": html,
-        "textContent": text,
-    }
+    msg = EmailMessage()
+    msg["Subject"], msg["To"] = subject, to_email
+    msg["From"] = formataddr((cfg.mail_from_name, cfg.mail_from_address))
+    msg.set_content(text)
+    msg.add_alternative(html, subtype="html")
     try:
-        response = httpx.post(BREVO_URL, headers={"api-key": settings.brevo_api_key, "accept": "application/json",
-            "content-type": "application/json"}, json=payload, timeout=12.0)
-        response.raise_for_status()
+        with smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=15) as smtp:
+            smtp.starttls(context=ssl.create_default_context())
+            smtp.login(cfg.smtp_username, cfg.smtp_password)
+            smtp.send_message(msg)
         return True
-    except (httpx.HTTPError, ValueError):
+    except (smtplib.SMTPException, OSError):
         log.exception("transactional_email_delivery_failed")
         return False
 

@@ -344,7 +344,12 @@ def test_production_refuses_insecure_configuration():
         Settings(env="production", secret_key="short").validate_for_startup()
     with pytest.raises(RuntimeError):
         Settings(env="production", secret_key="x" * 40, content_logging=True).validate_for_startup()
-    Settings(env="production", secret_key="x" * 40).validate_for_startup()
+    with pytest.raises(RuntimeError):  # SMTP credentials are mandatory
+        Settings(env="production", secret_key="x" * 40, email_auth_pepper="p" * 40).validate_for_startup()
+    with pytest.raises(RuntimeError):  # so is a strong email-code pepper
+        Settings(env="production", secret_key="x" * 40, smtp_username="u", smtp_password="p", mail_from_address="a@b.test").validate_for_startup()
+    Settings(env="production", secret_key="x" * 40, smtp_username="u", smtp_password="p", mail_from_address="a@b.test",
+             email_auth_pepper="p" * 40).validate_for_startup()
 
 
 def test_seed_is_idempotent_and_has_no_default_credentials(monkeypatch, capsys):

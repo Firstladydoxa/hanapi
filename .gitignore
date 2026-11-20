@@ -30,3 +30,6 @@ scripts/shots/
 # Uploaded Rhapsody manuscripts and generated source artifacts
 var/rhapsody/
 backend/var/rhapsody/
+
+# Credentials files must never be committed
+BREVO_SMTP.md
