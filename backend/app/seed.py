@@ -97,6 +97,15 @@ PILOT_PROJECT = "TNI Translator Pilot"
 PILOT_LANGS = ("de", "fr", "es", "sw")
 
 
+def join_pilot(db: Session, user: User) -> bool:
+    """Everyone belongs to the TNI pilot project by default (idempotent; the caller commits)."""
+    project = db.execute(select(Project).where(Project.name == PILOT_PROJECT)).scalar_one_or_none()
+    if project is None or db.get(ProjectMember, (project.id, user.id)) is not None:
+        return False
+    db.add(ProjectMember(project_id=project.id, user_id=user.id, role="reviewer" if user.role == "reviewer" else "translator", can_approve=True))
+    return True
+
+
 def seed_pilot(db: Session) -> List[str]:
     """Controlled pilot setup (allowed in production): one project that opts in to `experimental` pairs.
 
@@ -115,8 +124,12 @@ def seed_pilot(db: Session) -> List[str]:
                        instructions="Pilot project for evaluating HAN. Translate naturally and keep numbers, names and formatting. "
                                     "HAN drafts are suggestions: review and edit every draft, and approve only what you are satisfied with."))
         db.commit()
-        return [f"project created: {PILOT_PROJECT}"]
-    return [f"project exists: {PILOT_PROJECT}"]
+        created = True
+    else:
+        created = False
+    sum(join_pilot(db, u) for u in db.execute(select(User).where(User.status == "active", User.email_verified.is_(True))).scalars())
+    db.commit()
+    return [f"project {'created' if created else 'exists'}: {PILOT_PROJECT}"]
 
 
 def main(argv: Optional[List[str]] = None) -> int:

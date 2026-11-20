@@ -19,6 +19,7 @@ from ..errors import ApiError, unauthenticated
 from ..models import schemas as S
 from ..models.db import EmailAuthChallenge, Language, RegistrationReminder, User, UserSession
 from .. import languages as langs
+from ..seed import join_pilot
 from ..ratelimit import limit_auth
 from ..security import auth as sec
 from ..security import serializers as ser
@@ -209,6 +210,7 @@ def verify_email(body: S.EmailCodeRequest, request: Request, db: Session = Depen
         db.commit()
         raise ApiError(400, "invalid_or_expired_code", "This verification code is invalid or expired. Request a new code.")
     user.email_verified = True
+    join_pilot(db, user)
     db.execute(update(RegistrationReminder).where(RegistrationReminder.user_id == user.id,
         RegistrationReminder.cancelled_at.is_(None)).values(cancelled_at=datetime.now(timezone.utc)))
     db.commit()

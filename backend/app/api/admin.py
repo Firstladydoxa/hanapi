@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import audit
+from ..seed import join_pilot
 from .. import languages as languages_service
 from ..config import get_settings
 from ..database import get_db
@@ -80,6 +81,8 @@ def create_user(body: S.AdminUserCreate, request: Request, actor: User = Depends
              engine_details_granted=body.engine_details_granted)
     db.add(u)
     try:
+        db.flush()
+        join_pilot(db, u)
         db.commit()
     except IntegrityError:
         db.rollback()

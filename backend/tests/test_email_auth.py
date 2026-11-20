@@ -113,3 +113,18 @@ def test_expired_code_is_rejected(anon, monkeypatch):
         db.query(EmailAuthChallenge).update({"expires_at": datetime.now(timezone.utc) - timedelta(seconds=1)})
         db.commit()
     assert anon.post("/v1/auth/verify-email", {"email": "exp@example.test", "code": sent[0]}, csrf=False).status_code == 400
+
+
+def test_verified_registration_joins_pilot_project_as_translator(anon, monkeypatch):
+    from app.models.db import Project, ProjectMember
+    from app.seed import PILOT_PROJECT, seed_pilot
+    sent = []
+    monkeypatch.setattr(mail, "send_code", lambda email, name, code, purpose, minutes: sent.append(code) or True)
+    with SessionLocal() as db:
+        seed_pilot(db)
+    anon.post("/v1/auth/register", {"email": "pilot@example.test", "display_name": "Pilot", "password": "correct-horse-battery-staple", "expertise_language": "fr"})
+    assert anon.post("/v1/auth/verify-email", {"email": "pilot@example.test", "code": sent[-1]}, csrf=False).status_code == 200
+    with SessionLocal() as db:
+        u = db.query(User).filter(User.email == "pilot@example.test").one()
+        p = db.query(Project).filter(Project.name == PILOT_PROJECT).one()
+        assert u.role == "translator" and db.get(ProjectMember, (p.id, u.id)) is not None
