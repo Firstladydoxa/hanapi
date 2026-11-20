@@ -761,5 +761,8 @@ class RhapsodyLayoutProof(Base):
     profile_version: Mapped[int] = mapped_column(Integer, nullable=False)
     translation_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
     manifest: Mapped[Any] = mapped_column(JSONType, nullable=False)
+    pdf_storage_key: Mapped[Optional[str]] = mapped_column(String(500))
+    pdf_sha256: Mapped[Optional[str]] = mapped_column(String(64))
+    pdf_byte_size: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = _now()
