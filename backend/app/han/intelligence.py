@@ -128,6 +128,16 @@ def _segment_context(db: Session, user: User, translation_id: Optional[str]) -> 
             "Current draft": (ver.target_text[:1500] if ver else "")}
 
 
+def translator_context(db: Session, user: User) -> str:
+    from ..languages import translator_pairs
+    info = translator_pairs(db, user) if user.role == "translator" else None
+    if not info:
+        return ""
+    return (f"TRANSLATOR PROFILE: this translator's language of expertise is {info['name']} ({info['code']}). Their working pairs are English to {info['name']} "
+            f"and {info['name']} to English. When they ask for a draft without naming languages, translate English text into {info['name']} and {info['name']} "
+            f"text into English.")
+
+
 def _ask_model(db: Session, conv: ChatConversation, project: Optional[Project], message: str, hits, segment, grounded: bool, extra: str = "") -> Optional[str]:
     history, earlier = conversations.history_for_model(db, conv, message)
     summary = conv.summary
@@ -137,6 +147,10 @@ def _ask_model(db: Session, conv: ChatConversation, project: Optional[Project], 
                           if project else None, [(h.title + (f" - {h.heading}" if h.heading else ""), h.text) for h in hits], summary, segment)
     if extra:
         system += "\n\n" + extra
+    owner = db.get(User, conv.user_id)
+    ctx = translator_context(db, owner) if owner is not None else ""
+    if ctx:
+        system += "\n\n" + ctx
     msgs = [{"role": "system", "content": system}] + [m for m in history if m["content"].strip()]
     if not msgs[-1:] or msgs[-1]["role"] != "user" or msgs[-1]["content"][:200] != message[:200]:
         msgs.append({"role": "user", "content": message[:6000]})
@@ -212,7 +226,7 @@ def _phrase_in(message: str) -> Optional[str]:
     return m.group(1).strip() if m else None
 
 
-def glossary_answer(db: Session, message: str, idx: LanguageIndex, state: Dict, req_langs, segment: Optional[Dict[str, str]]) -> Answer:
+def glossary_answer(db: Session, user: User, message: str, idx: LanguageIndex, state: Dict, req_langs, segment: Optional[Dict[str, str]]) -> Answer:
     from .. import glossary
     from ..models.db import Language
 
@@ -221,6 +235,12 @@ def glossary_answer(db: Session, message: str, idx: LanguageIndex, state: Dict, 
         code = idx.resolve(segment.get("Target language"))
     if code == "en":
         code = None
+    if not code and user.role == "translator":
+        code = user.expertise_language
+    if code and not glossary.can_read(user, code):
+        own = db.get(Language, user.expertise_language) if user.expertise_language else None
+        return Answer("As a translator you can use the TNI glossary of your own language of expertise" + (f" ({own.display_name})" if own else "") +
+                      ". The glossaries of other languages are available to administrators and the language's team leader.")
     if not code:
         return Answer("Which language's glossary should I check? Tell me the language, for example: \"in Swahili\".", "clarification")
     lang = db.get(Language, code)
@@ -258,7 +278,7 @@ def answer(db: Session, user: User, conv: ChatConversation, project: Optional[Pr
     segment = _segment_context(db, user, context_translation_id)
     pid = project.id if project else None
     if intent == "glossary":
-        return glossary_answer(db, message, idx, state, req_langs, segment)
+        return glossary_answer(db, user, message, idx, state, req_langs, segment)
     if intent in ("doctrine", "concept", "explain"):
         hits = knowledge.retrieve(db, user, message, pid, categories=["doctrine"])
         if hits:

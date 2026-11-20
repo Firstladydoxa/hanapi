@@ -22,6 +22,9 @@ def _leader(world, languages=("sw",)):
 
 def _setup(login, world, languages=("sw",)):
     uid, langs, _ = _leader(world, languages)
+    with SessionLocal() as db:  # the translator's language of expertise decides which glossary she can read
+        db.query(User).filter(User.email == "alice@example.test").update({"expertise_language": "sw"})
+        db.commit()
     admin = login("tina")
     r = admin.put(f"/v1/glossary/leads/{uid}", {"languages": list(langs)})
     assert r.status_code == 200, r.text
@@ -43,9 +46,13 @@ def test_only_the_language_team_leader_can_edit(login, world):
     assert login("alice").post("/v1/glossary/sw/entries", {"source_text": "Grace", "target_text": "Neema"}).status_code == 403
     assert lead.post("/v1/glossary/sw/entries", {"source_text": " righteousness. ", "target_text": "X"}).status_code == 409
     assert admin.post("/v1/glossary/de/entries", {"source_text": "Grace", "target_text": "Gnade"}).status_code == 201
-    assert login("alice").get("/v1/glossary/sw/entries").json()["total"] == 1  # everyone can read
+    assert login("alice").get("/v1/glossary/sw/entries").json()["total"] == 1
+    assert login("alice").get("/v1/glossary/de/entries").status_code == 403  # translators only read their own language
+    assert login("alice").get("/v1/glossary/de/export").status_code == 403
     ov = login("alice").get("/v1/glossary/overview").json()
-    assert ov["total_entries"] == 2 and not ov["can_manage_any"]
+    assert ov["total_entries"] == 1 and [l["code"] for l in ov["languages"]] == ["sw"] and not ov["can_manage_any"]
+    adm = admin.get("/v1/glossary/overview").json()
+    assert adm["total_entries"] == 2 and len(adm["languages"]) > 1
 
 
 def test_import_export_and_edit(login, world):
@@ -73,7 +80,7 @@ def test_han_answers_from_the_glossary_and_does_not_guess(login, world, monkeypa
     c = _chat(tr, world, 'How is "Justification" translated in Swahili in the TNI glossary?')
     assert "no entry" in c["reply"] and "Haki" not in c["reply"]
     d = _chat(tr, world, 'Per the glossary, how is "Grace" translated in German?')
-    assert "empty" in d["reply"]
+    assert "own language of expertise" in d["reply"] and "Swahili" in d["reply"]
 
 
 def test_doctrine_reference_is_loaded_and_answers_definitions(login, world, monkeypatch):
@@ -90,3 +97,28 @@ def test_doctrine_reference_is_loaded_and_answers_definitions(login, world, monk
     assert "declared" in j["reply"].lower() or "legal" in j["reply"].lower()
     n = _chat(login("alice"), world, "What is the definition of Zorbulation according to Pastor Chris?")
     assert "reference" in n["reply"] and not n["sources"]
+
+
+def test_registration_stores_expertise_and_creates_both_language_pairs(anon, monkeypatch):
+    from app import email as mail
+    from app.models.db import LanguageDirection
+    monkeypatch.setattr(mail, "send_code", lambda *a, **k: True)
+    body = {"email": "pairs@example.test", "display_name": "Pairs", "password": "correct-horse-battery-staple"}
+    assert anon.post("/v1/auth/register", {**body, "expertise_language": "en"}).status_code == 422
+    assert anon.post("/v1/auth/register", {**body, "expertise_language": "xx"}).status_code == 422
+    assert anon.post("/v1/auth/register", {**body, "expertise_language": "yo"}).status_code == 202
+    with SessionLocal() as db:
+        u = db.query(User).filter(User.email == "pairs@example.test").one()
+        assert u.expertise_language == "yo"
+        assert db.get(LanguageDirection, ("en", "yo")) and db.get(LanguageDirection, ("yo", "en"))
+    langs = anon.get("/v1/auth/languages").json()
+    assert any(l["code"] == "yo" for l in langs) and all(l["code"] != "en" for l in langs)
+
+
+def test_han_defaults_to_the_translators_language_pair(login, world, monkeypatch):
+    from app.han.intelligence import translator_context
+    _setup(login, world)
+    with SessionLocal() as db:
+        alice = db.query(User).filter(User.email == "alice@example.test").one()
+        ctx = translator_context(db, alice)
+    assert "Swahili" in ctx and "English to Swahili" in ctx and "Swahili to English" in ctx

@@ -4,8 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useRouter } from "next/navigation";
 import { api, ApiError, type User } from "./api";
 
-interface AuthState { user: User | null; loading: boolean; signOut: () => Promise<void> }
-const Ctx = createContext<AuthState>({ user: null, loading: true, signOut: async () => undefined });
+interface AuthState { user: User | null; loading: boolean; signOut: () => Promise<void>; setUser: (u: User) => void }
+const Ctx = createContext<AuthState>({ user: null, loading: true, signOut: async () => undefined, setUser: () => undefined });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { await api.logout(); } finally { router.replace("/login"); }
   }, [router]);
 
-  const value = useMemo(() => ({ user, loading, signOut }), [user, loading, signOut]);
+  const value = useMemo(() => ({ user, loading, signOut, setUser }), [user, loading, signOut]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

@@ -53,6 +53,7 @@ class User(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
     email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     engine_details_granted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    expertise_language: Mapped[Optional[str]] = mapped_column(ForeignKey("languages.code"))  # a translator's language of expertise (paired with English)
     created_at: Mapped[datetime] = _now()
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     __table_args__ = (

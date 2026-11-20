@@ -8,7 +8,8 @@ export type Tier = "production" | "assisted" | "experimental" | "unsupported";
 export type SegmentStatus = "not_started" | "draft" | "in_review" | "approved" | "rejected" | "needs_attention";
 export type JobStatus = "queued" | "processing" | "ready" | "failed" | "partial";
 
-export interface User { id: string; email: string; display_name: string; role: Role; status: string }
+export interface User { id: string; email: string; display_name: string; role: Role; status: string; expertise_language?: string | null; expertise_language_name?: string | null }
+export interface RegistrationLanguage { code: string; display_name: string; native_name: string | null }
 export interface Session { user: User; csrf_token: string }
 export interface ProjectListItem { id: string; name: string; domain: string | null; style: string | null; member_role: string }
 export interface Direction { source_code: string; target_code: string; readiness_tier: Tier; review_note: string | null }
@@ -181,7 +182,9 @@ const qs = (params: Record<string, string | number | undefined>): string => {
 };
 
 export const api = {
-  register: (email: string, display_name: string, password: string) => request<{ email: string; message: string }>("POST", "/v1/auth/register", { email, display_name, password }),
+  register: (email: string, display_name: string, password: string, expertise_language: string) => request<{ email: string; message: string }>("POST", "/v1/auth/register", { email, display_name, password, expertise_language }),
+  registrationLanguages: () => request<RegistrationLanguage[]>("GET", "/v1/auth/languages"),
+  setExpertise: (expertise_language: string) => request<User>("PUT", "/v1/auth/expertise", { expertise_language }),
   verifyEmail: (email: string, code: string) => request<{ message: string }>("POST", "/v1/auth/verify-email", { email, code }),
   resendVerification: (email: string) => request<{ message: string }>("POST", "/v1/auth/resend-verification", { email }),
   recoverRegistration: (token: string) => request<{ email: string; message: string }>("POST", "/v1/auth/registration/recovery-link", { token }),

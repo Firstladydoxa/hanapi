@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { api, type RegistrationLanguage, type User } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/labels";
 import { buildNav, isActive } from "@/lib/nav";
@@ -22,6 +23,29 @@ export function Brand() {
   );
 }
 
+function ExpertiseBanner({ onSaved }: { onSaved: (u: User) => void }) {
+  const [languages, setLanguages] = useState<RegistrationLanguage[]>([]);
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { api.registrationLanguages().then(setLanguages).catch(() => undefined); }, []);
+  async function save() {
+    setBusy(true); setError(null);
+    try { onSaved(await api.setExpertise(code)); } catch { setError("I couldn't save your language. Please try again."); } finally { setBusy(false); }
+  }
+  return (
+    <div className="card mb-4 flex flex-wrap items-center gap-3 p-4" role="region" aria-label="Choose your language of expertise">
+      <p className="text-sm"><strong>Choose your language of expertise.</strong> HAN uses it to open your glossary and to draft in English ⇄ your language.</p>
+      <select className="input w-auto" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Language of expertise">
+        <option value="" disabled>Select a language…</option>
+        {languages.map((l) => <option key={l.code} value={l.code}>{l.display_name}</option>)}
+      </select>
+      <button className="btn btn-primary" disabled={!code || busy} onClick={save}>{busy ? "Saving…" : "Save"}</button>
+      {error ? <span className="text-sm text-red-600">{error}</span> : null}
+    </div>
+  );
+}
+
 function useIsMobile(): boolean {
   const [mobile, setMobile] = useState(false);
   useEffect(() => {
@@ -35,7 +59,7 @@ function useIsMobile(): boolean {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, setUser } = useAuth();
   const { projectId, project } = useProject();
   const path = usePathname();
   const mobile = useIsMobile();
@@ -135,6 +159,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
         <main className="han-content" id="han-content">
+          {user && user.role === "translator" && !user.expertise_language ? <ExpertiseBanner onSaved={setUser} /> : null}
           {loading ? <div className="han-loading"><Spinner label="Preparing your workspace" /></div> : user ? children : null}
         </main>
         <footer className="han-footer">

@@ -141,3 +141,34 @@ def language_support(db: Session) -> List[Dict]:
         rows.append({"code": l.code, "name": l.display_name, "native_name": l.native_name, "script": l.script, "tier": tier,
                      "availability": availability(tier), "reviewed": l.reviewed})
     return rows
+
+
+def expertise_language(db: Session, code: str) -> Language:
+    """The active, non-English language a translator may claim as expertise; raises ValueError otherwise."""
+    code = (code or "").strip().lower().replace("_", "-")
+    lang = db.get(Language, code)
+    if lang is None or not lang.active or code == PIVOT:
+        raise ValueError("unknown_language")
+    return lang
+
+
+def ensure_pair(db: Session, code: str) -> None:
+    """Make sure both directions English->X and X->English exist (created as not yet enabled when new)."""
+    for src, tgt in ((PIVOT, code), (code, PIVOT)):
+        if db.get(LanguageDirection, (src, tgt)) is None:
+            db.add(LanguageDirection(source_code=src, target_code=tgt, readiness_tier="unsupported"))
+
+
+def translator_pairs(db: Session, user) -> Optional[Dict]:
+    """The translator's language of expertise and its two directions, for HAN to use as defaults."""
+    code = getattr(user, "expertise_language", None)
+    if not code:
+        return None
+    lang = db.get(Language, code)
+    if lang is None:
+        return None
+    pairs = []
+    for src, tgt in ((PIVOT, code), (code, PIVOT)):
+        d = db.get(LanguageDirection, (src, tgt))
+        pairs.append({"source": src, "target": tgt, "tier": d.readiness_tier if d else "unsupported"})
+    return {"code": code, "name": lang.display_name, "pairs": pairs}

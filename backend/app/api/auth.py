@@ -17,7 +17,8 @@ from ..database import get_db
 from ..deps import _session_user, client_ip, get_current_user
 from ..errors import ApiError, unauthenticated
 from ..models import schemas as S
-from ..models.db import EmailAuthChallenge, RegistrationReminder, User, UserSession
+from ..models.db import EmailAuthChallenge, Language, RegistrationReminder, User, UserSession
+from .. import languages as langs
 from ..ratelimit import limit_auth
 from ..security import auth as sec
 from ..security import serializers as ser
@@ -64,6 +65,28 @@ def logout(request: Request, response: Response, user: User = Depends(get_curren
     response.delete_cookie(get_settings().cookie_name, path="/")
     audit.record("auth.logout", actor=user, object_type="user", object_id=user.id, ip=client_ip(request))
     return S.OkOut()
+
+
+@router.get("/languages")
+def registration_languages(db: Session = Depends(get_db)):
+    """Languages a translator can pick as their expertise at sign-up (public: needed before an account exists)."""
+    rows = db.execute(select(Language).where(Language.active.is_(True), Language.code != "en").order_by(Language.display_name)).scalars()
+    return [{"code": l.code, "display_name": l.display_name, "native_name": l.native_name} for l in rows]
+
+
+@router.put("/expertise", response_model=S.UserOut)
+def set_expertise(body: S.ExpertiseRequest, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "translator":
+        raise ApiError(403, "forbidden", "Only translators have a language of expertise.")
+    try:
+        lang = langs.expertise_language(db, body.expertise_language)
+    except ValueError:
+        raise ApiError(422, "unknown_language", "Choose your language of expertise from the list.")
+    user.expertise_language = lang.code
+    langs.ensure_pair(db, lang.code)
+    db.commit()
+    audit.record("auth.expertise_set", actor=user, object_type="user", object_id=user.id, details={"language": lang.code}, ip=client_ip(request))
+    return ser.user_out(user)
 
 
 @router.get("/me", response_model=S.SessionOut)
@@ -138,6 +161,10 @@ def _send_code(db: Session, user: User, purpose: str, force: bool = False) -> No
 @router.post("/register", status_code=202, dependencies=[Depends(limit_auth)])
 def register(body: S.RegisterRequest, request: Request, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
+    try:
+        expertise = langs.expertise_language(db, body.expertise_language)
+    except ValueError:
+        raise ApiError(422, "unknown_language", "Choose your language of expertise from the list.")
     existing = db.execute(select(User).where(func.lower(User.email) == email)).scalar_one_or_none()
     if existing is not None and (existing.email_verified or existing.status != "active"):
         raise ApiError(409, "registration_unavailable", "We could not start registration for this address. Try signing in or resetting your password.")
@@ -145,14 +172,18 @@ def register(body: S.RegisterRequest, request: Request, db: Session = Depends(ge
         # Unverified account: restart registration with the newly supplied details and a fresh code.
         existing.display_name = body.display_name.strip()
         existing.password_hash = sec.hash_password(body.password)
+        existing.expertise_language = expertise.code
+        langs.ensure_pair(db, expertise.code)
         db.add(RegistrationReminder(user_id=existing.id,
             due_at=datetime.now(timezone.utc) + timedelta(minutes=get_settings().registration_reminder_delay_minutes)))
         db.commit()
         _send_code(db, existing, "verify_email", force=True)
         return {"ok": True, "email": existing.email, "message": "Enter the six-digit code sent to your email."}
     user = User(email=email, display_name=body.display_name.strip(), role="translator",
-        password_hash=sec.hash_password(body.password), status="active", email_verified=False)
+        password_hash=sec.hash_password(body.password), status="active", email_verified=False,
+        expertise_language=expertise.code)
     db.add(user)
+    langs.ensure_pair(db, expertise.code)
     try:
         db.flush()
         code = _issue_code(db, user, "verify_email")

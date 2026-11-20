@@ -45,6 +45,11 @@ class RegisterRequest(Req):
     email: Annotated[str, StringConstraints(min_length=3, max_length=320)]
     display_name: Annotated[str, StringConstraints(min_length=1, max_length=200)]
     password: Annotated[str, StringConstraints(min_length=12, max_length=1024)]
+    expertise_language: Annotated[str, StringConstraints(min_length=2, max_length=16)]
+
+
+class ExpertiseRequest(Req):
+    expertise_language: Annotated[str, StringConstraints(min_length=2, max_length=16)]
 
 
 class EmailOnlyRequest(Req):
@@ -72,6 +77,8 @@ class UserOut(Public):
     display_name: str
     role: str
     status: str
+    expertise_language: Optional[str] = None
+    expertise_language_name: Optional[str] = None
 
 
 class SessionOut(Public):

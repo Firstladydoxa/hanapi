@@ -106,6 +106,9 @@ def respond(db: Session, user: User, conv: ChatConversation, project: Optional[P
 
     source = source or source_language
     target = target or target_language
+    if not target and user.role == "translator" and user.expertise_language:
+        # no language named: draft in the translator's own pair (English -> expertise, or expertise -> English)
+        target = "en" if source == user.expertise_language else user.expertise_language
 
     if not text:
         return _ask(db, conv, message, cid, R.ASK_TEXT, "text", {"text": text, "source": source, "target": target})

@@ -43,6 +43,18 @@ def managed_languages(db: Session, user: User) -> Optional[List[str]]:
     return list(db.execute(select(GlossaryLead.language).where(GlossaryLead.user_id == user.id)).scalars())
 
 
+def readable_languages(user: User) -> Optional[List[str]]:
+    """Language codes the user may read; None means all. Translators only see their own language of expertise."""
+    if user.role == "translator":
+        return [user.expertise_language] if user.expertise_language else []
+    return None
+
+
+def can_read(user: User, language: str) -> bool:
+    langs = readable_languages(user)
+    return langs is None or language in langs
+
+
 def can_manage(db: Session, user: User, language: str) -> bool:
     langs = managed_languages(db, user)
     return langs is None or language in langs

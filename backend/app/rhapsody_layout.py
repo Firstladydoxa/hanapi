@@ -106,21 +106,57 @@ def _day_number(text: str, year: int, month: int, last: int) -> Optional[int]:
     return n
 
 
+RUNNING_HEADER = re.compile(r"^(?P<n>\d{1,2})\s+(?P<name>[A-Z][A-Za-z.'’\- ]{2,40}?)\W*$")
+
+
+def _page_markers(paras: List[Dict[str, Any]], last_day: int) -> List[Tuple[int, int]]:
+    """Articles delimited by the manuscript's running header ("2   Pastor Chris"); the first article carries the bare author name.
+
+    Returns [(paragraph index of the first article paragraph, day)]. Empty when the manuscript has no running headers.
+    """
+    marks: List[Tuple[int, int, str]] = []
+    prev = 0
+    for i, p in enumerate(paras):
+        m = RUNNING_HEADER.match(p["text"].strip())
+        if m and prev < int(m.group("n")) <= last_day and not (prev == 0 and int(m.group("n")) != 2):
+            marks.append((i, int(m.group("n")), m.group("name").strip().lower()))
+            prev = int(m.group("n"))
+    if not marks:
+        return []
+    author = marks[0][2]
+    out: List[Tuple[int, int]] = []
+    head = paras[0]["text"].strip().lower().rstrip(".") if paras else ""
+    if len(marks) < 2 and head != author:
+        return []
+    if marks[0][1] == 2 and head == author:
+        out.append((1, 1))
+    elif marks[0][1] == 2:
+        out.append((0, 1))
+    out.extend((i + 1, n) for i, n, _ in marks)
+    return out
+
+
 def parse_manuscript(data: bytes, year: int, month: int) -> List[Dict[str, Any]]:
     """Split the Word manuscript into the month's daily articles and recognise each part of an article."""
     paras = _paragraphs(data)
-    starts: List[Tuple[int, int]] = []
-    last = 0
-    for i, p in enumerate(paras):
-        n = _day_number(p["text"], year, month, last)
-        if n is not None:
-            starts.append((i, n))
-            last = n
-    articles = []
-    for k, (i, n) in enumerate(starts):
-        end = starts[k + 1][0] if k + 1 < len(starts) else len(paras)
-        articles.append(_parse_article(n, year, month, paras[i + 1:end]))
-    return articles
+    last_day = monthrange(year, month)[1]
+    spans: List[Tuple[int, int, int]] = []
+    marks = _page_markers(paras, last_day)
+    if marks:
+        for k, (i, n) in enumerate(marks):
+            stop = marks[k + 1][0] - 1 if k + 1 < len(marks) else len(paras)
+            spans.append((i, stop, n))
+    else:
+        starts: List[Tuple[int, int]] = []
+        last = 0
+        for i, p in enumerate(paras):
+            n = _day_number(p["text"], year, month, last)
+            if n is not None:
+                starts.append((i, n))
+                last = n
+        for k, (i, n) in enumerate(starts):
+            spans.append((i + 1, starts[k + 1][0] if k + 1 < len(starts) else len(paras), n))
+    return [_parse_article(n, year, month, paras[a:b]) for a, b, n in spans]
 
 
 def _parse_article(day: int, year: int, month: int, paras: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -134,7 +170,8 @@ def _parse_article(day: int, year: int, month: int, paras: List[Dict[str, Any]])
         if CLOSING_LABEL.match(rest[0]["text"]):
             break
         title.append(rest.pop(0)["text"])
-    if not title and rest and len(rest[0]["text"]) < 90 and not rest[0]["text"].endswith((".", "”", '"')):
+    if not title and rest and len(rest[0]["text"]) < 120 and (
+            not rest[0]["text"].endswith((".", "”", '"')) or (rest[0]["runs"] and all(r["bold"] for r in rest[0]["runs"]))):
         title.append(rest.pop(0)["text"])
     art["title"] = " ".join(title)
 
@@ -152,7 +189,7 @@ def _parse_article(day: int, year: int, month: int, paras: List[Dict[str, Any]])
                     break
             else:
                 if current:
-                    art[current] = f"{art[current]} {p['text']}".strip()
+                    art[current] = f"{art[current]}; {p['text']}".strip("; ") if current == "further" else f"{art[current]} {p['text']}".strip()
     if not all(labelled.values()):
         # unlabelled trailing reference lines map positionally to further study, 1-year and 2-year plans
         refs: List[str] = []
@@ -187,7 +224,7 @@ def _parse_article(day: int, year: int, month: int, paras: List[Dict[str, Any]])
     art["body"] = [{"text": p["text"], "runs": p["runs"]} for p in rest]
 
     for field, label in (("title", "title"), ("scripture", "opening scripture"), ("closing", "prayer or confession"),
-                         ("further", "further study"), ("plan1", "1-year reading plan"), ("plan2", "2-year reading plan")):
+                         ("further", "further study")):
         if not art[field]:
             art["issues"].append(f"Day {day}: no {label} was recognised")
     if not art["body"]:
@@ -357,6 +394,8 @@ def validate_master(year: int, month: int, articles: List[Dict[str, Any]], has_t
         warnings.append(f"The manuscript has {len(articles)} of {expected} articles. Missing days: " + ", ".join(map(str, missing)))
     for a in articles:
         warnings.extend(a["issues"])
+    if articles and not any(a["plan1"] or a["plan2"] for a in articles):
+        warnings.append("The manuscript has no 1-year or 2-year Bible reading plans; those lines are left out of the master.")
     if not has_template:
         warnings.append("No layout template (InDesign XLIFF) was supplied or found, so the cover, introduction and back matter are not included.")
     return {"articles": len(articles), "expected_articles": expected, "missing_days": missing, "warnings": warnings, "blocking_errors": blocking}

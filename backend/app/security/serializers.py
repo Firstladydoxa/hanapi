@@ -15,7 +15,15 @@ from ..models.db import Approval, LanguageDirection, Project, ProjectMember, Seg
 
 
 def user_out(u: User) -> S.UserOut:
-    return S.UserOut(id=str(u.id), email=u.email, display_name=u.display_name, role=u.role, status=u.status)
+    name = None
+    if u.expertise_language:
+        from ..models.db import Language
+        from sqlalchemy.orm import object_session
+        sess = object_session(u)
+        lang = sess.get(Language, u.expertise_language) if sess is not None else None
+        name = lang.display_name if lang else None
+    return S.UserOut(id=str(u.id), email=u.email, display_name=u.display_name, role=u.role, status=u.status,
+                     expertise_language=u.expertise_language, expertise_language_name=name)
 
 
 def direction_out(d: LanguageDirection) -> S.DirectionOut:

@@ -224,3 +224,37 @@ def test_chat_attachment_creates_edition_and_projectless_conversation_lays_out(w
     assert reply.status_code == 200, reply.text
     assert "articles recognised" in reply.json()["reply"]
     assert login("alice").client.post("/v1/rhapsody/chat-attachment", files={"file": ("n.docx", NOV, "application/octet-stream")}, data={"message": msg}, headers=login("alice")._h()).status_code == 403
+
+
+def test_manuscript_with_running_headers_and_unlabelled_days():
+    """Real manuscripts have no "SUNDAY 1" headings: articles are split by the running header ("2  Pastor Chris")."""
+    from io import BytesIO
+
+    from docx import Document
+
+    from app.rhapsody_layout import parse_manuscript
+
+    doc = Document()
+
+    def para(text, bold=False, italic=False):
+        run = doc.add_paragraph().add_run(text)
+        run.bold, run.italic = bold, italic
+
+    for day in (1, 2):
+        para("Pastor Chris" if day == 1 else f"{day}\t\t\tPastor Chris", bold=True)
+        para("The Power Of “Epignosis”" if day == 1 else "Second Title", bold=True)
+        para(f"“Grace and peace be multiplied” (2 Peter 1:{day}).", italic=True)
+        para("Body paragraph one.")
+        para("Body paragraph two.")
+        para("Prayer" if day == 1 else "Confession", bold=True)
+        para("Dear Father, thank you. Amen.")
+        para("Further Study", bold=True)
+        for ref in ("James 4:6", "Romans 5:17"):
+            para(ref)
+    buf = BytesIO()
+    doc.save(buf)
+    arts = parse_manuscript(buf.getvalue(), 2026, 11)
+    assert [a["day"] for a in arts] == [1, 2]
+    assert arts[0]["title"] == "The Power Of “Epignosis”" and arts[0]["scripture_ref"] == "2 Peter 1:1"
+    assert len(arts[0]["body"]) == 2 and arts[1]["closing_type"] == "confession"
+    assert arts[0]["further"] == "James 4:6; Romans 5:17"

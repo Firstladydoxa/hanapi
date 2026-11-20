@@ -110,6 +110,13 @@ def _language(db: Session, code: str) -> Language:
     return lang
 
 
+def _reader(db: Session, user: User, code: str) -> Language:
+    lang = _language(db, code)
+    if not glossary.can_read(user, lang.code):
+        raise forbidden("Translators can only open the glossary of their own language of expertise.")
+    return lang
+
+
 def _writer(db: Session, user: User, code: str, request: Request) -> Language:
     lang = _language(db, code)
     if not glossary.can_manage(db, user, lang.code):
@@ -126,11 +133,18 @@ def _check_kind(kind: Optional[str]) -> None:
 @router.get("/overview", response_model=Overview)
 def overview(user: User = Depends(get_user_no_csrf), db: Session = Depends(get_db)):
     mine = glossary.managed_languages(db, user)
+    visible = glossary.readable_languages(user)
     counts, leads = glossary.counts(db), glossary.leaders(db)
-    langs = [l for l in db.execute(select(Language).where(Language.active.is_(True), Language.code != "en").order_by(Language.display_name)).scalars()]
+    if visible is not None:
+        counts = {k: v for k, v in counts.items() if k in visible}
+    langs = [l for l in db.execute(select(Language).where(Language.active.is_(True), Language.code != "en").order_by(Language.display_name)).scalars()
+             if visible is None or l.code in visible]
     cards = [LanguageCard(code=l.code, name=l.display_name, native_name=l.native_name, entries=counts.get(l.code, 0),
                           can_manage=mine is None or l.code in mine, leaders=leads.get(l.code, [])) for l in langs]
-    recent = list(db.execute(select(GlossaryEntry).order_by(GlossaryEntry.updated_at.desc()).limit(8)).scalars())
+    recent_q = select(GlossaryEntry).order_by(GlossaryEntry.updated_at.desc()).limit(8)
+    if visible is not None:
+        recent_q = recent_q.where(GlossaryEntry.language.in_(visible))
+    recent = list(db.execute(recent_q).scalars())
     names = _names(db, [e.updated_by for e in recent])
     return Overview(total_entries=sum(counts.values()), languages_with_entries=len(counts), managed_languages=sum(1 for c in cards if c.can_manage),
                     can_manage_any=any(c.can_manage for c in cards), is_admin=user.role in ADMIN_ROLES, languages=cards, recent=[_out(e, names) for e in recent])
@@ -166,7 +180,7 @@ def set_leads(user_id: str, body: LeadIn, request: Request, user: User = Depends
 @router.get("/{language}/entries", response_model=EntryPage)
 def list_entries(language: str, q: str = "", kind: Optional[str] = None, limit: int = 50, offset: int = 0,
                  user: User = Depends(get_user_no_csrf), db: Session = Depends(get_db)):
-    lang = _language(db, language)
+    lang = _reader(db, user, language)
     _check_kind(kind)
     total, rows = glossary.search(db, lang.code, q[:200], kind, max(1, min(limit, 200)), max(0, offset))
     names = _names(db, [e.updated_by for e in rows])
@@ -280,7 +294,7 @@ def _safe(cell: str) -> str:
 
 @router.get("/{language}/export")
 def export_entries(language: str, user: User = Depends(get_user_no_csrf), db: Session = Depends(get_db)):
-    lang = _language(db, language)
+    lang = _reader(db, user, language)
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["english", "translation", "type", "notes"])

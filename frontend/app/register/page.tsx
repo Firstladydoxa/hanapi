@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
-import { api, ApiError } from "@/lib/api";
+import { useEffect, useState, type FormEvent } from "react";
+import { api, ApiError, type RegistrationLanguage } from "@/lib/api";
 import { Alert } from "@/components/ui";
 import { AuthCard } from "@/components/AuthCard";
 
@@ -12,6 +12,9 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [language, setLanguage] = useState("");
+  const [languages, setLanguages] = useState<RegistrationLanguage[]>([]);
+  useEffect(() => { api.registrationLanguages().then(setLanguages).catch(() => setError("The language list could not be loaded. Please refresh the page.")); }, []);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -19,7 +22,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setBusy(true); setError(null);
     try {
-      const r = await api.register(email.trim(), name.trim(), password);
+      const r = await api.register(email.trim(), name.trim(), password, language);
       router.replace(`/verify-email?email=${encodeURIComponent(r.email)}`);
     } catch (err) {
       if (err instanceof ApiError && err.code === "email_delivery_unavailable") router.replace(`/verify-email?email=${encodeURIComponent(email.trim())}&notice=delivery`);
@@ -37,6 +40,12 @@ export default function RegisterPage() {
         <div><label className="label" htmlFor="password">Password</label>
           <input id="password" className="input" type="password" autoComplete="new-password" required minLength={12} maxLength={1024} value={password} onChange={(e) => setPassword(e.target.value)} />
           <p className="mt-1 text-xs text-ink-muted">At least 12 characters.</p></div>
+        <div><label className="label" htmlFor="language">Language of expertise</label>
+          <select id="language" className="input" required value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <option value="" disabled>Choose the language you translate into…</option>
+            {languages.map((l) => <option key={l.code} value={l.code}>{l.display_name}{l.native_name && l.native_name !== l.display_name ? ` — ${l.native_name}` : ""}</option>)}
+          </select>
+          <p className="mt-1 text-xs text-ink-muted">HAN will set up English → your language and your language → English for you.</p></div>
         {error ? <Alert>{error}</Alert> : null}
         <button className="btn btn-primary w-full" disabled={busy}>{busy ? "Creating account…" : "Create account"}</button>
         <p className="text-center text-sm">Already registered? <Link className="underline" href="/login">Sign in</Link></p>
