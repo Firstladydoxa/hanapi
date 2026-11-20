@@ -58,7 +58,7 @@ class EmailCodeRequest(Req):
 
 class PasswordResetComplete(Req):
     email: Annotated[str, StringConstraints(min_length=3, max_length=320)]
-    code: Annotated[str, StringConstraints(pattern=r"^\\d{6}$")]
+    code: Annotated[str, StringConstraints(pattern=r"^\d{6}$")]
     new_password: Annotated[str, StringConstraints(min_length=12, max_length=1024)]
 
 
