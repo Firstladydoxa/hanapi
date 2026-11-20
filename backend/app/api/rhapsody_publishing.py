@@ -88,6 +88,7 @@ def _inspect_font(data: bytes) -> dict:
         family = next((n.toUnicode() for n in names if n.nameID == 1), None)
         subfamily = next((n.toUnicode() for n in names if n.nameID == 2), None)
         units = int(font["head"].unitsPerEm) if "head" in font else 1000
+        fs_type = int(font["OS/2"].fsType) if "OS/2" in font else 0
         glyphs = sorted(int(cp) for cp in cmap.keys())
         scripts = {
             "latin": any(0x0041 <= cp <= 0x024F for cp in glyphs),
@@ -98,8 +99,12 @@ def _inspect_font(data: bytes) -> dict:
             "devanagari": any(0x0900 <= cp <= 0x097F for cp in glyphs),
             "cjk": any(0x4E00 <= cp <= 0x9FFF for cp in glyphs),
         }
-        result = {"family_name": family, "subfamily_name": subfamily, "glyph_count": len(glyphs),
-                  "codepoints": glyphs, "scripts": scripts, "units_per_em": units,\n                  "embedding_restricted": bool(fs_type & 0x0002), "no_subsetting": bool(fs_type & 0x0100), "fs_type": fs_type}
+        result = {
+            "family_name": family, "subfamily_name": subfamily, "glyph_count": len(glyphs),
+            "codepoints": glyphs, "scripts": scripts, "units_per_em": units,
+            "embedding_restricted": bool(fs_type & 0x0002),
+            "no_subsetting": bool(fs_type & 0x0100), "fs_type": fs_type,
+        }
         font.close()
         return result
     except Exception:
@@ -353,6 +358,9 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
     for role, info in (manifest.get("fonts") or {}).items():
         if info.get("format") not in {"otf", "ttf"}:
             raise ApiError(409, "pdf_font_format_unsupported", f"The {role} font must be uploaded as OTF or TTF for PDF embedding.")
+        permissions = info.get("coverage") or {}
+        if permissions.get("embedding_restricted") or permissions.get("no_subsetting"):
+            raise ApiError(409, "font_embedding_restricted", f"The {role} font licence flags do not permit this PDF embedding workflow.")
         path = _font_path(info["storage_key"])
         if not path.is_file():
             raise ApiError(409, "font_asset_unavailable", f"The {role} font is no longer available.")
@@ -360,6 +368,7 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
         if hashlib.sha256(raw).hexdigest() != info["sha256"]:
             raise ApiError(409, "font_asset_integrity", f"The {role} font failed its integrity check.")
         mime = "font/otf" if info["format"] == "otf" else "font/ttf"
+        font_format = "opentype" if info["format"] == "otf" else "truetype"
         family = "HAN_" + re.sub(r"[^A-Za-z0-9_]", "_", role)
         font_css.append(f"@font-face{{font-family:'{family}';src:url(data:{mime};base64,{b64encode(raw).decode('ascii')}) format('{font_format}');font-weight:400;font-style:normal;}}")
         info["render_family"] = family
