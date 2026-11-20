@@ -100,9 +100,11 @@ def _translation(db: Session, user: User, message: str, idx: LanguageIndex) -> H
 
     if user.role not in {"translator", *ADMIN_ROLES}:
         return Handled("Rhapsody translation is started by translators. Open Rhapsody to see the editions.")
-    lang = _language(message, idx)
+    # The authenticated translator's registered expertise language is authoritative.
+    # Only ask for a language when the account has no configured expertise language.
+    lang = user.expertise_language if user.role == "translator" else _language(message, idx)
     if not lang:
-        return Handled("Which language should I translate Rhapsody into? For example: \"start the translation of Rhapsody in French for November\".")
+        return Handled("I don't have a target language registered for your account yet. Please ask a TNI administrator to complete your language profile before starting a Rhapsody translation.")
     month, year = _period(message)
     stmt = select(RhapsodyEdition).where(RhapsodyEdition.status == "active").order_by(RhapsodyEdition.year.desc(), RhapsodyEdition.month.desc())
     if month:
