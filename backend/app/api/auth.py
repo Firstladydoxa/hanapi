@@ -82,6 +82,8 @@ def _email_code_hash(user_id, purpose: str, code: str) -> str:
 
 
 def _issue_code(db: Session, user: User, purpose: str, force: bool = False) -> str:
+    # Serialize code issuance per account to prevent concurrent resends leaving two live codes.
+    db.execute(select(User).where(User.id == user.id).with_for_update()).scalar_one()
     now = datetime.now(timezone.utc)
     cooldown = timedelta(seconds=get_settings().email_code_resend_cooldown_seconds)
     recent = db.execute(select(EmailAuthChallenge).where(
