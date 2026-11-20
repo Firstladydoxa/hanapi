@@ -190,6 +190,29 @@ def create_edition(body: EditionCreate, request: Request, actor: User = Depends(
     return _edition_out(db, row)
 
 
+@router.delete("/editions/{edition_id}", status_code=204)
+def delete_edition(edition_id: str, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    row = _get_edition(db, edition_id)
+    masters = select(RhapsodyMasterVersion.id).where(RhapsodyMasterVersion.edition_id == row.id)
+    assignments = db.execute(select(RhapsodyAssignment).where(RhapsodyAssignment.master_version_id.in_(masters))).scalars().all()
+    if any(a.status in ("submitted", "in_review", "approved", "published") for a in assignments):
+        raise ApiError(409, "edition_in_use", "This edition has submitted or approved translations and cannot be deleted.")
+    keys = [k for (k,) in db.execute(select(RhapsodySourceFile.storage_key).where(RhapsodySourceFile.edition_id == row.id))]
+    title, eid = row.title, row.id
+    for a in assignments:
+        db.delete(a)
+    db.flush()
+    db.execute(RhapsodyEdition.__table__.update().where(RhapsodyEdition.id == row.id).values(active_master_version_id=None))
+    db.execute(RhapsodyEdition.__table__.delete().where(RhapsodyEdition.id == row.id))
+    db.commit()
+    for key in keys:
+        try:
+            _source_path(key).unlink(missing_ok=True)
+        except (OSError, ApiError):
+            pass
+    audit.record("rhapsody.edition_deleted", actor=actor, object_type="rhapsody_edition", object_id=eid, ip=client_ip(request), details={"title": title})
+
+
 @router.get("/editions/{edition_id}")
 def get_edition(edition_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     row = _get_edition(db, edition_id)
