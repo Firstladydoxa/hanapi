@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type RegistrationLanguage } from "@/lib/api";
-import { Alert } from "@/components/ui";
+import { Alert, PasswordInput } from "@/components/ui";
 import { AuthCard } from "@/components/AuthCard";
 
 export default function RegisterPage() {
@@ -38,7 +38,7 @@ export default function RegisterPage() {
         <div><label className="label" htmlFor="email">Email</label>
           <input id="email" className="input" type="email" autoComplete="email" required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} /></div>
         <div><label className="label" htmlFor="password">Password</label>
-          <input id="password" className="input" type="password" autoComplete="new-password" required minLength={12} maxLength={1024} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput id="password" autoComplete="new-password" required minLength={12} maxLength={1024} value={password} onChange={(e) => setPassword(e.target.value)} />
           <p className="mt-1 text-xs text-ink-muted">At least 12 characters.</p></div>
         <div><label className="label" htmlFor="language">Language of expertise</label>
           <select id="language" className="input" required value={language} onChange={(e) => setLanguage(e.target.value)}>

@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { STATUS_LABEL, STATUS_STYLE, TIER_LABEL, TIER_MEANING, TIER_STYLE } from "@/lib/labels";
 import type { SegmentStatus, Tier } from "@/lib/api";
 
@@ -53,6 +55,21 @@ export function PageTitle({ eyebrow, title, children }: { eyebrow?: string; titl
       {eyebrow ? <p className="mb-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-brand">{eyebrow}</p> : null}
       <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
       {children ? <p className="mt-1 text-sm text-ink-muted">{children}</p> : null}
+    </div>
+  );
+}
+
+export function PasswordInput(props: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="relative">
+      <input {...props} type={shown ? "text" : "password"} className={`input pr-11 ${props.className ?? ""}`} />
+      <button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-ink-muted hover:text-ink" aria-label={shown ? "Hide password" : "Show password"} aria-pressed={shown} onClick={() => setShown((v) => !v)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+          {shown ? <path d="M3 3l18 18" /> : null}
+        </svg>
+      </button>
     </div>
   );
 }

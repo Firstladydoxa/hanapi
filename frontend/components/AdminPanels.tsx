@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { api, ApiError, type AdminDirection, type AdminProject, type AdminTerm, type AdminUser, type Direction, type Language, type Member, type Role, type Tier } from "@/lib/api";
 import { formatDate, ROLE_LABEL, TIER_LABEL } from "@/lib/labels";
-import { Alert, EmptyState, Spinner, TierBadge } from "./ui";
+import { useAuth } from "@/lib/auth";
+import { Alert, EmptyState, PasswordInput, Spinner, TierBadge } from "./ui";
 
 const errText = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong. Please try again.");
 const ROLES: Role[] = ["translator", "reviewer", "project_manager", "team_leader", "tni_admin", "technical_admin", "auditor"];
@@ -25,6 +26,15 @@ export function UsersPanel() {
   const { data, error, reload } = useLoad(api.admin.users);
   const [form, setForm] = useState({ email: "", display_name: "", role: "translator" as Role, password: "" });
   const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
+  const { user: me } = useAuth();
+
+  async function changeRole(u: AdminUser, role: Role) {
+    try {
+      await api.admin.patchUser(u.id, { role });
+      setNotice({ kind: "success", text: `${u.display_name} is now ${ROLE_LABEL[role] ?? role}.` });
+    } catch (err) { setNotice({ kind: "error", text: errText(err) }); }
+    reload();
+  }
 
   async function create(e: FormEvent) {
     e.preventDefault();
@@ -48,7 +58,7 @@ export function UsersPanel() {
         <div><label className="label" htmlFor="u-name">Name</label><input id="u-name" className="input" required value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} /></div>
         <div><label className="label" htmlFor="u-role">Role</label>
           <select id="u-role" className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}>{ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select></div>
-        <div><label className="label" htmlFor="u-pw">Password (optional)</label><input id="u-pw" className="input" type="password" minLength={12} autoComplete="new-password" placeholder="Generated if empty" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+        <div><label className="label" htmlFor="u-pw">Password (optional)</label><PasswordInput id="u-pw" minLength={12} autoComplete="new-password" placeholder="Generated if empty" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
         <div className="flex items-end"><button className="btn btn-primary w-full" type="submit">Create user</button></div>
       </form>
       {!data ? <Spinner /> : (
@@ -57,7 +67,11 @@ export function UsersPanel() {
             <thead className="text-xs uppercase text-ink-muted"><tr><th className="py-2 pr-4">Name</th><th className="pr-4">Email</th><th className="pr-4">Role</th><th className="pr-4">Status</th><th /></tr></thead>
             <tbody>{data.map((u) => (
               <tr key={u.id} className="border-t border-line">
-                <td className="py-2 pr-4 font-semibold">{u.display_name}</td><td className="pr-4">{u.email}</td><td className="pr-4">{ROLE_LABEL[u.role] ?? u.role}</td>
+                <td className="py-2 pr-4 font-semibold">{u.display_name}</td><td className="pr-4">{u.email}</td><td className="pr-4">
+                  <select aria-label={`Role of ${u.display_name}`} className="input min-h-[32px] py-1" value={u.role} disabled={u.id === me?.id || (u.role === "technical_admin" && me?.role !== "technical_admin")}
+                    title={u.id === me?.id ? "You cannot change your own role" : undefined} onChange={(e) => void changeRole(u, e.target.value as Role)}>
+                    {ROLES.filter((r) => r !== "technical_admin" || me?.role === "technical_admin" || u.role === r).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                  </select></td>
                 <td className="pr-4">{u.status}</td>
                 <td className="text-right"><button type="button" className="btn btn-secondary min-h-[32px] px-3" onClick={() => void toggle(u)}>{u.status === "active" ? "Disable" : "Enable"}</button></td>
               </tr>))}

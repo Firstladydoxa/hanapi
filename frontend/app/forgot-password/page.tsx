@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { api, ApiError } from "@/lib/api";
-import { Alert } from "@/components/ui";
+import { Alert, PasswordInput } from "@/components/ui";
 import { AuthCard, CodeInput } from "@/components/AuthCard";
 
 export default function ForgotPasswordPage() {
@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
       <form onSubmit={confirm} className="space-y-4">
         <div><label className="label" htmlFor="code">Reset code</label><CodeInput value={code} onChange={setCode} /></div>
         <div><label className="label" htmlFor="password">New password</label>
-          <input id="password" className="input" type="password" autoComplete="new-password" required minLength={12} maxLength={1024} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput id="password" autoComplete="new-password" required minLength={12} maxLength={1024} value={password} onChange={(e) => setPassword(e.target.value)} />
           <p className="mt-1 text-xs text-ink-muted">At least 12 characters.</p></div>
         {error ? <Alert>{error}</Alert> : null}
         <button className="btn btn-primary w-full" disabled={busy || code.length !== 6}>{busy ? "Updating…" : "Update password"}</button>

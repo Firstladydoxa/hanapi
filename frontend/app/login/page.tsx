@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import { Alert } from "@/components/ui";
+import { Alert, PasswordInput } from "@/components/ui";
 import { Brand } from "@/components/AppShell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -56,7 +56,7 @@ export default function LoginPage() {
           </div>
           <div>
             <label className="label" htmlFor="password">Password</label>
-            <input id="password" className="input" type="password" autoComplete="current-password" required maxLength={1024} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <PasswordInput id="password" autoComplete="current-password" required maxLength={1024} value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           {error ? <Alert>{error}</Alert> : null}
           <button className="btn btn-primary w-full" type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
