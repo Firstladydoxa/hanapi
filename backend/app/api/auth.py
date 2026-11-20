@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request, Response
@@ -218,7 +219,11 @@ def registration_recovery_link(body: S.RecoveryLinkRequest, request: Request, db
         raise ApiError(400, "recovery_link_invalid", "This registration link is invalid or has expired. Request a new verification email.")
     if claims.get("purpose") != "registration_recovery":
         raise ApiError(400, "recovery_link_invalid", "This registration link is invalid or has expired.")
-    user = db.get(User, claims["sub"])
+    try:
+        user_id = uuid.UUID(claims["sub"])
+    except (ValueError, TypeError, AttributeError):
+        raise ApiError(400, "recovery_link_invalid", "This registration link is invalid or has expired.")
+    user = db.get(User, user_id)
     if user is None or user.email_verified:
         raise ApiError(400, "recovery_link_invalid", "This registration link is no longer valid.")
     code = _issue_code(db, user, "verify_email", force=True)
