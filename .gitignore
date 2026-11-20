@@ -22,8 +22,6 @@ data/**/*.sqlite
 data/benchmark/results*.csv
 scripts/shots/
 
-# the frontend is its own repository (Firstladydoxa/han): clone it into ./frontend (see README)
-/frontend/
 
 # source documents and design archives supplied by TNI are not part of the code repository
 *.docx

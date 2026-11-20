@@ -1,0 +1,39 @@
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php81” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php81 .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
+
+# ===== HAN frontend: han.tniglobal.org =====
+# This folder is the web root of the subdomain, but nothing in it is ever served as a file. Every request (except the
+# AutoSSL domain-validation path) is reverse-proxied to the Next.js server on 127.0.0.1:3030, so source code,
+# node_modules and build output cannot be downloaded. Start/stop the services with scripts/han_stack.py.
+
+# Override the deny-all inherited from the parent folder (the proxy below is the only thing that answers requests).
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>
+Options -Indexes
+DirectoryIndex disabled
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # AutoSSL / Let's Encrypt validation files must be served from this folder, not proxied.
+  RewriteRule ^\.well-known/ - [L]
+
+  # Answer only for the production host name.
+  RewriteCond %{HTTP_HOST} !^han\.tniglobal\.org$ [NC]
+  RewriteRule ^ - [R=404,L]
+
+  # HTTPS only (session cookies are Secure).
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://han.tniglobal.org%{REQUEST_URI} [R=301,L]
+
+  <IfModule mod_headers.c>
+    RequestHeader set X-Forwarded-Proto "https"
+  </IfModule>
+  RewriteRule ^(.*)$ http://127.0.0.1:3030/$1 [P,L]
+</IfModule>
