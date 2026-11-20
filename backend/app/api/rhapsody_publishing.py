@@ -301,7 +301,7 @@ def create_layout_proof(assignment_id: str, request: Request, user: User = Depen
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=font.sha256:
             raise ApiError(409,"font_asset_unavailable",f"The assigned {role} font failed its storage integrity check.")
         font_manifest[role]={"family":font.family,"style":font.style,"format":font.format,"sha256":font.sha256,
-                             "license":font.license_name,"storage_key":font.storage_key}
+                             "license":font.license_name,"storage_key":font.storage_key,"coverage":font.coverage or {}}
     layout_cfg=profile.layout or {}
     page_width=float(layout_cfg.get("page_width_mm",148)); page_height=float(layout_cfg.get("page_height_mm",210))
     margin=float(layout_cfg.get("margin_mm",14)); font_size=float((profile.typography or {}).get("body_size_pt",10.5))
