@@ -41,6 +41,27 @@ class LoginRequest(Req):
     password: Annotated[str, StringConstraints(min_length=1, max_length=1024)]
 
 
+class RegisterRequest(Req):
+    email: Annotated[str, StringConstraints(min_length=3, max_length=320)]
+    display_name: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+    password: Annotated[str, StringConstraints(min_length=12, max_length=1024)]
+
+
+class EmailCodeRequest(Req):
+    email: Annotated[str, StringConstraints(min_length=3, max_length=320)]
+    code: Annotated[str, StringConstraints(pattern=r"^\\d{6}$")]
+
+
+class PasswordResetComplete(Req):
+    email: Annotated[str, StringConstraints(min_length=3, max_length=320)]
+    code: Annotated[str, StringConstraints(pattern=r"^\\d{6}$")]
+    new_password: Annotated[str, StringConstraints(min_length=12, max_length=1024)]
+
+
+class RecoveryLinkRequest(Req):
+    token: Annotated[str, StringConstraints(min_length=20, max_length=4096)]
+
+
 class UserOut(Public):
     id: str
     email: str
