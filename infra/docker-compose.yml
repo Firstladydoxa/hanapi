@@ -22,6 +22,8 @@ x-backend-env: &backend-env
   HAN_BOOTSTRAP_TECH_ADMIN_EMAIL: ${HAN_BOOTSTRAP_TECH_ADMIN_EMAIL:-}
   HAN_BOOTSTRAP_TNI_ADMIN_PASSWORD: ${HAN_BOOTSTRAP_TNI_ADMIN_PASSWORD:-}
   HAN_BOOTSTRAP_TECH_ADMIN_PASSWORD: ${HAN_BOOTSTRAP_TECH_ADMIN_PASSWORD:-}
+  HAN_RHAPSODY_STORAGE_DIR: /var/lib/han/rhapsody
+  HAN_RHAPSODY_FONT_STORAGE_DIR: /var/lib/han/rhapsody/fonts
 
 services:
   postgres:
@@ -54,6 +56,7 @@ services:
   backend:
     build: ../backend
     environment: *backend-env
+    volumes: [rhapsodydata:/var/lib/han/rhapsody]
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
@@ -64,6 +67,7 @@ services:
     build: ../backend
     command: celery -A app.jobs.celery_app.celery_app worker --loglevel=INFO --concurrency=2
     environment: *backend-env
+    volumes: [rhapsodydata:/var/lib/han/rhapsody]
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
@@ -91,3 +95,4 @@ services:
 
 volumes:
   pgdata:
+  rhapsodydata:
