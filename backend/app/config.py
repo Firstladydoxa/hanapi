@@ -90,6 +90,8 @@ class Settings(BaseSettings):
     # Rhapsody source uploads are stored outside the web root.
     rhapsody_storage_dir: str = "./var/rhapsody"
     rhapsody_max_upload_bytes: int = 25_000_000
+    rhapsody_font_storage_dir: str = "./var/rhapsody-fonts"
+    rhapsody_max_font_bytes: int = 15_000_000
     knowledge_chunk_chars: int = 900
     knowledge_top_k: int = 4
     knowledge_min_similarity: float = 0.78  # cosine similarity floor for semantic hits (multilingual-e5 scores cluster high)
