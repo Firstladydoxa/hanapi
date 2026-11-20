@@ -17,9 +17,10 @@ def test_registration_requires_email_verification_and_code_is_single_use(anon, m
     login = anon.post("/v1/auth/login", {"email": "new@example.test", "password": "correct-horse-battery-staple"}, csrf=False)
     assert login.status_code == 403
     assert login.json()["detail"]["code"] == "email_not_verified"
-    verified = anon.post("/v1/auth/verify-email", {"email": "new@example.test", "code": sent[0][1]}, csrf=False)
+    assert len(sent) == 2  # login attempt automatically issues a fresh code
+    verified = anon.post("/v1/auth/verify-email", {"email": "new@example.test", "code": sent[-1][1]}, csrf=False)
     assert verified.status_code == 200, verified.text
-    replay = anon.post("/v1/auth/verify-email", {"email": "new@example.test", "code": sent[0][1]}, csrf=False)
+    replay = anon.post("/v1/auth/verify-email", {"email": "new@example.test", "code": sent[-1][1]}, csrf=False)
     assert replay.status_code == 400
     login2 = anon.post("/v1/auth/login", {"email": "new@example.test", "password": "correct-horse-battery-staple"}, csrf=False)
     assert login2.status_code == 200
