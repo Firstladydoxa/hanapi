@@ -57,3 +57,21 @@ def test_wrong_code_is_limited_and_resend_invalidates_previous_code(anon, monkey
     assert old.status_code == 400
     new = anon.post("/v1/auth/verify-email", {"email": "codes@example.test", "code": sent[1]}, csrf=False)
     assert new.status_code == 200
+
+
+def test_due_incomplete_registration_reminder_sends_recovery_link(anon, monkeypatch):
+    from app.api.auth import send_due_registration_reminders
+    from app.models.db import RegistrationReminder
+    links = []
+    monkeypatch.setattr(mail, "send_code", lambda *args: True)
+    monkeypatch.setattr(mail, "send_registration_reminder", lambda email, name, link: links.append(link) or True)
+    anon.post("/v1/auth/register", {"email": "reminder@example.test", "display_name": "Reminder", "password": "correct-horse-battery-staple"})
+    with SessionLocal() as db:
+        reminder = db.query(RegistrationReminder).filter(RegistrationReminder.sent_at.is_(None)).one()
+        reminder.due_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+        db.commit()
+        assert send_due_registration_reminders(db) == 1
+    assert len(links) == 1
+    assert "/verify-email?recovery=" in links[0]
+    response = anon.post("/v1/auth/registration/recovery-link", {"token": links[0].split("recovery=")[1]}, csrf=False)
+    assert response.status_code == 200
