@@ -208,3 +208,19 @@ def test_han_chat_lays_out_and_starts_rhapsody_translation(world, login, tmp_pat
     admin.post(f"/v1/rhapsody/editions/{edition_id}/activate?master_version_id={ed['master_versions'][0]['id']}", {})
     started = translator.post("/v1/chat", tbody).json()
     assert started["actions"][0]["path"].startswith("/rhapsody/translate/"), started
+
+
+def test_chat_attachment_creates_edition_and_projectless_conversation_lays_out(world, login, tmp_path, monkeypatch):
+    admin = login("tina")
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "rhapsody_storage_dir", str(tmp_path))
+    msg = "Han, start the layout of Rhapsody for the month of November 2026 using the word document I uploaded"
+    bad = admin.client.post("/v1/rhapsody/chat-attachment", files={"file": ("n.docx", NOV, "application/octet-stream")}, data={"message": "hello"}, headers=admin._h())
+    assert bad.status_code == 422
+    up = admin.client.post("/v1/rhapsody/chat-attachment", files={"file": ("n.docx", NOV, "application/octet-stream")}, data={"message": msg}, headers=admin._h())
+    assert up.status_code == 201, up.text
+    conv = admin.post("/v1/conversations", {}).json()["id"]
+    reply = admin.post(f"/v1/conversations/{conv}/messages", {"message": msg})
+    assert reply.status_code == 200, reply.text
+    assert "articles recognised" in reply.json()["reply"]
+    assert login("alice").client.post("/v1/rhapsody/chat-attachment", files={"file": ("n.docx", NOV, "application/octet-stream")}, data={"message": msg}, headers=login("alice")._h()).status_code == 403

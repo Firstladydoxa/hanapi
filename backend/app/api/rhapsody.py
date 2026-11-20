@@ -250,6 +250,28 @@ async def upload_source(edition_id: str, request: Request, file: UploadFile = Fi
     return {"id": str(row.id), "filename": row.filename, "format": row.format, "byte_size": row.byte_size, "sha256": row.sha256}
 
 
+@router.post("/chat-attachment", status_code=201)
+async def chat_attachment(request: Request, file: UploadFile = File(...), message: str = Form(""),
+                          actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """The "+" button in HAN chat: file the Word manuscript under the edition named in the message (or the file name)."""
+    from ..han.rhapsody_chat import _period
+
+    month, year = _period(message)
+    if not month:
+        month, year = _period(Path(file.filename or "").stem.replace("_", " "))
+    if not month:
+        raise ApiError(422, "month_required", "Tell me which month this manuscript is for, for example \"November 2026\", and attach it again.")
+    year = year or datetime.now().year
+    edition = db.execute(select(RhapsodyEdition).where(RhapsodyEdition.year == year, RhapsodyEdition.month == month)).scalar_one_or_none()
+    if edition is None:
+        edition = RhapsodyEdition(title=datetime(year, month, 1).strftime("%B %Y"), month=month, year=year, created_by=actor.id)
+        db.add(edition)
+        db.commit()
+        db.refresh(edition)
+    out = await upload_source(str(edition.id), request, file, actor, db)
+    return {**out, "edition_id": str(edition.id), "edition_title": edition.title}
+
+
 def _read_source(source: RhapsodySourceFile) -> bytes:
     data = _source_path(source.storage_key).read_bytes()
     if hashlib.sha256(data).hexdigest() != source.sha256:
