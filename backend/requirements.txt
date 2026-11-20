@@ -18,4 +18,4 @@ pypdf>=4.0
 pycountry>=23.12
 lingua-language-detector
 fonttools[woff]>=4.50
-weasyprint>=62,<70\n
+weasyprint>=62,<70
