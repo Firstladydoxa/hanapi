@@ -328,3 +328,148 @@ def create_layout_proof(assignment_id: str, request: Request, user: User = Depen
 def _valid_uuid(value: str) -> bool:
     try: uuid.UUID(value); return True
     except ValueError: return False
+
+
+@router.post("/layout-proofs/{proof_id}/pdf")
+def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
+    """Generate a reflowable, font-embedded PDF proof using WeasyPrint/Pango.
+
+    This is a native HAN layout proof, not an exact InDesign/IDML reproduction.
+    """
+    from base64 import b64encode
+    from html import escape
+    import re
+    from weasyprint import HTML, CSS
+
+    try:
+        pid = uuid.UUID(proof_id)
+    except ValueError:
+        raise not_found("layout proof")
+    proof = db.get(RhapsodyLayoutProof, pid)
+    if proof is None:
+        raise not_found("layout proof")
+    manifest = proof.manifest or {}
+    font_css = []
+    for role, info in (manifest.get("fonts") or {}).items():
+        if info.get("format") not in {"otf", "ttf"}:
+            raise ApiError(409, "pdf_font_format_unsupported", f"The {role} font must be uploaded as OTF or TTF for PDF embedding.")
+        path = _font_path(info["storage_key"])
+        if not path.is_file():
+            raise ApiError(409, "font_asset_unavailable", f"The {role} font is no longer available.")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != info["sha256"]:
+            raise ApiError(409, "font_asset_integrity", f"The {role} font failed its integrity check.")
+        mime = "font/otf" if info["format"] == "otf" else "font/ttf"
+        family = "HAN_" + re.sub(r"[^A-Za-z0-9_]", "_", role)
+        font_css.append(f"@font-face{{font-family:'{family}';src:url(data:{mime};base64,{b64encode(raw).decode('ascii')}) format('opentype');font-weight:100 900;font-style:normal;}}")
+        info["render_family"] = family
+
+    role_font = {}
+    for role in ("body", "heading", "subheading", "scripture", "caption", "notes"):
+        item = (manifest.get("fonts") or {}).get(role)
+        role_font[role] = "HAN_" + role if item else "HAN_body"
+    page = manifest.get("page") or {}
+    width, height, margin = page.get("width_mm", 148), page.get("height_mm", 210), page.get("margin_mm", 14)
+    direction = manifest.get("direction", "ltr")
+    lang = escape(str(manifest.get("locale") or manifest.get("language") or "en"))
+    blocks = manifest.get("blocks") or []
+    sections = manifest.get("sections") or []
+    section_map = {s["id"]: s for s in sections}
+    grouped: dict[str, list] = {}
+    for block in blocks:
+        grouped.setdefault(block["section_id"], []).append(block)
+
+    def safe_text(value: str) -> str:
+        # XLIFF/InDesign inline markers are structural tokens, not HTML. Their exact
+        # style mapping requires IDML style metadata; remove markers rather than emit markup.
+        return escape(re.sub(r"<\\d+/>|\\[\\[[A-Za-z]+/\\]\\]", "", str(value or "")))
+
+    content = []
+    for section in sections:
+        items = grouped.get(section["id"], [])
+        if not items:
+            continue
+        title = escape(str(section.get("key") or ""))
+        content.append(f'<section class="article" dir="{direction}" lang="{lang}">')
+        if section.get("type") == "daily_article":
+            content.append(f'<div class="day-label">{title}</div>')
+        for block in items:
+            role = block.get("role", "body")
+            text_value = safe_text(block.get("text", ""))
+            if not text_value:
+                continue
+            css_role = role if role in role_font else "body"
+            if role in {"title", "heading"}:
+                content.append(f'<h2 class="title">{text_value}</h2>')
+            elif role in {"scripture", "scripture_ref"}:
+                content.append(f'<blockquote class="scripture">{text_value}</blockquote>')
+            elif role in {"closing", "further_study", "plan1", "plan2"}:
+                content.append(f'<p class="special {css_role}">{text_value}</p>')
+            elif role in {"label", "static"}:
+                content.append(f'<p class="label {css_role}">{text_value}</p>')
+            else:
+                content.append(f'<p class="body">{text_value}</p>')
+        content.append("</section>")
+
+    css = "".join(font_css) + f"""
+      @page {{ size: {width}mm {height}mm; margin: {margin}mm;
+        @bottom-center {{ content: counter(page); font-size: 8pt; color: #666; }} }}
+      html {{ direction: {direction}; }}
+      body {{ font-family: '{role_font['body']}', serif; font-size: {float((manifest.get('typography') or {}).get('body_size_pt',10.5))}pt;
+        line-height: 1.45; color: #191919; }}
+      .article {{ break-inside: auto; margin: 0 0 7mm; }}
+      .day-label {{ font-family: '{role_font['heading']}', serif; font-size: 9pt; font-weight: bold; margin: 0 0 3mm; }}
+      h2 {{ font-family: '{role_font['heading']}', serif; font-size: 18pt; line-height: 1.2; margin: 0 0 4mm; break-after: avoid; }}
+      p {{ orphans: 2; widows: 2; margin: 0 0 3mm; }}
+      .body {{ font-family: '{role_font['body']}', serif; }}
+      .scripture {{ font-family: '{role_font['scripture']}', serif; margin: 2mm 5mm 4mm; }}
+      .special {{ font-family: '{role_font['subheading']}', serif; font-weight: 600; margin-top: 4mm; }}
+      .label {{ font-family: '{role_font['caption']}', serif; font-weight: 600; }}
+    """
+    if not blocks:
+        raise ApiError(409, "empty_layout_proof", "This layout proof contains no content.")
+    document = f"<!doctype html><html lang='{lang}' dir='{direction}'><head><meta charset='utf-8'><title>Rhapsody {lang}</title></head><body>{''.join(content)}</body></html>"
+    try:
+        pdf = HTML(string=document, base_url=None).write_pdf(stylesheets=[CSS(string=css)])
+    except Exception:
+        raise ApiError(422, "pdf_render_failed", "The layout proof could not be typeset. Check the selected fonts and server rendering dependencies.")
+    digest = hashlib.sha256(pdf).hexdigest()
+    base = Path(get_settings().rhapsody_storage_dir).resolve()
+    base.mkdir(parents=True, exist_ok=True, mode=0o700)
+    key = f"layout-proofs/{proof.id}/{uuid.uuid4().hex}.pdf"
+    target = (base / key).resolve()
+    if base not in target.parents:
+        raise ApiError(500, "storage_error", "The generated PDF path is invalid.")
+    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    target.write_bytes(pdf)
+    try:
+        target.chmod(0o600); target.parent.chmod(0o700)
+    except OSError:
+        target.unlink(missing_ok=True)
+        raise ApiError(500, "storage_permissions", "The server could not secure the generated PDF.")
+    proof.pdf_storage_key, proof.pdf_sha256, proof.pdf_byte_size = key, digest, len(pdf)
+    db.commit()
+    audit.record("rhapsody.layout_pdf_rendered", actor=user, object_type="rhapsody_layout_proof", object_id=proof.id,
+        details={"language":manifest.get("language"),"bytes":len(pdf),"sha256":digest},ip=client_ip(request))
+    return {"proof_id":str(proof.id),"pdf_ready":True,"byte_size":len(pdf),"sha256":digest,
+            "note":"Reflowable HAN proof PDF. Final InDesign style-token mapping and print-production approval remain separate checks."}
+
+
+@router.get("/layout-proofs/{proof_id}/pdf")
+def download_layout_proof_pdf(proof_id: str, request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
+    from fastapi.responses import FileResponse
+    try:
+        pid = uuid.UUID(proof_id)
+    except ValueError:
+        raise not_found("layout proof")
+    proof = db.get(RhapsodyLayoutProof, pid)
+    if proof is None or not proof.pdf_storage_key:
+        raise not_found("layout PDF")
+    base = Path(get_settings().rhapsody_storage_dir).resolve()
+    target = (base / proof.pdf_storage_key).resolve()
+    if base not in target.parents or not target.is_file():
+        raise not_found("layout PDF")
+    data = target.read_bytes()
+    if hashlib.sha256(data).hexdigest() != proof.pdf_sha256:
+        raise ApiError(409, "pdf_integrity_failed", "The stored PDF failed its integrity check.")
+    return FileResponse(target, media_type="application/pdf", filename=f"rhapsody-{proof_id}.pdf")
