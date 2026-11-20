@@ -104,6 +104,7 @@ def world() -> World:
                                    ("pam", "project_manager", False), ("tina", "tni_admin", False), ("tim", "technical_admin", False),
                                    ("gina", "tni_admin", True), ("audrey", "auditor", False)):
             w.users[name] = _make_user(db, f"{name}@example.test", role, grant=grant)
+        w.users["alice"].expertise_language = "fr"
         p1 = Project(name="Project One", domain="legal", style="formal", instructions="Use formal register.")
         p2 = Project(name="Project Two", domain="medical")
         db.add_all([p1, p2])

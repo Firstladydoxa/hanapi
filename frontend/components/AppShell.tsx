@@ -16,7 +16,7 @@ const MOBILE_QUERY = "(max-width: 700px)";
 
 export function Brand() {
   return (
-    <Link href="/projects" className="han-brand" aria-label="HAN home">
+    <Link href="/chat" className="han-brand" aria-label="HAN home">
       <span className="han-brand-mark" aria-hidden>H</span>
       <span className="han-brand-word">HAN<span className="han-brand-period">.</span></span>
     </Link>

@@ -24,7 +24,7 @@ from .intents import LanguageIndex
 
 MONTH_RX = re.compile(r"\b(" + "|".join(m.lower() for m in layout.MONTHS) + r")\b(?:\s*,?\s*(\d{4}))?", re.I)
 LAYOUT_RX = re.compile(r"\brhapsody\b.*\blay-?out\b|\blay-?out\b.*\brhapsody\b", re.I | re.S)
-TRANSLATE_RX = re.compile(r"\b(start|begin|open|resume|continue|do|prepare)\b.*\btranslat(e|ion|ing)\b.*\brhapsody\b|\b(start|begin|open|resume|continue)\b.*\brhapsody\b.*\btranslat", re.I | re.S)
+TRANSLATE_RX = re.compile(r"\b(start|begin|open|resume|continue|prepare)\b.*\b(my|the|this|our)\b.*\brhapsody\b|\brhapsody\b.*\b(start|begin|resume|continue)\b|\b(start|begin|open|resume|continue|do|prepare)\b.*\btranslat(e|ion|ing)\b.*\brhapsody\b|\b(start|begin|open|resume|continue)\b.*\brhapsody\b.*\btranslat", re.I | re.S)
 
 
 @dataclass
@@ -100,9 +100,15 @@ def _translation(db: Session, user: User, message: str, idx: LanguageIndex) -> H
 
     if user.role not in {"translator", *ADMIN_ROLES}:
         return Handled("Rhapsody translation is started by translators. Open Rhapsody to see the editions.")
-    lang = _language(message, idx)
-    if not lang:
-        return Handled("Which language should I translate Rhapsody into? For example: \"start the translation of Rhapsody in French for November\".")
+    if user.role == "translator":
+        # Rhapsody always goes from English into the translator's registered language; HAN never asks again
+        lang = user.expertise_language
+        if not lang:
+            return Handled("I don't have a language of expertise on your account yet. Choose it in the banner at the top of the page, then ask me again.")
+    else:
+        lang = _language(message, idx)
+        if not lang:
+            return Handled("Which language should I translate Rhapsody into? For example: \"start the translation of Rhapsody in French for November\".")
     month, year = _period(message)
     stmt = select(RhapsodyEdition).where(RhapsodyEdition.status == "active").order_by(RhapsodyEdition.year.desc(), RhapsodyEdition.month.desc())
     if month:

@@ -23,6 +23,24 @@ STARTERS = [
     "Help me understand a cultural expression.",
     "Explain how to use HAN.",
 ]
+def starters_for(db: Session, user: User, general: bool = False) -> List[str]:
+    """Suggested prompts that reflect the signed-in user: the real open Rhapsody edition and, for translators, no hard-coded language."""
+    from ..models.db import RhapsodyEdition
+
+    if not general and user.role != "translator":
+        return STARTERS
+    edition = db.execute(select(RhapsodyEdition).where(RhapsodyEdition.status == "active")
+                         .order_by(RhapsodyEdition.year.desc(), RhapsodyEdition.month.desc())).scalars().first()
+    out: List[str] = []
+    if user.role == "translator" and edition is not None:
+        out.append(f"Han, start my Rhapsody translation for {edition.title}")
+    out += ["Where can I find the glossary for my language?", "What does Pastor Chris teach about righteousness?"]
+    if user.role != "translator":
+        out.insert(0, "Where can I find the Rhapsody of Realities module?")
+    out += ["Where can I find the Rhapsody of Realities module?" if user.role == "translator" else "How do I use HAN?", "Help me translate a text."]
+    return out[:5]
+
+
 GREETING_NAMED = ("Hello, {name}! {welcome}\n\nI'm here to support your translation work. You can ask me about terminology, translation choices, "
                   "grammar, cultural context or any part of your translation workflow.\n\nWhat are we working on today?")
 GREETING_ANON = ("Hello! Welcome to HAN.\n\nI'm your TNI translation assistant. I can help with translation questions, terminology, proofreading "
@@ -198,12 +216,14 @@ def conversation_out(db: Session, conv: ChatConversation, project_names: Dict[uu
 
 
 def list_for(db: Session, user: User, *, q: Optional[str] = None, status: str = "active", project_id: Optional[uuid.UUID] = None,
-             limit: int = 50, offset: int = 0) -> List[S.ConversationOut]:
+             limit: int = 50, offset: int = 0, general_only: bool = False) -> List[S.ConversationOut]:
     visible = visible_project_ids(db, user)
     stmt = select(ChatConversation).where(ChatConversation.user_id == user.id, ChatConversation.status == status,
                                           or_(ChatConversation.project_id.is_(None), ChatConversation.project_id.in_(visible or {uuid.UUID(int=0)})))
     if project_id:
         stmt = stmt.where(ChatConversation.project_id == project_id)
+    elif general_only:
+        stmt = stmt.where(ChatConversation.project_id.is_(None))
     if q and q.strip():
         pat = _like(q.strip())
         hit = select(ChatMessage.conversation_id).where(ChatMessage.content.ilike(pat, escape="\\"))

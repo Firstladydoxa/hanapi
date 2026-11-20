@@ -34,22 +34,23 @@ def create(body: S.ConversationCreate, request: Request, user: User = Depends(ge
     conv = conv_svc.create(db, user, project.id if project else None, body.title)
     audit.record("conversation.created", actor=user, object_type="conversation", object_id=conv.id, project_id=conv.project_id, ip=client_ip(request))
     page = conv_svc.messages_page(db, conv)
-    return S.ConversationDetail(**_out(db, conv).model_dump(), messages=page.messages, has_more_before=page.has_more_before, starters=conv_svc.STARTERS)
+    return S.ConversationDetail(**_out(db, conv).model_dump(), messages=page.messages, has_more_before=page.has_more_before, starters=conv_svc.starters_for(db, user, general=conv.project_id is None))
 
 
 @router.get("", response_model=List[S.ConversationOut])
 def list_conversations(q: Optional[str] = Query(default=None, max_length=200), status: str = Query(default="active", pattern="^(active|archived)$"),
                        project_id: Optional[str] = Query(default=None, max_length=64), limit: int = Query(default=50, ge=1, le=100),
-                       offset: int = Query(default=0, ge=0), user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+                       offset: int = Query(default=0, ge=0), scope: Optional[str] = Query(default=None, pattern="^general$"),
+                       user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     pid = get_membership(db, user, project_id)[0].id if project_id else None
-    return conv_svc.list_for(db, user, q=q, status=status, project_id=pid, limit=limit, offset=offset)
+    return conv_svc.list_for(db, user, q=q, status=status, project_id=pid, limit=limit, offset=offset, general_only=scope == "general")
 
 
 @router.get("/{conversation_id}", response_model=S.ConversationDetail)
 def get_conversation(conversation_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     conv = conv_svc.load(db, user, conversation_id)
     page = conv_svc.messages_page(db, conv)
-    return S.ConversationDetail(**_out(db, conv).model_dump(), messages=page.messages, has_more_before=page.has_more_before, starters=conv_svc.STARTERS)
+    return S.ConversationDetail(**_out(db, conv).model_dump(), messages=page.messages, has_more_before=page.has_more_before, starters=conv_svc.starters_for(db, user, general=conv.project_id is None))
 
 
 @router.get("/{conversation_id}/messages", response_model=S.MessagesPage)

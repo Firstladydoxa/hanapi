@@ -26,7 +26,7 @@ from ..database import get_db
 from ..deps import client_ip, get_current_user
 from ..errors import ApiError, not_found
 from ..models.db import (
-    Language, RhapsodyAssignment, RhapsodyEdition, RhapsodyMasterVersion,
+    ChatMessage, Language, RhapsodyAssignment, RhapsodyEdition, RhapsodyMasterVersion,
     RhapsodySegment, RhapsodySection, RhapsodySourceFile, RhapsodySegmentTranslation,
     RhapsodyTranslationVersion, RhapsodyComment, RhapsodyReview, User,
 )
@@ -192,18 +192,33 @@ def create_edition(body: EditionCreate, request: Request, actor: User = Depends(
 
 @router.delete("/editions/{edition_id}", status_code=204)
 def delete_edition(edition_id: str, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """Removes the edition and everything hanging off it: unsubmitted translations (segments, versions, comments, reviews), master versions,
+    sections, segments, source files on disk and chat shortcuts that pointed at them. Submitted or approved work blocks the deletion."""
     row = _get_edition(db, edition_id)
-    masters = select(RhapsodyMasterVersion.id).where(RhapsodyMasterVersion.edition_id == row.id)
-    assignments = db.execute(select(RhapsodyAssignment).where(RhapsodyAssignment.master_version_id.in_(masters))).scalars().all()
+    master_ids = [m for (m,) in db.execute(select(RhapsodyMasterVersion.id).where(RhapsodyMasterVersion.edition_id == row.id))]
+    assignments = db.execute(select(RhapsodyAssignment).where(RhapsodyAssignment.master_version_id.in_(master_ids))).scalars().all() if master_ids else []
     if any(a.status in ("submitted", "in_review", "approved", "published") for a in assignments):
         raise ApiError(409, "edition_in_use", "This edition has submitted or approved translations and cannot be deleted.")
     keys = [k for (k,) in db.execute(select(RhapsodySourceFile.storage_key).where(RhapsodySourceFile.edition_id == row.id))]
     title, eid = row.title, row.id
-    for a in assignments:
-        db.delete(a)
-    db.flush()
-    db.execute(RhapsodyEdition.__table__.update().where(RhapsodyEdition.id == row.id).values(active_master_version_id=None))
-    db.execute(RhapsodyEdition.__table__.delete().where(RhapsodyEdition.id == row.id))
+    a_ids = [a.id for a in assignments]
+    if a_ids:
+        tr_ids = select(RhapsodySegmentTranslation.id).where(RhapsodySegmentTranslation.assignment_id.in_(a_ids))
+        db.execute(RhapsodySegmentTranslation.__table__.update().where(RhapsodySegmentTranslation.assignment_id.in_(a_ids)).values(current_version_id=None))
+        db.execute(RhapsodyTranslationVersion.__table__.update().where(RhapsodyTranslationVersion.segment_translation_id.in_(tr_ids)).values(parent_version_id=None))
+        db.execute(RhapsodyTranslationVersion.__table__.delete().where(RhapsodyTranslationVersion.segment_translation_id.in_(tr_ids)))
+        for model in (RhapsodyComment, RhapsodyReview, RhapsodySegmentTranslation):
+            db.execute(model.__table__.delete().where(model.assignment_id.in_(a_ids)))
+        db.execute(RhapsodyAssignment.__table__.delete().where(RhapsodyAssignment.id.in_(a_ids)))
+    if master_ids:
+        db.execute(RhapsodyEdition.__table__.update().where(RhapsodyEdition.id == row.id).values(active_master_version_id=None))
+        db.execute(RhapsodySection.__table__.update().where(RhapsodySection.master_version_id.in_(master_ids)).values(parent_id=None))
+        db.execute(RhapsodySegment.__table__.delete().where(RhapsodySegment.master_version_id.in_(master_ids)))
+        db.execute(RhapsodySection.__table__.delete().where(RhapsodySection.master_version_id.in_(master_ids)))
+        db.execute(RhapsodyMasterVersion.__table__.delete().where(RhapsodyMasterVersion.id.in_(master_ids)))
+    db.execute(RhapsodySourceFile.__table__.delete().where(RhapsodySourceFile.edition_id == eid))
+    db.execute(RhapsodyEdition.__table__.delete().where(RhapsodyEdition.id == eid))
+    _forget_chat_links(db, [str(eid), *map(str, a_ids)])
     db.commit()
     for key in keys:
         try:
@@ -211,6 +226,15 @@ def delete_edition(edition_id: str, request: Request, actor: User = Depends(admi
         except (OSError, ApiError):
             pass
     audit.record("rhapsody.edition_deleted", actor=actor, object_type="rhapsody_edition", object_id=eid, ip=client_ip(request), details={"title": title})
+
+
+def _forget_chat_links(db: Session, ids: List[str]) -> None:
+    """HAN replies keep 'open' buttons to editions and translations; once those are gone the buttons must go too."""
+    for msg in db.execute(select(ChatMessage).where(ChatMessage.role == "assistant")).scalars():
+        acts = (msg.meta or {}).get("actions") or []
+        keep = [a for a in acts if not any(i in str(a.get("path") or "") for i in ids)]
+        if len(keep) != len(acts):
+            msg.meta = {**msg.meta, "actions": keep}
 
 
 @router.get("/editions/{edition_id}")
@@ -475,6 +499,11 @@ def start_for_translator(db: Session, user: User, edition: RhapsodyEdition, lang
     if edition.status != "active" or edition.active_master_version_id is None:
         raise ApiError(409, "master_not_active", f"The {edition.title} master has not been activated yet.")
     lang = language.strip().lower().replace("_", "-")
+    if user.role == "translator":
+        # Rhapsody is always English -> the translator's own language; a client can't choose another one
+        if not user.expertise_language:
+            raise ApiError(422, "no_expertise_language", "Choose your language of expertise in your profile before starting a Rhapsody translation.")
+        lang = user.expertise_language
     master = db.get(RhapsodyMasterVersion, edition.active_master_version_id)
     existing = db.execute(select(RhapsodyAssignment).where(RhapsodyAssignment.master_version_id == master.id,
                                                            RhapsodyAssignment.target_language == lang,

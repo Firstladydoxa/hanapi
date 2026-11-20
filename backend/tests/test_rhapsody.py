@@ -258,3 +258,48 @@ def test_manuscript_with_running_headers_and_unlabelled_days():
     assert arts[0]["title"] == "The Power Of “Epignosis”" and arts[0]["scripture_ref"] == "2 Peter 1:1"
     assert len(arts[0]["body"]) == 2 and arts[1]["closing_type"] == "confession"
     assert arts[0]["further"] == "James 4:6; Romans 5:17"
+
+
+def test_translator_language_is_the_profile_language_and_han_does_not_ask(world, login, tmp_path, monkeypatch):
+    admin = login("tina")
+    edition_id, _, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    alice = login("alice")
+    conv = alice.post("/v1/conversations", {}).json()["id"]  # general chat, no project
+    reply = alice.post(f"/v1/conversations/{conv}/messages", {"message": "Han, start my Rhapsody translation"}).json()
+    assert "Which language" not in reply["reply"] and "French" in reply["reply"]
+    assert reply["actions"][0]["path"].startswith("/rhapsody/translate/")
+    # a client asking for another language still gets the profile language
+    started = alice.post(f"/v1/rhapsody/editions/{edition_id}/start", {"language": "de"})
+    assert started.json()["target_language"] == "fr"
+
+
+def test_han_guides_translators_to_pages_without_the_model(world, login):
+    alice = login("alice")
+    conv = alice.post("/v1/conversations", {}).json()["id"]
+    ask = lambda m: alice.post(f"/v1/conversations/{conv}/messages", {"message": m}).json()
+    g = ask("Han, where can I find the glossary for my language?")
+    assert "French" in g["reply"] and g["actions"][0] == {"type": "open_page", "path": "/glossary", "label": "Open Glossary"}
+    r = ask("HAN, where can I find the Rhapsody of Realities module to start my monthly translation?")
+    assert r["actions"][0]["path"] == "/rhapsody"
+    assert "administrators" in ask("where do I find the users page?")["reply"]
+
+
+def test_deleting_an_edition_removes_unsubmitted_translations_and_leaves_no_orphans(world, login, tmp_path, monkeypatch):
+    admin = login("tina")
+    edition_id, master_id, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    alice = login("alice")
+    conv = alice.post("/v1/conversations", {}).json()["id"]
+    chat = alice.post(f"/v1/conversations/{conv}/messages", {"message": "Han, start my Rhapsody translation"}).json()
+    assert chat["actions"]
+    assert alice.get("/v1/rhapsody/assignments").json()
+    assert admin.delete(f"/v1/rhapsody/editions/{edition_id}").status_code == 204
+    assert alice.get("/v1/rhapsody/assignments").json() == [] and alice.get("/v1/rhapsody/editions").json() == []
+    from sqlalchemy import func, select
+    from app.database import SessionLocal
+    from app.models import db as M
+    with SessionLocal() as db:
+        for model in (M.RhapsodyEdition, M.RhapsodySourceFile, M.RhapsodyMasterVersion, M.RhapsodySection, M.RhapsodySegment, M.RhapsodyAssignment,
+                      M.RhapsodySegmentTranslation, M.RhapsodyTranslationVersion, M.RhapsodyComment, M.RhapsodyReview):
+            assert db.execute(select(func.count()).select_from(model)).scalar() == 0, model.__name__
+    again = alice.get(f"/v1/conversations/{conv}").json()
+    assert all(not m["actions"] for m in again["messages"])

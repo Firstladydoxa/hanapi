@@ -11,6 +11,7 @@ export interface NavSection { id: string; label: string; caption?: string; items
 export function buildNav(user: User | null, projectId: string | null, projectName?: string | null): NavSection[] {
   const sections: NavSection[] = [
     { id: "workspace", label: "WORKSPACE", items: [
+      { id: "han-chat", href: "/chat", label: "HAN Chat", icon: "✧" },
       { id: "projects", href: "/projects", label: "Projects", icon: "◈", exact: true },
       { id: "languages", href: "/languages", label: "Languages", icon: "◎" },
       { id: "rhapsody", href: "/rhapsody", label: "Rhapsody of Realities", icon: "✦" },
@@ -24,7 +25,7 @@ export function buildNav(user: User | null, projectId: string | null, projectNam
       id: "project", label: "PROJECT", caption: projectName ?? undefined,
       items: [
         { id: "overview", href: base, label: "Overview", icon: "◇", exact: true },
-        { id: "chat", href: `${base}/chat`, label: "HAN Chat", icon: "✧" },
+        { id: "chat", href: `${base}/chat`, label: "Project chat", icon: "✧" },
         { id: "quick", href: `${base}/quick`, label: "Quick translate", icon: "⇄" },
         { id: "workspace", href: `${base}/workspace`, label: "Translation workspace", icon: "▤" },
       ],

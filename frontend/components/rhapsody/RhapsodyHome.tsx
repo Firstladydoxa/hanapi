@@ -17,7 +17,8 @@ export function RhapsodyHome() {
   const [editions, setEditions] = useState<RhapsodyEdition[] | null>(null);
   const [mine, setMine] = useState<RhapsodyAssignmentRow[]>([]);
   const [languages, setLanguages] = useState<Language[]>([]);
-  const [lang, setLang] = useState("");
+  const mine_lang = user?.role === "translator" ? user.expertise_language ?? "" : "";
+  const [lang, setLang] = useState(mine_lang);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const now = new Date();
@@ -31,6 +32,7 @@ export function RhapsodyHome() {
     } catch (e) { setError(errText(e)); }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { if (mine_lang) setLang(mine_lang); }, [mine_lang]);
 
   async function create(ev: FormEvent) {
     ev.preventDefault(); setBusy("create"); setError(null);
@@ -57,7 +59,7 @@ export function RhapsodyHome() {
         {[["Editions", editions.length, "Monthly issues in the system"], ["Open for translation", active, "Activated English masters"], ["My translations", mine.length, `${submitted} submitted or approved`]].map(([l, v, h]) => (
           <div className="card" key={String(l)}><p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-ink-muted">{l}</p><p className="mt-1 text-3xl font-bold">{v}</p><p className="mt-1 text-xs text-ink-muted">{h}</p></div>))}
       </div>
-      <RhapsodyChat admin={admin} onChanged={() => void load()} />
+      <RhapsodyChat admin={admin} openEdition={editions.find((e) => e.status === "active")?.title} onChanged={() => void load()} />
 
       {admin ? (
         <form className="card flex flex-wrap items-end gap-3" onSubmit={create}>
@@ -69,8 +71,8 @@ export function RhapsodyHome() {
       ) : (
         <div className="card flex flex-wrap items-end gap-3">
           <div className="min-w-[220px]"><label className="text-xs font-semibold" htmlFor="tl">My target language</label>
-            <select id="tl" className="input" value={lang} onChange={(e) => setLang(e.target.value)}><option value="">Select…</option>{languages.map((l) => <option key={l.code} value={l.code}>{l.display_name}</option>)}</select></div>
-          <p className="basis-full text-sm text-ink-muted">Tip: ask HAN in chat — “Han, start the translation of Rhapsody in French for the month of November”.</p>
+            <select id="tl" className="input" value={lang} disabled={!!mine_lang} onChange={(e) => setLang(e.target.value)}><option value="">Select…</option>{languages.map((l) => <option key={l.code} value={l.code}>{l.display_name}</option>)}</select></div>
+          <p className="basis-full text-sm text-ink-muted">{mine_lang ? "Rhapsody is always translated from English into your language of expertise." : "Choose your language of expertise first."} You can also just ask HAN in the chat above to start it.</p>
         </div>)}
 
       <section>

@@ -6,12 +6,17 @@ import { api, ApiError, type ChatActionOut } from "@/lib/api";
 
 interface Msg { id: number; role: "user" | "han"; text: string; actions?: ChatActionOut[]; file?: string }
 
-const ADMIN_STARTERS = ["Han, start the layout of Rhapsody for the month of November 2026 using the word document I uploaded"];
-const TRANSLATOR_STARTERS = ["Han, start the translation of Rhapsody in French for the month of November"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const ERR = "I'm sorry, I couldn't complete that just now. Please try again shortly.";
 const DOCX = ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-export function RhapsodyChat({ admin, onChanged }: { admin: boolean; onChanged?: () => void }) {
+/** Suggested prompts come from real data: the month an administrator is preparing, or the edition open to this translator. */
+export function starterPrompts(admin: boolean, openEdition?: string | null, now = new Date()): string[] {
+  if (admin) return [`Han, start the layout of Rhapsody for the month of ${MONTHS[now.getMonth()]} ${now.getFullYear()} using the word document I uploaded`];
+  return openEdition ? [`Han, start my Rhapsody translation for ${openEdition}`] : ["Han, which Rhapsody editions are open for translation?"];
+}
+
+export function RhapsodyChat({ admin, openEdition, onChanged }: { admin: boolean; openEdition?: string | null; onChanged?: () => void }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -47,7 +52,7 @@ export function RhapsodyChat({ admin, onChanged }: { admin: boolean; onChanged?:
   }
 
   const submit = (e: FormEvent) => { e.preventDefault(); void send(input); };
-  const starters = admin ? ADMIN_STARTERS : TRANSLATOR_STARTERS;
+  const starters = starterPrompts(admin, openEdition);
 
   return (
     <section className="card space-y-3" aria-label="Chat with HAN about Rhapsody">

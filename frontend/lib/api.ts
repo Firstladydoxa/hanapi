@@ -58,7 +58,7 @@ export interface RhapsodyMasterPreview { id: string; version_number: number; val
   segments: { id: string; stable_key: string; section_id: string; source_text: string; sequence: number; metadata: Record<string, unknown> | null }[] }
 export interface RhapsodySaveResult { segment_id: string; version_id: string; version_number: number; target_text: string; status: string; origin?: string; warnings?: string[] }
 
-export interface ChatActionOut { type: "open_in_workspace" | "open_rhapsody"; translation_id?: string | null; path?: string | null; label?: string | null }
+export interface ChatActionOut { type: "open_in_workspace" | "open_rhapsody" | "open_page"; translation_id?: string | null; path?: string | null; label?: string | null }
 export interface ChatResponse {
   conversation_id: string; reply: string; translation: TranslateResponse | null;
   clarification: { question: string; field: string } | null; actions: ChatActionOut[];
@@ -251,7 +251,7 @@ export const api = {
     mine: (source_code: string, target_code: string) => request<ReviewMine[]>("GET", `/v1/reviews/mine${qs({ source_code, target_code })}`),
   },
   conversations: {
-    list: (p: { q?: string; status?: "active" | "archived"; project_id?: string; limit?: number } = {}) => request<ConversationSummary[]>("GET", `/v1/conversations${qs(p)}`),
+    list: (p: { q?: string; status?: "active" | "archived"; project_id?: string; scope?: "general"; limit?: number } = {}) => request<ConversationSummary[]>("GET", `/v1/conversations${qs(p)}`),
     create: (project_id?: string) => request<ConversationDetail>("POST", "/v1/conversations", project_id ? { project_id } : {}),
     get: (id: string) => request<ConversationDetail>("GET", `/v1/conversations/${id}`),
     older: (id: string, before_seq: number) => request<{ messages: ChatMessageOut[]; has_more_before: boolean }>("GET", `/v1/conversations/${id}/messages${qs({ before_seq })}`),

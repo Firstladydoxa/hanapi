@@ -21,7 +21,8 @@ export default function LoginPage() {
     setError(null);
     try {
       await api.login(email.trim(), password);
-      router.replace("/projects");
+      try { window.sessionStorage.removeItem("han.chat.seen"); } catch { /* storage unavailable */ }
+      router.replace("/chat");
     } catch (err) {
       if (err instanceof ApiError && err.code === "email_not_verified") {
         router.replace(`/verify-email?email=${encodeURIComponent(email.trim())}&notice=incomplete`);

@@ -393,7 +393,7 @@ class SourceRef(Public):
 
 
 class ChatAction(Public):
-    type: Literal["open_in_workspace", "open_rhapsody"]
+    type: Literal["open_in_workspace", "open_rhapsody", "open_page"]
     translation_id: Optional[str] = None
     path: Optional[str] = None
     label: Optional[str] = None

@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { api, ApiError, type ChatMessageOut, type ConversationSummary, type ProjectDetail } from "@/lib/api";
 import { Alert, Spinner } from "./ui";
 import { ReviewPanel } from "./ReviewPanel";
 
 const FALLBACK_STARTERS = ["Help me translate a text.", "Explain a difficult terminology choice.", "Review my translation.", "Explain how to use HAN."];
+export const GENERAL_SEEN = "han.chat.seen";
 const ERR = "I'm sorry, I couldn't complete that just now. Please try again shortly.";
 
 function when(iso: string | null): string {
@@ -14,7 +16,7 @@ function when(iso: string | null): string {
   return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : d.toLocaleDateString();
 }
 
-export function Chat({ project, onOpenWorkspace, about }: { project: ProjectDetail; onOpenWorkspace: (translationId: string) => void; about?: string | null }) {
+export function Chat({ project = null, onOpenWorkspace, about }: { project?: ProjectDetail | null; onOpenWorkspace?: (translationId: string) => void; about?: string | null }) {
   const [list, setList] = useState<ConversationSummary[]>([]);
   const [view, setView] = useState<"active" | "archived">("active");
   const [search, setSearch] = useState("");
@@ -37,8 +39,8 @@ export function Chat({ project, onOpenWorkspace, about }: { project: ProjectDeta
   const scroll = () => setTimeout(() => bottom.current?.scrollIntoView?.({ behavior: "smooth", block: "end" }), 50);
 
   const refresh = useCallback(async (q = search, status = view) => {
-    try { setList(await api.conversations.list({ project_id: project.id, q: q || undefined, status })); } catch { /* the list is a convenience */ }
-  }, [project.id, search, view]);
+    try { setList(await api.conversations.list({ ...(project ? { project_id: project.id } : { scope: "general" as const }), q: q || undefined, status })); } catch { /* the list is a convenience */ }
+  }, [project?.id, search, view]);
 
   const open = useCallback(async (id: string) => {
     setLoading(true);
@@ -56,23 +58,27 @@ export function Chat({ project, onOpenWorkspace, about }: { project: ProjectDeta
     setLoading(true);
     setError(null);
     try {
-      const c = await api.conversations.create(project.id);
+      const c = await api.conversations.create(project?.id);
       setActiveId(c.id); setMessages(c.messages); setHasMore(false); setTitle(""); setArchived(false);
       if (c.starters.length) setStarters(c.starters);
       setPanel(false);
     } catch (e) { setError(e instanceof ApiError ? e.message : ERR); } finally { setLoading(false); }
-  }, [project.id]);
+  }, [project?.id]);
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
     void (async () => {
-      const existing = await api.conversations.list({ project_id: project.id, status: "active", limit: 50 }).catch(() => []);
+      const existing = await api.conversations.list({ ...(project ? { project_id: project.id } : { scope: "general" as const }), status: "active", limit: 50 }).catch(() => []);
       setList(existing);
-      // arriving from "Ask HAN about this" starts a clean conversation; otherwise continue the latest one
-      if (existing[0] && !about) await open(existing[0].id); else await fresh();
+      // arriving from "Ask HAN about this" starts a clean conversation; the general chat also starts a new one on the first visit after signing in
+      let firstVisit = false;
+      if (!project) {
+        try { firstVisit = window.sessionStorage.getItem(GENERAL_SEEN) !== "1"; window.sessionStorage.setItem(GENERAL_SEEN, "1"); } catch { /* storage unavailable: continue the latest */ }
+      }
+      if (existing[0] && !about && !firstVisit) await open(existing[0].id); else await fresh();
     })();
-  }, [project.id, about, open, fresh]);
+  }, [project?.id, about, open, fresh]);
 
   async function send(text: string) {
     const message = text.trim();
@@ -182,17 +188,17 @@ export function Chat({ project, onOpenWorkspace, about }: { project: ProjectDeta
                     <>
                       <p>Here is my suggested translation:</p>
                       <div className="mt-3 rounded-xl bg-surface p-4 text-ink">
-                        <ReviewPanel translationId={m.translation.translation_id} canApprove={project.can_approve}
+                        <ReviewPanel translationId={m.translation.translation_id} canApprove={project?.can_approve ?? false}
                           context={{ warnings: m.translation.warnings, tm_matches: m.translation.tm_matches, terminology: m.translation.terminology, review_note: m.translation.review_note }}
-                          onOpenWorkspace={() => onOpenWorkspace(m.translation!.translation_id)} onAskHan={() => setAboutId(m.translation!.translation_id)} />
+                          onOpenWorkspace={() => onOpenWorkspace?.(m.translation!.translation_id)} onAskHan={() => setAboutId(m.translation!.translation_id)} />
                       </div>
                       <p className="mt-3">Please review it and make any corrections before approving it.</p>
                     </>
                   ) : (
                     <>
                     <p className="whitespace-pre-wrap">{m.content}</p>
-                    {m.actions?.filter((a) => a.type === "open_rhapsody" && a.path).map((a) => (
-                      <a key={a.path} className="btn btn-secondary mt-2 min-h-[34px] px-3 py-1 text-xs" href={a.path ?? "#"}>{a.label ?? "Open Rhapsody"}</a>))}
+                    {m.actions?.filter((a) => (a.type === "open_rhapsody" || a.type === "open_page") && a.path).map((a) => (
+                      <Link key={a.path} className="btn btn-secondary mt-2 min-h-[34px] px-3 py-1 text-xs" href={a.path ?? "#"}>{a.label ?? "Open"}</Link>))}
                     </>
                   )}
                   {m.sources.length > 0 ? <p className="mt-2 text-xs opacity-80">Based on: {m.sources.map((s) => `${s.title}${s.version ? ` (v${s.version})` : ""}`).join("; ")}</p> : null}

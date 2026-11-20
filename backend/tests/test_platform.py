@@ -167,6 +167,11 @@ def test_chat_asks_one_question_at_a_time_and_remembers(login, world):
 
 
 def test_chat_missing_target_language(login, world):
+    from app.database import SessionLocal
+    from app.models.db import User
+    with SessionLocal() as db:  # a translator without a language of expertise has no default pair
+        db.get(User, world.users["alice"].id).expertise_language = None
+        db.commit()
     r = chat(login("alice"), world, 'Translate "Hello" from English')
     assert r["clarification"]["field"] == "target_language" and "into" in r["reply"]
 

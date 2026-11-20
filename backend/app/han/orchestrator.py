@@ -60,9 +60,9 @@ def respond(db: Session, user: User, conv: ChatConversation, project: Optional[P
         a = intelligence.answer(db, user, conv, project, message, intent, idx, state, (parsed.source, parsed.target), context_translation_id)
         return _finish(db, conv, message, reply(a.reply, sources=a.sources), state, a.kind)
 
-    from . import rhapsody_chat
+    from . import guide, rhapsody_chat
 
-    handled = rhapsody_chat.handle(db, user, message, idx)
+    handled = guide.handle(db, user, message) or rhapsody_chat.handle(db, user, message, idx)
     if handled is not None:
         return _finish(db, conv, message, reply(handled.text, actions=handled.actions), state, "answer")
 

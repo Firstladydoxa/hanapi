@@ -19,14 +19,14 @@ afterEach(cleanup);
 
 describe("navigation model", () => {
   it("shows translators only Projects and Languages (+ the project's own pages)", () => {
-    expect(ids("translator")).toEqual(["projects", "languages", "rhapsody", "glossary", "review"]);
-    expect(ids("translator", "p1")).toEqual(["projects", "languages", "rhapsody", "glossary", "review", "overview", "chat", "quick", "workspace"]);
+    expect(ids("translator")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review"]);
+    expect(ids("translator", "p1")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review", "overview", "chat", "quick", "workspace"]);
   });
 
   it("gates administration, operations and audit by role (convenience only: the backend enforces access)", () => {
-    expect(ids("auditor")).toEqual(["projects", "languages", "rhapsody", "glossary", "audit"]);
-    expect(ids("technical_admin")).toEqual(["projects", "languages", "rhapsody", "glossary", "review", "users", "admin-projects", "terminology", "knowledge", "evidence", "readiness", "ops", "audit"]);
-    expect(ids(null)).toEqual(["projects", "languages", "rhapsody", "glossary", "review"]);
+    expect(ids("auditor")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "audit"]);
+    expect(ids("technical_admin")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review", "users", "admin-projects", "terminology", "knowledge", "evidence", "readiness", "ops", "audit"]);
+    expect(ids(null)).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review"]);
   });
 
   it("builds per-project page links and a captioned project section", () => {
@@ -65,7 +65,8 @@ describe("toggleable menu", () => {
     expect(window.localStorage.getItem("han.nav.collapsed")).toBe("1");
     const show = screen.getByRole("button", { name: "Show navigation menu" });
     expect(show).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByRole("link", { name: "HAN Chat" })).toBeInTheDocument(); // still reachable (icon + title)
+    expect(screen.getByRole("link", { name: "Project chat" })).toBeInTheDocument(); // still reachable (icon + title)
+    expect(screen.getByRole("link", { name: "HAN Chat" })).toHaveAttribute("href", "/chat"); // the general chat needs no project
     await act(async () => { fireEvent.click(show); });
     expect(app()).not.toHaveClass("is-collapsed");
     expect(window.localStorage.getItem("han.nav.collapsed")).toBe("0");
@@ -97,7 +98,7 @@ describe("toggleable menu", () => {
   it("marks the current page and renders the signed-in identity, without admin links for a translator", () => {
     setViewport(false);
     shell();
-    expect(screen.getByRole("link", { name: "HAN Chat" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Project chat" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Quick translate" })).not.toHaveAttribute("aria-current");
     expect(screen.queryByRole("link", { name: /Users|Operations|Audit trail|Terminology/ })).toBeNull();
     expect(screen.getAllByText("Alice Example").length).toBeGreaterThan(0);
