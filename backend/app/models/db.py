@@ -752,3 +752,14 @@ class RhapsodyProfileFont(Base):
     role: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = _now()
     __table_args__ = (UniqueConstraint("profile_id", "role", name="uq_rhapsody_profile_font_role"),)
+
+
+class RhapsodyLayoutProof(Base):
+    __tablename__ = "rhapsody_layout_proofs"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    assignment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_assignments.id", ondelete="CASCADE"), nullable=False, index=True)
+    profile_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    translation_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    manifest: Mapped[Any] = mapped_column(JSONType, nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()
