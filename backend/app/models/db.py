@@ -51,6 +51,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(500), nullable=False)
     role: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
+    email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     engine_details_granted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = _now()
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
@@ -673,3 +674,32 @@ class RhapsodyReview(Base):
     note: Mapped[Optional[str]] = mapped_column(String(3000))
     created_at: Mapped[datetime] = _now()
     __table_args__ = (CheckConstraint("decision in ('approved','changes_requested')", name="ck_rhapsody_review_decision"),)
+
+
+class EmailAuthChallenge(Base):
+    """One-time email verification/reset challenges. Only keyed hashes are stored."""
+    __tablename__ = "email_auth_challenges"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    purpose: Mapped[str] = mapped_column(String(24), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    consumed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    invalidated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (
+        CheckConstraint("purpose in ('verify_email','reset_password')", name="ck_email_auth_purpose"),
+        Index("ix_email_auth_active", "user_id", "purpose", "consumed_at", "invalidated_at"),
+    )
+
+
+class RegistrationReminder(Base):
+    """Durable reminder schedule for accounts awaiting email verification."""
+    __tablename__ = "registration_reminders"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _now()
