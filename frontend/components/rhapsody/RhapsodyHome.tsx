@@ -36,6 +36,11 @@ export function RhapsodyHome() {
     ev.preventDefault(); setBusy("create"); setError(null);
     try { const e = await api.rhapsody.createEdition(month, year); window.location.assign(`/rhapsody/editions/${e.id}`); } catch (x) { setError(errText(x)); setBusy(null); }
   }
+  async function remove(e: RhapsodyEdition) {
+    if (!window.confirm(`Delete “${e.title}”? Its source files, master versions and any translation drafts will be permanently removed.`)) return;
+    setBusy(e.id); setError(null);
+    try { await api.rhapsody.deleteEdition(e.id); await load(); } catch (x) { setError(errText(x)); } finally { setBusy(null); }
+  }
   async function start(id: string) {
     if (!lang) { setError("Choose your target language first."); return; }
     setBusy(id); setError(null);
@@ -53,7 +58,6 @@ export function RhapsodyHome() {
           <div className="card" key={String(l)}><p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-ink-muted">{l}</p><p className="mt-1 text-3xl font-bold">{v}</p><p className="mt-1 text-xs text-ink-muted">{h}</p></div>))}
       </div>
       <RhapsodyChat admin={admin} onChanged={() => void load()} />
-      <p className="text-sm text-ink-muted">Tip: ask HAN in chat — “Han, start the translation of Rhapsody in French for the month of November”.</p>
 
       {admin ? (
         <form className="card flex flex-wrap items-end gap-3" onSubmit={create}>
@@ -66,6 +70,7 @@ export function RhapsodyHome() {
         <div className="card flex flex-wrap items-end gap-3">
           <div className="min-w-[220px]"><label className="text-xs font-semibold" htmlFor="tl">My target language</label>
             <select id="tl" className="input" value={lang} onChange={(e) => setLang(e.target.value)}><option value="">Select…</option>{languages.map((l) => <option key={l.code} value={l.code}>{l.display_name}</option>)}</select></div>
+          <p className="basis-full text-sm text-ink-muted">Tip: ask HAN in chat — “Han, start the translation of Rhapsody in French for the month of November”.</p>
         </div>)}
 
       <section>
@@ -78,6 +83,7 @@ export function RhapsodyHome() {
               <p className="mt-2 text-xs text-ink-muted">{e.sources.length} source file(s) · {e.master_versions.length} master version(s)</p>
               <div className="mt-4 flex gap-2">
                 {admin ? <Link className="btn btn-secondary text-xs" href={`/rhapsody/editions/${e.id}`}>Manage master</Link> : null}
+                {admin ? <button className="btn btn-secondary text-xs text-danger" disabled={busy === e.id} onClick={() => void remove(e)}>Delete</button> : null}
                 {e.status === "active" ? <button className="btn btn-primary text-xs" disabled={busy === e.id} onClick={() => void start(e.id)}>Start / resume translation</button> : null}
               </div>
             </li>))}</ul>)}
