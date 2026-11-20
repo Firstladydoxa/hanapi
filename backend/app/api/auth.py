@@ -33,6 +33,9 @@ def login(body: S.LoginRequest, request: Request, response: Response, db: Sessio
     if not ok or user is None or user.status != "active":
         audit.record("auth.login_failed", outcome="denied", object_type="user", ip=ip)
         raise ApiError(401, "invalid_credentials", "The email or password is incorrect.")
+    if not user.email_verified:
+        audit.record("auth.login_unverified_email", outcome="denied", object_type="user", object_id=user.id, ip=ip)
+        raise ApiError(403, "email_not_verified", "Your registration is not complete. Verify your email address to continue.")
     if sec.needs_rehash(user.password_hash):
         user.password_hash = sec.hash_password(body.password)
     token, jti, exp = sec.create_session_token(user.id)
@@ -167,7 +170,7 @@ def verify_email(body: S.EmailCodeRequest, request: Request, db: Session = Depen
 
 
 @router.post("/resend-verification", dependencies=[Depends(limit_auth)])
-def resend_verification(body: S.EmailCodeRequest, request: Request, db: Session = Depends(get_db)):
+def resend_verification(body: S.EmailOnlyRequest, request: Request, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(func.lower(User.email) == body.email.strip().lower())).scalar_one_or_none()
     if user is None or user.email_verified:
         return {"ok": True, "message": "If registration is pending, a new verification email has been sent."}
@@ -176,7 +179,7 @@ def resend_verification(body: S.EmailCodeRequest, request: Request, db: Session 
 
 
 @router.post("/password-reset/request", dependencies=[Depends(limit_auth)])
-def request_password_reset(body: S.EmailCodeRequest, request: Request, db: Session = Depends(get_db)):
+def request_password_reset(body: S.EmailOnlyRequest, request: Request, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(func.lower(User.email) == body.email.strip().lower())).scalar_one_or_none()
     if user is not None and user.email_verified and user.status == "active":
         _send_code(db, user, "reset_password")
