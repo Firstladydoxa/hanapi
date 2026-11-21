@@ -806,3 +806,18 @@ class RhapsodyPublicationApproval(Base):
     pdf_sha256: Mapped[Optional[str]] = mapped_column(String(64))
     decided_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = _now()
+
+
+class Notification(Base):
+    """An in-app alert for one user (e.g. an admin is told a translation is ready for layout)."""
+    __tablename__ = "notifications"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    body: Mapped[Optional[str]] = mapped_column(String(1000))
+    link: Mapped[Optional[str]] = mapped_column(String(300))
+    level: Mapped[str] = mapped_column(String(10), nullable=False, default="info", server_default="info")
+    read_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (Index("ix_notifications_user_unread", "user_id", "read_at", "created_at"),)

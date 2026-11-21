@@ -1,15 +1,15 @@
 "use client";
 
-import { PublishingAdmin } from "@/components/rhapsody/PublishingAdmin";
+import { PublishingOverview } from "@/components/rhapsody/PublishingOverview";
 import { PageTitle } from "@/components/ui";
 
 export default function PublishingPage() {
   return (
     <div className="han-page">
-      <PageTitle eyebrow="Rhapsody of Realities Translation" title="Publishing fonts and languages">
-        Upload the licensed fonts used by the printed Rhapsody and choose which ones HAN uses when it typesets each language.
+      <PageTitle eyebrow="Rhapsody of Realities Translation" title="Rhapsody publishing">
+        Everything needed to turn approved translations into print-ready editions, in one place.
       </PageTitle>
-      <PublishingAdmin />
+      <PublishingOverview />
     </div>
   );
 }

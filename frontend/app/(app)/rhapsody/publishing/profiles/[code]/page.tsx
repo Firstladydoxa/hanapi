@@ -12,7 +12,7 @@ export default function ProfilePage() {
       <PageTitle eyebrow="Rhapsody publishing" title="Language publishing profile">
         How this language is typeset and localized. Every save creates a new revision you can restore later.
       </PageTitle>
-      <Link className="text-sm underline" href="/rhapsody/publishing">← All languages and fonts</Link>
+      <Link className="text-sm underline" href="/rhapsody/publishing/profiles">← All typesetting profiles</Link>
       <ProfileEditor code={code} />
     </div>
   );

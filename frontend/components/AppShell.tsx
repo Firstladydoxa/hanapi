@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/labels";
 import { buildNav, isActive } from "@/lib/nav";
 import { useProject } from "@/lib/project-context";
+import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { Spinner } from "./ui";
 
@@ -154,6 +155,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="han-topbar-right">
             <span className="han-secure-label"><span aria-hidden>◇</span> SECURE WORKSPACE</span>
+            {user ? <NotificationBell /> : null}
             <ThemeToggle />
             {user ? <span className="han-topbar-user">{user.display_name}</span> : null}
           </div>

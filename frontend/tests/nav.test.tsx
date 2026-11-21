@@ -5,7 +5,7 @@ import type { Role, User } from "@/lib/api";
 import { buildNav, isActive } from "@/lib/nav";
 
 const mocks = vi.hoisted(() => ({ path: "/projects", user: null as unknown, project: null as unknown, projectId: null as string | null }));
-vi.mock("next/navigation", () => ({ usePathname: () => mocks.path }));
+vi.mock("next/navigation", () => ({ usePathname: () => mocks.path, useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/lib/auth", async () => {
   const actual = await vi.importActual<typeof import("@/lib/auth")>("@/lib/auth");
   return { ...actual, useAuth: () => ({ user: mocks.user, loading: false, signOut: vi.fn() }) };
@@ -25,7 +25,7 @@ describe("navigation model", () => {
 
   it("gates administration, operations and audit by role (convenience only: the backend enforces access)", () => {
     expect(ids("auditor")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "audit"]);
-    expect(ids("technical_admin")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review", "users", "admin-projects", "publishing", "terminology", "knowledge", "evidence", "readiness", "ops", "audit"]);
+    expect(ids("technical_admin")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review", "users", "admin-projects", "terminology", "knowledge", "evidence", "readiness", "publishing", "pub-production", "pub-profiles", "pub-fonts", "pub-font-new", "ops", "audit"]);
     expect(ids(null)).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review"]);
   });
 

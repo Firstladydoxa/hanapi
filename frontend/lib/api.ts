@@ -238,9 +238,16 @@ export const api = {
     layoutUrl: (a: string) => `/v1/rhapsody/assignments/${a}/layout.pdf`,
     masterLayoutUrl: (id: string, mv: string) => `/v1/rhapsody/editions/${id}/masters/${mv}/layout.pdf`,
   },
+  notifications: {
+    list: (unreadOnly = false) => request<{ unread: number; items: AppNotification[] }>("GET", `/v1/notifications?limit=30${unreadOnly ? "&unread_only=true" : ""}`),
+    read: (id: string) => request<AppNotification>("POST", `/v1/notifications/${id}/read`),
+    readAll: () => request<{ unread: number }>("POST", "/v1/notifications/read-all"),
+  },
   publishing: {
     fonts: () => request<PublishingFont[]>("GET", "/v1/rhapsody/publishing/fonts"),
     uploadFont: (f: FormData) => request<PublishingFont>("POST", "/v1/rhapsody/publishing/fonts", f),
+    updateFont: (id: string, b: { family?: string; style?: string; license_name?: string; license_note?: string }) => request<PublishingFont>("PATCH", `/v1/rhapsody/publishing/fonts/${id}`, b),
+    fontFileUrl: (id: string) => `/v1/rhapsody/publishing/fonts/${id}/file`,
     deleteFont: (id: string) => request<void>("DELETE", `/v1/rhapsody/publishing/fonts/${id}`),
     profiles: () => request<PublishingProfile[]>("GET", "/v1/rhapsody/publishing/profiles"),
     profileVersions: (code: string) => request<{ version: number; created_at: string; created_by: string }[]>("GET", `/v1/rhapsody/publishing/profiles/${code}/versions`),
@@ -349,9 +356,15 @@ export const api = {
   },
 };
 
-export interface PublishingFont { id: string; family: string; style: string; format: string; license_name: string; byte_size: number }
+export interface PublishingFont {
+  id: string; family: string; style: string; format: string; license_name: string; license_note?: string | null; byte_size: number; sha256?: string; created_at?: string;
+  coverage?: { glyph_count?: number; scripts?: Record<string, boolean>; embedding_restricted?: boolean; no_subsetting?: boolean };
+  used_by?: { language: string; role: string }[];
+}
 export interface PublishingProfile { id: string | null; language_code: string; language_name: string; direction: "ltr" | "rtl"; locale: string; status: string; version: number; fonts: Record<string, PublishingFont>; typography: Record<string, number | string>; localization: Record<string, unknown>; layout: Record<string, number | string> }
-export interface PublishingProduction { edition_id: string; title: string; master_active: boolean; languages: { assignment_id: string; language: string; translator: string; status: string; profile_status: string; profile_version: number }[] }
+export interface ProductionLanguage { assignment_id: string; language: string; language_name: string; translator: string; status: string; translated: number; total: number; unreviewed: number; draft_status: string; has_proof: boolean; created_at: string; profile_status: string; profile_version: number }
+export interface PublishingProduction { edition_id: string; title: string; master_active: boolean; languages: ProductionLanguage[] }
+export interface AppNotification { id: string; kind: string; title: string; body: string | null; link: string | null; level: "info" | "success" | "warning"; read: boolean; created_at: string }
 export interface PermanentItem { key: string; items: string[]; status: "empty" | "draft" | "approved"; updated_at: string | null }
 export interface SheetImport { applied: boolean; months: number; weekdays: number; books: number; labels: string[]; permanent: Record<string, number>; warnings: string[]; profile_version?: number }
 export interface PublicationState { assignment_status: string; proof: { id: string; profile_version: number; sha256: string | null; created_at: string; stale: boolean } | null; history: { decision: string; note: string | null; by: string; profile_version: number; proof_id: string; created_at: string }[] }

@@ -37,11 +37,22 @@ export function buildNav(user: User | null, projectId: string | null, projectNam
       items: [
         { id: "users", href: "/admin/users", label: "Users", icon: "◍" },
         { id: "admin-projects", href: "/admin/projects", label: "Projects & members", icon: "▦" },
-        { id: "publishing", href: "/rhapsody/publishing", label: "Rhapsody publishing", icon: "✎" },
         { id: "terminology", href: "/admin/terminology", label: "Terminology", icon: "❡" },
         { id: "knowledge", href: "/admin/knowledge", label: "Knowledge base", icon: "❖" },
         { id: "evidence", href: "/admin/evidence", label: "Language evidence", icon: "◒" },
         { id: "readiness", href: "/admin/readiness", label: "Language readiness", icon: "◐" },
+      ],
+    });
+  }
+  if (canSeeAdmin(user)) {
+    sections.push({
+      id: "publishing", label: "RHAPSODY PUBLISHING",
+      items: [
+        { id: "publishing", href: "/rhapsody/publishing", label: "Overview", icon: "✎", exact: true },
+        { id: "pub-production", href: "/rhapsody/publishing/production", label: "Edition production", icon: "▤" },
+        { id: "pub-profiles", href: "/rhapsody/publishing/profiles", label: "Typesetting profiles", icon: "Aa" },
+        { id: "pub-fonts", href: "/rhapsody/publishing/fonts", label: "Font library", icon: "❦", exact: true },
+        { id: "pub-font-new", href: "/rhapsody/publishing/fonts/new", label: "Add a font", icon: "＋" },
       ],
     });
   }

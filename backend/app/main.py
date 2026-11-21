@@ -27,9 +27,9 @@ def create_app() -> FastAPI:
     app.add_middleware(EngineConfidentialityMiddleware)
     app.add_middleware(RequestContextMiddleware)
 
-    from .api import admin, approvals, auth, chat, conversations, glossary, jobs, knowledge, memory, projects, qa, reviews, rhapsody, rhapsody_publishing, terminology, translate, translations
+    from .api import admin, approvals, auth, chat, conversations, glossary, jobs, knowledge, memory, notifications, projects, qa, reviews, rhapsody, rhapsody_publishing, terminology, translate, translations
 
-    for module in (auth, projects, translate, translations, approvals, memory, terminology, qa, jobs, chat, conversations, knowledge, glossary, reviews, rhapsody, rhapsody_publishing, admin):
+    for module in (auth, projects, translate, translations, approvals, memory, terminology, qa, jobs, chat, conversations, knowledge, glossary, reviews, rhapsody, rhapsody_publishing, notifications, admin):
         app.include_router(module.router)
 
     @app.get("/healthz", include_in_schema=False)

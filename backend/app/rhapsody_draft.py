@@ -173,6 +173,8 @@ def _run(assignment_id: uuid.UUID, user_id: uuid.UUID) -> None:
             if a.status == "assigned":
                 a.status = "in_progress"
             db.commit()
+            from .api.rhapsody import alert_assignment
+            alert_assignment(db, a, "draft_ready", "HAN finished drafting your {lang} translation", "Review each paragraph, then submit.", translator=True, level="success")
         except ApiError as e:
             db.rollback()
             a = db.get(RhapsodyAssignment, assignment_id)

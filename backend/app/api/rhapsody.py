@@ -24,6 +24,7 @@ from .. import audit
 from .. import rhapsody_draft as drafting
 from .. import rhapsody_layout as layout
 from .. import rhapsody_plans as plans_mod
+from ..notifications import admin_ids, notify
 from ..config import get_settings
 from ..legacy_doc import LegacyDocError, extract_paragraphs, is_legacy_doc
 from ..database import get_db
@@ -617,6 +618,17 @@ def _assignment_out(row: RhapsodyAssignment) -> dict:
             "due_at": row.due_at, "status": row.status, "draft_status": row.draft_status}
 
 
+def alert_assignment(db: Session, a: RhapsodyAssignment, kind: str, title: str, body: Optional[str] = None, *,
+                     admins: bool = False, translator: bool = False, level: str = "info", exclude: Optional[uuid.UUID] = None) -> None:
+    """Tell the admins (production queue) and/or the translator (their editor) about a change to an assignment."""
+    language = db.get(Language, a.target_language)
+    label = language.display_name if language else a.target_language.upper()
+    if admins:
+        notify(db, admin_ids(db), kind, title.format(lang=label), body, "/rhapsody/publishing/production", level, exclude)
+    if translator:
+        notify(db, [a.translator_id], kind, title.format(lang=label), body, f"/rhapsody/translate/{a.id}", level, exclude)
+
+
 def make_assignment(db: Session, actor: User, master: RhapsodyMasterVersion, lang: str, translator: User, reviewer_id: Optional[uuid.UUID] = None,
                     due_at: Optional[datetime] = None, request: Optional[Request] = None) -> RhapsodyAssignment:
     edition = db.get(RhapsodyEdition, master.edition_id)
@@ -641,6 +653,7 @@ def make_assignment(db: Session, actor: User, master: RhapsodyMasterVersion, lan
     drafting.prefill_locked(db, row, translator)
     audit.record("rhapsody.assignment_created", actor=actor, object_type="rhapsody_assignment", object_id=row.id,
                  details={"language": lang, "master_version": str(master.id)}, ip=client_ip(request) if request else None)
+    alert_assignment(db, row, "assignment_created", "New {lang} translation assigned to you", edition.title, translator=True, exclude=actor.id)
     return row
 
 
@@ -836,6 +849,8 @@ def submit_assignment(assignment_id: str, request: Request, user: User = Depends
     db.commit()
     audit.record("rhapsody.assignment_submitted", actor=user, object_type="rhapsody_assignment", object_id=assignment.id,
                  details={"segment_count": len(rows)}, ip=client_ip(request))
+    alert_assignment(db, assignment, "translation_submitted", "{lang} translation submitted",
+                     f"{user.display_name} submitted the translation. Review and approve it to release it for layout.", admins=True, level="success", exclude=user.id)
     return {"assignment_id": str(assignment.id), "status": assignment.status, "submitted_segments": len(rows)}
 
 
@@ -876,6 +891,12 @@ def review_assignment(assignment_id: str, body: ReviewIn, request: Request, user
     db.commit()
     audit.record("rhapsody.assignment_reviewed", actor=user, object_type="rhapsody_assignment", object_id=assignment.id,
                  details={"decision": body.decision}, ip=client_ip(request))
+    if body.decision == "approved":
+        alert_assignment(db, assignment, "ready_for_layout", "{lang} is ready for layout",
+                         "The translation is approved. Generate the proof PDF to typeset it.", admins=True, level="success", exclude=user.id)
+        alert_assignment(db, assignment, "translation_approved", "Your {lang} translation was approved", body.note, translator=True, level="success", exclude=user.id)
+    else:
+        alert_assignment(db, assignment, "changes_requested", "Changes requested on your {lang} translation", body.note, translator=True, level="warning", exclude=user.id)
     return {"assignment_id": str(assignment.id), "status": assignment.status, "decision": body.decision}
 
 

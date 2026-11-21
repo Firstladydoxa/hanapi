@@ -490,3 +490,24 @@ h1, h2, h3 { letter-spacing: -.035em; }
 @media (max-width:560px){ .landing-step-list,.landing-facts{grid-template-columns:1fr} }
 .landing-emblem { width:clamp(110px,15vw,170px); height:auto; filter:drop-shadow(0 0 18px rgb(var(--han-secondary-rgb) / .5)) drop-shadow(0 0 46px rgb(var(--han-primary-rgb) / .45)); animation:landing-emblem-glow 4s ease-in-out infinite; }
 @keyframes landing-emblem-glow { 0%,100%{opacity:.82}50%{opacity:1} }
+
+/* Rhapsody publishing: status pills, tiles, bell */
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; border: 1px solid transparent; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill-orange { color: #f59e0b; background: rgb(245 158 11 / .14); border-color: rgb(245 158 11 / .35); }
+.pill-green { color: #22c55e; background: rgb(34 197 94 / .14); border-color: rgb(34 197 94 / .35); }
+.pill-blue { color: #38bdf8; background: rgb(56 189 248 / .14); border-color: rgb(56 189 248 / .35); }
+.pill-red { color: #f87171; background: rgb(248 113 113 / .14); border-color: rgb(248 113 113 / .35); }
+.pill-grey { color: var(--han-muted); background: rgb(var(--han-overlay-rgb) / .06); border-color: var(--han-line); }
+.pill-violet { color: var(--han-violet-bright); background: rgb(var(--han-primary-rgb) / .14); border-color: rgb(var(--han-primary-rgb) / .35); }
+.tile { border: 1px solid var(--han-line); border-radius: 15px; padding: 16px 18px; background: rgb(var(--han-overlay-rgb) / .035); }
+.tile-num { font-size: 28px; font-weight: 800; line-height: 1.1; }
+.tile-label { margin-top: 3px; font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--han-muted); text-transform: uppercase; }
+.bar { height: 7px; border-radius: 99px; background: rgb(var(--han-overlay-rgb) / .09); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 99px; background: currentColor; }
+.row-accent { border-left: 4px solid var(--accent, var(--han-line-strong)); }
+.bell-btn { position: relative; display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--han-line); background: rgb(var(--han-overlay-rgb) / .045); font-size: 16px; }
+.bell-badge { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0; }
+.bell-panel { position: absolute; right: 0; top: 42px; z-index: 60; width: min(380px, 92vw); max-height: 70vh; overflow-y: auto; border: 1px solid var(--han-line-strong); border-radius: 15px; background: rgb(var(--han-panel-strong-rgb)); box-shadow: 0 24px 60px rgb(var(--han-shadow-rgb) / .5); letter-spacing: 0; text-transform: none; }
+.modal-back { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(0 0 0 / .6); }
+.modal { width: min(520px, 100%); max-height: 90vh; overflow-y: auto; }

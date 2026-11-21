@@ -10,7 +10,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fontTools.ttLib import TTFont
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .. import audit
@@ -68,7 +68,8 @@ def _font_path(key: str) -> Path:
 def _font_out(f: RhapsodyFontAsset) -> dict:
     return {"id": str(f.id), "family": f.family, "style": f.style, "format": f.format,
             "byte_size": f.byte_size, "sha256": f.sha256, "license_name": f.license_name,
-            "license_note": f.license_note, "coverage": f.coverage or {}, "created_at": f.created_at}
+            "license_note": f.license_note, "coverage": {k: v for k, v in (f.coverage or {}).items() if k != "codepoints"},
+            "created_at": f.created_at}
 
 
 def _profile_out(db: Session, p: RhapsodyLanguageProfile, language: Language) -> dict:
@@ -151,7 +152,68 @@ def font_faces(fonts: dict) -> tuple[str, dict[str, str]]:
 @router.get("/fonts")
 def list_fonts(request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
     rows = db.execute(select(RhapsodyFontAsset).order_by(RhapsodyFontAsset.family, RhapsodyFontAsset.style)).scalars()
-    return [_font_out(f) for f in rows]
+    usage = _font_usage(db)
+    return [{**_font_out(f), "used_by": usage.get(f.id, [])} for f in rows]
+
+
+def _font_usage(db: Session) -> dict:
+    """font id -> [{language, role}] for every profile that uses it."""
+    out: dict = {}
+    for fid, code, role in db.execute(select(RhapsodyProfileFont.font_id, RhapsodyLanguageProfile.language_code, RhapsodyProfileFont.role)
+            .join(RhapsodyLanguageProfile, RhapsodyLanguageProfile.id == RhapsodyProfileFont.profile_id)):
+        out.setdefault(fid, []).append({"language": code, "role": role})
+    return out
+
+
+def _font_or_404(db: Session, font_id: str) -> RhapsodyFontAsset:
+    row = db.get(RhapsodyFontAsset, uuid.UUID(font_id)) if _valid_uuid(font_id) else None
+    if row is None:
+        raise not_found("font")
+    return row
+
+
+class FontPatch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    family: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    style: Optional[str] = Field(default=None, min_length=1, max_length=80)
+    license_name: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    license_note: Optional[str] = Field(default=None, max_length=1000)
+
+
+@router.get("/fonts/{font_id}")
+def get_font(font_id: str, user: User = Depends(admin), db: Session = Depends(get_db)):
+    f = _font_or_404(db, font_id)
+    return {**_font_out(f), "used_by": _font_usage(db).get(f.id, [])}
+
+
+@router.patch("/fonts/{font_id}")
+def update_font(font_id: str, body: FontPatch, request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
+    f = _font_or_404(db, font_id)
+    changes = body.model_dump(exclude_unset=True)
+    if not changes:
+        raise ApiError(422, "nothing_to_update", "Change at least one field.")
+    for k, v in changes.items():
+        setattr(f, k, v.strip() if isinstance(v, str) else v)
+        if k != "license_note" and not getattr(f, k):
+            raise ApiError(422, "font_metadata_required", "Family, style and licence cannot be empty.")
+    if "license_note" in changes:
+        f.license_note = (f.license_note or "").strip() or None
+    db.commit(); db.refresh(f)
+    audit.record("rhapsody.font_updated", actor=user, object_type="rhapsody_font", object_id=f.id,
+        details={"fields": sorted(changes)}, ip=client_ip(request))
+    return {**_font_out(f), "used_by": _font_usage(db).get(f.id, [])}
+
+
+@router.get("/fonts/{font_id}/file")
+def font_file(font_id: str, user: User = Depends(admin), db: Session = Depends(get_db)):
+    """Authenticated admin-only font bytes, used by the library to draw live specimens."""
+    from fastapi.responses import FileResponse
+    f = _font_or_404(db, font_id)
+    path = _font_path(f.storage_key)
+    if not path.is_file():
+        raise not_found("font file")
+    mime = {"otf": "font/otf", "ttf": "font/ttf", "woff": "font/woff", "woff2": "font/woff2"}[f.format]
+    return FileResponse(path, media_type=mime, headers={"Cache-Control": "private, max-age=3600"})
 
 
 @router.post("/fonts", status_code=201)
@@ -301,7 +363,18 @@ def edition_production(user: User = Depends(admin), db: Session = Depends(get_db
         langs = []
         for a, name in rows:
             pr = profiles.get(a.target_language)
-            langs.append({"assignment_id": str(a.id), "language": a.target_language, "translator": name, "status": a.status,
+            rows_t = db.execute(select(RhapsodySegmentTranslation.current_version_id).where(RhapsodySegmentTranslation.assignment_id == a.id)).scalars().all()
+            vids = [v for v in rows_t if v]
+            unreviewed = db.execute(select(func.count()).select_from(RhapsodyTranslationVersion).where(
+                RhapsodyTranslationVersion.id.in_(vids), RhapsodyTranslationVersion.origin == "ai")).scalar_one() if vids else 0
+            proof = _latest_proof(db, a)
+            language = db.get(Language, a.target_language)
+            langs.append({"assignment_id": str(a.id), "language": a.target_language,
+                          "language_name": language.display_name if language else a.target_language.upper(),
+                          "translator": name, "status": a.status,
+                          "translated": len(vids), "total": len(rows_t), "unreviewed": unreviewed,
+                          "draft_status": a.draft_status, "has_proof": bool(proof and proof.pdf_sha256),
+                          "created_at": a.created_at,
                           "profile_status": pr.status if pr else "not_configured", "profile_version": pr.version if pr else 0})
         out.append({"edition_id": str(e.id), "title": e.title, "master_active": True, "languages": langs})
     return out
@@ -744,6 +817,11 @@ def _decide(db: Session, request: Request, user: User, assignment_id: str, decis
     db.add(row); db.commit()
     audit.record(f"rhapsody.publication_{decision}", actor=user, object_type="rhapsody_assignment", object_id=a.id,
                  details={"language": a.target_language, "proof_id": str(proof.id), "sha256": proof.pdf_sha256}, ip=client_ip(request))
+    from .rhapsody import alert_assignment
+    if decision == "approved":
+        alert_assignment(db, a, "published", "{lang} approved for publication", note, translator=True, admins=True, level="success", exclude=user.id)
+    else:
+        alert_assignment(db, a, "changes_requested", "Layout changes requested on {lang}", note, translator=True, level="warning", exclude=user.id)
     return {"assignment_status": a.status, "decision": decision, "proof_id": str(proof.id)}
 
 

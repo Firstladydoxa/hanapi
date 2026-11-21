@@ -530,3 +530,51 @@ def test_inner_and_outer_margins_alternate_between_facing_pages():
         page.extract_text(visitor_text=lambda t, cm, tm, fd, fs: xs.append(tm[4]) if t.strip() else None)
         left_edges.append(min(xs) / 72 * 25.4)
     assert abs(left_edges[0] - left_edges[1]) > 8
+
+
+def test_notifications_follow_the_translation_from_assignment_to_layout(world, login, tmp_path, monkeypatch):
+    admin = login("tina")
+    _, master_id, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    aid = admin.post("/v1/rhapsody/assignments", {"master_version_id": master_id, "target_language": "fr", "translator_id": str(world.users["alice"].id)}).json()["id"]
+    translator = login("alice")
+    assert [n["kind"] for n in translator.get("/v1/notifications").json()["items"]] == ["assignment_created"]
+    assert admin.get("/v1/notifications").json()["unread"] == 0
+
+    for seg in translator.get(f"/v1/rhapsody/assignments/{aid}").json()["segments"]:
+        if not seg["metadata"].get("locked"):
+            translator.put(f"/v1/rhapsody/assignments/{aid}/segments/{seg['id']}", {"target_text": "Texte " + seg["stable_key"]})
+    assert translator.post(f"/v1/rhapsody/assignments/{aid}/submit", {}).status_code == 200
+    inbox = admin.get("/v1/notifications").json()
+    assert inbox["unread"] >= 1 and inbox["items"][0]["kind"] == "translation_submitted"
+    assert inbox["items"][0]["link"] == "/rhapsody/publishing/production"
+
+    admin.post(f"/v1/rhapsody/assignments/{aid}/review", {"decision": "approved"})
+    assert "ready_for_layout" not in [n["kind"] for n in admin.get("/v1/notifications").json()["items"]]  # the approver is not alerted about their own action
+    assert "ready_for_layout" in [n["kind"] for n in login("tim").get("/v1/notifications").json()["items"]]
+    mine = translator.get("/v1/notifications").json()
+    assert "translation_approved" in [n["kind"] for n in mine["items"]]
+
+    first = mine["items"][0]["id"]
+    assert translator.post(f"/v1/notifications/{first}/read", {}).json()["read"] is True
+    assert admin.post(f"/v1/notifications/{first}/read", {}).status_code == 404  # not theirs
+    assert translator.post("/v1/notifications/read-all", {}).json()["unread"] == 0
+    assert translator.get("/v1/notifications").json()["unread"] == 0
+
+
+def test_font_library_crud_with_usage(world, login, tmp_path, monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "rhapsody_font_storage_dir", str(tmp_path / "fonts"))
+    admin = login("tina")
+    data = open("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", "rb").read()
+    fid = admin.client.post("/v1/rhapsody/publishing/fonts", files={"file": ("d.ttf", data, "font/ttf")},
+                            data={"family": "DejaVu Serif", "license_name": "Bitstream Vera"}, headers=admin._h()).json()["id"]
+    base = "/v1/rhapsody/publishing/fonts"
+    assert admin.get(f"{base}/{fid}").json()["used_by"] == []
+    edited = admin.client.patch(f"{base}/{fid}", json={"family": "DejaVu Serif Pro", "license_note": "Internal"}, headers=admin._h())
+    assert edited.status_code == 200 and edited.json()["family"] == "DejaVu Serif Pro"
+    assert admin.client.patch(f"{base}/{fid}", json={"family": " "}, headers=admin._h()).status_code == 422
+    assert admin.get(f"{base}/{fid}/file").content[:4] in (b"\x00\x01\x00\x00", b"true")
+    admin.put("/v1/rhapsody/publishing/profiles/fr", {"direction": "ltr", "locale": "fr-FR", "fonts": {"body": fid}})
+    assert admin.get(base).json()[0]["used_by"] == [{"language": "fr", "role": "body"}]
+    assert admin.delete(f"{base}/{fid}").status_code == 409
+    assert login("alice").get(f"{base}/{fid}/file").status_code == 403

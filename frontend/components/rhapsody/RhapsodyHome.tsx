@@ -59,7 +59,7 @@ export function RhapsodyHome() {
         {[["Editions", editions.length, "Monthly issues in the system"], ["Open for translation", active, "Activated English masters"], ["My translations", mine.length, `${submitted} submitted or approved`]].map(([l, v, h]) => (
           <div className="card" key={String(l)}><p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-ink-muted">{l}</p><p className="mt-1 text-3xl font-bold">{v}</p><p className="mt-1 text-xs text-ink-muted">{h}</p></div>))}
       </div>
-      {admin ? <div className="flex justify-end"><Link className="btn btn-secondary text-xs" href="/rhapsody/publishing">Publishing fonts &amp; languages</Link></div> : null}
+      {admin ? <div className="flex justify-end"><Link className="btn btn-secondary text-xs" href="/rhapsody/publishing">Rhapsody publishing</Link></div> : null}
       <RhapsodyChat admin={admin} openEdition={editions.find((e) => e.status === "active")?.title} onChanged={() => void load()} />
 
       {admin ? (
