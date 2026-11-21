@@ -1,17 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api, ApiError, type PublishingFont, type PublishingProfile } from "@/lib/api";
+import { api, ApiError, type PublishingFont, type PermanentItem, type PublishingProfile, type SheetImport } from "@/lib/api";
 import { canSeeAdmin, useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/labels";
 import { Alert, Spinner } from "@/components/ui";
 
 const errText = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong. Please try again.");
-const TABS = ["General", "Typography", "Localization", "Bible", "Layout", "Font test", "History"] as const;
+const TABS = ["General", "Typography", "Localization", "Bible", "Permanent content", "Layout", "Font test", "History"] as const;
 const ROLES: [string, string][] = [["body", "Body text"], ["heading", "Headings"], ["subheading", "Sub-headings"], ["scripture", "Bible text (scripture panel)"], ["caption", "Captions"], ["notes", "Notes"]];
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const LABELS: [string, string][] = [["prayer", "Prayer"], ["confession", "Confession"], ["further-study", "Further study"], ["plan-1", "1-year Bible reading plan"], ["plan-2", "2-year Bible reading plan"], ["notes", "Notes"], ["image", "Article image"]];
+
+const parseBooks = (text: string): Record<string, string> => {
+  const out: Record<string, string> = {};
+  for (const line of text.split("\n")) { const i = line.indexOf("="); const k = line.slice(0, i).trim(); const v = line.slice(i + 1).trim(); if (i > 0 && k && v) out[k] = v; }
+  return out;
+};
 
 export function ProfileEditor({ code }: { code: string }) {
   const { user } = useAuth();
@@ -27,6 +33,11 @@ export function ProfileEditor({ code }: { code: string }) {
   const [weekdays, setWeekdays] = useState<string[]>(Array(7).fill(""));
   const [months, setMonths] = useState<string[]>(Array(12).fill(""));
   const [labels, setLabels] = useState<Record<string, string>>({});
+  const [bookNames, setBookNames] = useState("");
+  const [permanent, setPermanent] = useState<PermanentItem[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [sheet, setSheet] = useState<SheetImport | null>(null);
+  const [sheetFile, setSheetFile] = useState<File | null>(null);
   const [bible, setBible] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,8 +47,9 @@ export function ProfileEditor({ code }: { code: string }) {
     setFontIds(Object.fromEntries(Object.entries(p.fonts).map(([r, f]) => [r, f.id])));
     setTypo(Object.fromEntries(Object.entries(p.typography ?? {}).map(([k, v]) => [k, String(v)])));
     setLayout(Object.fromEntries(Object.entries(p.layout ?? {}).map(([k, v]) => [k, String(v)])));
-    const l = (p.localization ?? {}) as { weekdays?: string[]; months?: string[]; labels?: Record<string, string>; bible_version?: Record<string, string> };
+    const l = (p.localization ?? {}) as { weekdays?: string[]; months?: string[]; labels?: Record<string, string>; bible_version?: Record<string, string>; book_names?: Record<string, string> };
     setWeekdays(WEEKDAYS.map((_, i) => l.weekdays?.[i] ?? "")); setMonths(MONTHS.map((_, i) => l.months?.[i] ?? ""));
+    setBookNames(Object.entries(l.book_names ?? {}).map(([k, v]) => `${k} = ${v}`).join("\n"));
     setLabels(l.labels ?? {}); setBible(l.bible_version ?? {});
   }, []);
   const load = useCallback(async () => {
@@ -46,7 +58,10 @@ export function ProfileEditor({ code }: { code: string }) {
       const p = ps.find((x) => x.language_code === code);
       if (!p) throw new ApiError(404, "not_found", "That language is not available.");
       apply(p); setFonts(fs);
-      if (p.id) setVersions(await api.publishing.profileVersions(code));
+      if (p.id) {
+        setVersions(await api.publishing.profileVersions(code));
+        const items = await api.publishing.permanent(code); setPermanent(items); setDrafts(Object.fromEntries(items.map((i) => [i.key, i.items.join("\n")])));
+      }
     } catch (x) { setNotice({ kind: "error", text: errText(x) }); }
   }, [code, apply]);
   useEffect(() => { if (canSeeAdmin(user)) void load(); }, [user, load]);
@@ -62,7 +77,7 @@ export function ProfileEditor({ code }: { code: string }) {
       const saved = await api.publishing.saveProfile(code, {
         direction, locale: locale.trim() || code, fonts: Object.fromEntries(Object.entries(fontIds).filter(([, v]) => v)),
         typography: num(typo), layout: num(layout),
-        localization: { weekdays: filled(weekdays), months: filled(months), labels: Object.fromEntries(Object.entries(labels).filter(([, v]) => v.trim())), bible_version: Object.fromEntries(Object.entries(bible).filter(([, v]) => v.trim())) },
+        localization: { weekdays: filled(weekdays), months: filled(months), labels: Object.fromEntries(Object.entries(labels).filter(([, v]) => v.trim())), bible_version: Object.fromEntries(Object.entries(bible).filter(([, v]) => v.trim())), book_names: parseBooks(bookNames) },
       });
       apply(saved); setVersions(await api.publishing.profileVersions(code));
       setNotice({ kind: "success", text: `Saved as revision ${saved.version}. Validate and activate it on the languages page before it is used for final output.` });
@@ -82,6 +97,26 @@ export function ProfileEditor({ code }: { code: string }) {
     setBusy(true); setNotice(null);
     try { apply(await api.publishing.restoreVersion(code, v)); setVersions(await api.publishing.profileVersions(code)); setNotice({ kind: "success", text: `Revision ${v} restored as a new draft.` }); }
     catch (x) { setNotice({ kind: "error", text: errText(x) }); } finally { setBusy(false); }
+  }
+  async function importSheet(applyIt: boolean) {
+    if (!sheetFile) return;
+    setBusy(true); setNotice(null);
+    try {
+      const f = new FormData(); f.append("file", sheetFile); f.append("apply", applyIt ? "true" : "false");
+      const r = await api.publishing.importSheet(code, f); setSheet(r);
+      if (applyIt) { await load(); setNotice({ kind: "success", text: `Imported. The profile is now revision ${r.profile_version}; review and approve each item below.` }); }
+    } catch (x) { setNotice({ kind: "error", text: errText(x) }); } finally { setBusy(false); }
+  }
+  async function savePermanent(key: string, approve: boolean) {
+    setBusy(true); setNotice(null);
+    try {
+      const lines = (drafts[key] ?? "").split("\n").map((x) => x.trim()).filter(Boolean);
+      const current = permanent.find((i) => i.key === key);
+      const changed = lines.join("\n") !== (current?.items ?? []).join("\n");
+      if (changed || !approve) await api.publishing.savePermanent(code, key, lines);
+      if (approve) await api.publishing.approvePermanent(code, key);
+      setPermanent(await api.publishing.permanent(code));
+    } catch (x) { setNotice({ kind: "error", text: errText(x) }); } finally { setBusy(false); }
   }
   const input = (value: string, set: (v: string) => void, label: string, ph = "") => (
     <label className="block text-xs font-semibold">{label}<input className="input mt-1 font-normal" value={value} placeholder={ph} onChange={(e) => set(e.target.value)} dir={direction} /></label>);
@@ -131,7 +166,32 @@ export function ProfileEditor({ code }: { code: string }) {
             {input(bible.name ?? "", (v) => setBible({ ...bible, name: v }), "Version name")}
             {input(bible.abbreviation ?? "", (v) => setBible({ ...bible, abbreviation: v }), "Abbreviation")}
             {input(bible.copyright ?? "", (v) => setBible({ ...bible, copyright: v }), "Copyright notice")}
-          </div></>) : null}
+          </div>
+          <h3 className="font-bold">Bible book names</h3>
+          <p className="text-xs text-ink-muted">One per line as <code>English = Local name</code>. Applied to scripture references, further study and the reading plans.</p>
+          <textarea className="input min-h-[140px] w-full font-normal" dir={direction} value={bookNames} onChange={(e) => setBookNames(e.target.value)} /></>) : null}
+
+        {tab === "Permanent content" ? (<>
+          <p className="text-xs text-ink-muted">Text that repeats every month (introduction, copyright page, personal-information labels, salvation prayer, authors, back text). Only approved items are used for proofs and final output.</p>
+          {!profile.id ? <Alert kind="info">Save the profile first, then import the language&apos;s information sheet.</Alert> : (
+            <div className="rounded border p-3 space-y-2">
+              <h3 className="font-bold">Import the language information sheet</h3>
+              <input type="file" accept=".doc,.docx" onChange={(e) => { setSheetFile(e.target.files?.[0] ?? null); setSheet(null); }} />
+              <div className="flex gap-2">
+                <button className="btn btn-secondary" disabled={busy || !sheetFile} onClick={() => void importSheet(false)}>Preview</button>
+                <button className="btn btn-primary" disabled={busy || !sheetFile || !sheet} onClick={() => void importSheet(true)}>Import into profile</button>
+              </div>
+              {sheet ? (<div className="text-xs space-y-1"><p>{sheet.months} months · {sheet.weekdays} weekdays · {sheet.books} Bible books · {Object.keys(sheet.permanent).length} content items found.</p>
+                {sheet.warnings.map((w) => <p key={w} className="text-amber-700">⚠ {w}</p>)}</div>) : null}
+            </div>)}
+          {permanent.map((i) => (
+            <div key={i.key} className="space-y-1">
+              <div className="flex items-center justify-between"><label className="text-xs font-semibold" htmlFor={`perm-${i.key}`}>{i.key}</label>
+                <span className={`text-xs ${i.status === "approved" ? "text-green-700" : i.status === "draft" ? "text-amber-700" : "text-ink-muted"}`}>{i.status}</span></div>
+              <textarea id={`perm-${i.key}`} className="input min-h-[70px] w-full font-normal" dir={direction} value={drafts[i.key] ?? ""} onChange={(e) => setDrafts({ ...drafts, [i.key]: e.target.value })} />
+              <div className="flex gap-2"><button className="btn btn-secondary min-h-[32px] px-3 py-1 text-xs" disabled={busy} onClick={() => void savePermanent(i.key, false)}>Save draft</button>
+                <button className="btn btn-primary min-h-[32px] px-3 py-1 text-xs" disabled={busy || !(drafts[i.key] ?? "").trim()} onClick={() => void savePermanent(i.key, true)}>Approve</button></div>
+            </div>))}</>) : null}
 
         {tab === "Layout" ? (<div className="grid gap-3 md:grid-cols-3">
           {input(layout.page_width_mm ?? "", (v) => setLayout({ ...layout, page_width_mm: v }), "Page width (mm)", "140")}

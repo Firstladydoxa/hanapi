@@ -20,7 +20,8 @@ from ..deps import client_ip, get_current_user
 from ..errors import ApiError, not_found
 from ..models.db import (
     Language, RhapsodyAssignment, RhapsodyEdition, RhapsodyFontAsset, RhapsodyLanguageProfile,
-    RhapsodyLayoutProof, RhapsodyMasterVersion, RhapsodyProfileFont, RhapsodyProfileVersion,
+    RhapsodyLayoutProof, RhapsodyMasterVersion, RhapsodyPermanentContent, RhapsodyProfileFont, RhapsodyProfileVersion,
+    RhapsodyPublicationApproval,
     RhapsodySegment, RhapsodySection, RhapsodySegmentTranslation,
     RhapsodyTranslationVersion, User,
 )
@@ -450,7 +451,10 @@ def create_layout_proof(assignment_id: str, request: Request, user: User = Depen
         "fonts":font_manifest,"sections":[{"id":str(s.id),"key":s.stable_key,"type":s.section_type,"sequence":s.sequence,"day":s.day_number,"formatting":s.formatting or {}} for s in sections],
         "blocks":blocks,"pagination":{"estimated_pages":page_estimate,"method":"character-count preflight estimate; not final typeset pagination"},
         "renderer_contract":{"text_reflow":True,"repaginate":True,"embed_fonts":True,"respect_direction":profile.direction,
-                             "font_storage":"private server-side assets; resolve by storage_key and verify sha256"}}
+                             "font_storage":"private server-side assets; resolve by storage_key and verify sha256"},
+        "localization":{k:v for k,v in (profile.localization or {}).items() if k!="book_names"},
+        "book_names":(profile.localization or {}).get("book_names") or {},
+        "permanent":permanent_content(db,assignment.target_language,approved_only=True)}
     proof=RhapsodyLayoutProof(assignment_id=assignment.id,profile_version=profile.version,translation_fingerprint=fingerprint,
         manifest=manifest,created_by=user.id)
     db.add(proof); db.commit(); db.refresh(proof)
@@ -472,6 +476,7 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
     This is a native HAN layout proof, not an exact InDesign/IDML reproduction.
     """
     from ..rhapsody_typeset import typeset_pdf
+    from .rhapsody import edition_images
 
     try:
         pid = uuid.UUID(proof_id)
@@ -494,7 +499,11 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
             direction=manifest.get("direction", "ltr"), lang=str(manifest.get("locale") or manifest.get("language") or "en"),
             page_mm=(float(page.get("width_mm", 140)), float(page.get("height_mm", 220))), margin_mm=float(page.get("margin_mm", 12)),
             body_pt=float((manifest.get("typography") or {}).get("body_size_pt", 9.6)), font_css=font_css, role_fonts=role_fonts,
-            month_label=edition.title if edition else None)
+            month_label=edition.title if edition else None,
+            localization=manifest.get("localization") or {}, permanent=manifest.get("permanent") or {},
+            book_names=manifest.get("book_names") or {}, images=edition_images(edition.id) if edition else {},
+            title_pt=float((manifest.get("typography") or {}).get("heading_size_pt", 13)),
+            scripture_pt=float((manifest.get("typography") or {}).get("scripture_size_pt", 9)))
     except Exception:
         raise ApiError(422, "pdf_render_failed", "The layout proof could not be typeset. Check the selected fonts and server rendering dependencies.")
     digest = hashlib.sha256(pdf).hexdigest()
@@ -537,3 +546,212 @@ def download_layout_proof_pdf(proof_id: str, request: Request, user: User = Depe
     if hashlib.sha256(data).hexdigest() != proof.pdf_sha256:
         raise ApiError(409, "pdf_integrity_failed", "The stored PDF failed its integrity check.")
     return FileResponse(target, media_type="application/pdf", filename=f"rhapsody-{proof_id}.pdf")
+
+
+# ------------------------------------------------------------------------------------------ permanent content library
+PERMANENT_KEYS = ["intro.heading", "intro.paragraphs", "howto.heading", "howto.items", "intro.closing", "intro.signoff",
+                  "personal.title", "personal.fields", "personal.goals", "title.name", "title.sub", "copyright.lines",
+                  "salvation.items", "authors.items", "backtext.items", "labels.table"]
+RENDERED_KEYS = [k for k in PERMANENT_KEYS if k != "labels.table"]
+
+
+def permanent_content(db: Session, language: str, approved_only: bool = True) -> dict[str, list[str]]:
+    q = select(RhapsodyPermanentContent).where(RhapsodyPermanentContent.language_code == language)
+    if approved_only:
+        q = q.where(RhapsodyPermanentContent.status == "approved")
+    return {r.key: list(r.items or []) for r in db.execute(q).scalars() if r.key in RENDERED_KEYS}
+
+
+class PermanentIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    items: list[str] = Field(max_length=200)
+
+
+def _perm_out(r: RhapsodyPermanentContent) -> dict:
+    return {"key": r.key, "items": r.items or [], "status": r.status, "updated_at": r.updated_at}
+
+
+def _lang_code(db: Session, language_code: str) -> str:
+    code = language_code.strip().lower().replace("_", "-")
+    language = db.get(Language, code)
+    if language is None or not language.active or code == "en":
+        raise not_found("language")
+    return code
+
+
+def _upsert_permanent(db: Session, code: str, key: str, items: list[str], user: User) -> RhapsodyPermanentContent:
+    row = db.execute(select(RhapsodyPermanentContent).where(RhapsodyPermanentContent.language_code == code,
+                                                            RhapsodyPermanentContent.key == key)).scalar_one_or_none()
+    items = [str(i).strip()[:4000] for i in items if str(i).strip()]
+    if row is None:
+        row = RhapsodyPermanentContent(language_code=code, key=key, items=items, status="draft", updated_by=user.id)
+        db.add(row)
+    else:
+        row.items, row.status, row.updated_by = items, "draft", user.id
+    return row
+
+
+@router.get("/profiles/{language_code}/permanent")
+def list_permanent(language_code: str, user: User = Depends(admin), db: Session = Depends(get_db)):
+    code = _lang_code(db, language_code)
+    rows = {r.key: r for r in db.execute(select(RhapsodyPermanentContent).where(RhapsodyPermanentContent.language_code == code)).scalars()}
+    return [_perm_out(rows[k]) if k in rows else {"key": k, "items": [], "status": "empty", "updated_at": None} for k in PERMANENT_KEYS]
+
+
+@router.put("/profiles/{language_code}/permanent/{key}")
+def save_permanent(language_code: str, key: str, body: PermanentIn, request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
+    code = _lang_code(db, language_code)
+    if key not in PERMANENT_KEYS:
+        raise ApiError(422, "invalid_permanent_key", "This permanent content item is not supported.")
+    row = _upsert_permanent(db, code, key, body.items, user)
+    db.commit(); db.refresh(row)
+    audit.record("rhapsody.permanent_content_saved", actor=user, object_type="rhapsody_permanent_content", object_id=row.id,
+                 details={"language": code, "key": key}, ip=client_ip(request))
+    return _perm_out(row)
+
+
+@router.post("/profiles/{language_code}/permanent/{key}/approve")
+def approve_permanent(language_code: str, key: str, request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
+    code = _lang_code(db, language_code)
+    row = db.execute(select(RhapsodyPermanentContent).where(RhapsodyPermanentContent.language_code == code,
+                                                            RhapsodyPermanentContent.key == key)).scalar_one_or_none()
+    if row is None or not row.items:
+        raise not_found("permanent content")
+    row.status, row.updated_by = "approved", user.id
+    db.commit(); db.refresh(row)
+    audit.record("rhapsody.permanent_content_approved", actor=user, object_type="rhapsody_permanent_content", object_id=row.id,
+                 details={"language": code, "key": key}, ip=client_ip(request))
+    return _perm_out(row)
+
+
+@router.post("/profiles/{language_code}/import-sheet")
+async def import_resource_sheet(language_code: str, request: Request, file: UploadFile = File(...), apply: bool = Form(False),
+                                user: User = Depends(admin), db: Session = Depends(get_db)):
+    """Reads TNI's per-language 'additional information' sheet. Without `apply` it only previews what would be imported."""
+    from ..legacy_doc import extract_paragraphs, is_legacy_doc
+    from ..rhapsody_resources import ResourceSheetError, parse_sheet
+
+    code = _lang_code(db, language_code)
+    data = await file.read(10 * 1024 * 1024 + 1)
+    if not data or len(data) > 10 * 1024 * 1024:
+        raise ApiError(422, "invalid_sheet", "Upload a language information sheet under 10 MB.")
+    try:
+        if is_legacy_doc(data):
+            paragraphs = extract_paragraphs(data)
+        else:
+            from ..rhapsody_layout import _paragraphs
+            paragraphs = [p["text"] for p in _paragraphs(data)]
+        parsed = parse_sheet(paragraphs)
+    except ResourceSheetError as exc:
+        raise ApiError(422, "invalid_sheet", str(exc))
+    except Exception:
+        raise ApiError(422, "invalid_sheet", "HAN could not read this document. Upload the .doc or .docx information sheet.")
+    summary = {"months": len(parsed["months"]), "weekdays": len(parsed["weekdays"]), "books": len(parsed["book_names"]),
+               "labels": sorted(parsed["labels"]), "permanent": {k: len(v) for k, v in parsed["permanent"].items()},
+               "warnings": parsed["warnings"]}
+    if not apply:
+        return {"applied": False, **summary, "preview": parsed["permanent"]}
+    profile = db.execute(select(RhapsodyLanguageProfile).where(RhapsodyLanguageProfile.language_code == code)).scalar_one_or_none()
+    if profile is None:
+        raise ApiError(409, "profile_missing", "Save the language profile (General tab) before importing its information sheet.")
+    loc = dict(profile.localization or {})
+    if parsed["months"]: loc["months"] = parsed["months"]
+    if parsed["weekdays"]: loc["weekdays"] = parsed["weekdays"]
+    if parsed["labels"]: loc["labels"] = {**(loc.get("labels") or {}), **parsed["labels"]}
+    if parsed["book_names"]: loc["book_names"] = parsed["book_names"]
+    profile.localization, profile.status, profile.version, profile.updated_by = loc, "draft", profile.version + 1, user.id
+    font_ids = {r.role: r.font_id for r in db.execute(select(RhapsodyProfileFont).where(RhapsodyProfileFont.profile_id == profile.id)).scalars()}
+    db.flush()
+    _snapshot(db, profile, font_ids, user)
+    for key, items in parsed["permanent"].items():
+        if key in PERMANENT_KEYS and items:
+            _upsert_permanent(db, code, key, items, user)
+    db.commit()
+    audit.record("rhapsody.resource_sheet_imported", actor=user, object_type="rhapsody_language_profile", object_id=profile.id,
+                 details={"language": code, "version": profile.version, "books": summary["books"]}, ip=client_ip(request))
+    return {"applied": True, "profile_version": profile.version, **summary}
+
+
+# ------------------------------------------------------------------------------------------------ proofing and approval
+def _current_fingerprint(db: Session, assignment: RhapsodyAssignment) -> Optional[str]:
+    segments = list(db.execute(select(RhapsodySegment).where(RhapsodySegment.master_version_id == assignment.master_version_id)
+                               .order_by(RhapsodySegment.sequence)).scalars())
+    parts = []
+    for seg in segments:
+        tr = db.execute(select(RhapsodySegmentTranslation).where(RhapsodySegmentTranslation.assignment_id == assignment.id,
+                                                                  RhapsodySegmentTranslation.segment_id == seg.id)).scalar_one_or_none()
+        version = db.get(RhapsodyTranslationVersion, tr.current_version_id) if tr and tr.current_version_id else None
+        if version is None:
+            return None
+        parts.append(f"{seg.stable_key}:{hashlib.sha256(version.target_text.encode()).hexdigest()}")
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()
+
+
+class DecisionIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    note: Optional[str] = Field(default=None, max_length=2000)
+
+
+def _assignment(db: Session, assignment_id: str) -> RhapsodyAssignment:
+    a = db.get(RhapsodyAssignment, uuid.UUID(assignment_id)) if _valid_uuid(assignment_id) else None
+    if a is None:
+        raise not_found("assignment")
+    return a
+
+
+def _latest_proof(db: Session, assignment: RhapsodyAssignment) -> Optional[RhapsodyLayoutProof]:
+    return db.execute(select(RhapsodyLayoutProof).where(RhapsodyLayoutProof.assignment_id == assignment.id,
+                                                       RhapsodyLayoutProof.pdf_storage_key.is_not(None))
+                      .order_by(RhapsodyLayoutProof.created_at.desc()).limit(1)).scalar_one_or_none()
+
+
+@router.get("/assignments/{assignment_id}/publication")
+def publication_state(assignment_id: str, user: User = Depends(admin), db: Session = Depends(get_db)):
+    a = _assignment(db, assignment_id)
+    proof = _latest_proof(db, a)
+    history = db.execute(select(RhapsodyPublicationApproval, User.display_name).join(User, User.id == RhapsodyPublicationApproval.decided_by)
+                         .where(RhapsodyPublicationApproval.assignment_id == a.id)
+                         .order_by(RhapsodyPublicationApproval.created_at.desc())).all()
+    current = _current_fingerprint(db, a)
+    return {"assignment_status": a.status,
+            "proof": None if proof is None else {"id": str(proof.id), "profile_version": proof.profile_version, "sha256": proof.pdf_sha256,
+                                                 "created_at": proof.created_at, "stale": current != proof.translation_fingerprint},
+            "history": [{"decision": r.decision, "note": r.note, "by": n, "profile_version": r.profile_version,
+                         "proof_id": str(r.proof_id), "pdf_sha256": r.pdf_sha256, "created_at": r.created_at} for r, n in history]}
+
+
+def _decide(db: Session, request: Request, user: User, assignment_id: str, decision: str, note: Optional[str]) -> dict:
+    a = _assignment(db, assignment_id)
+    if a.status not in {"approved", "published", "changes_requested"}:
+        raise ApiError(409, "translation_not_approved", "The translation must be approved before it can be proofed for publication.")
+    proof = _latest_proof(db, a)
+    if proof is None:
+        raise ApiError(409, "proof_not_rendered", "Generate the proof PDF before approving or returning it.")
+    if decision == "approved":
+        if _current_fingerprint(db, a) != proof.translation_fingerprint:
+            raise ApiError(409, "proof_stale", "The translation changed after this proof was generated. Generate a new proof.")
+        profile = db.execute(select(RhapsodyLanguageProfile).where(RhapsodyLanguageProfile.language_code == a.target_language)).scalar_one_or_none()
+        if profile is None or profile.status != "active" or profile.version != proof.profile_version:
+            raise ApiError(409, "profile_changed", "The language profile changed after this proof was generated. Generate a new proof.")
+        path = (Path(get_settings().rhapsody_storage_dir).resolve() / proof.pdf_storage_key)
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != proof.pdf_sha256:
+            raise ApiError(409, "pdf_integrity_failed", "The stored proof PDF failed its integrity check.")
+    a.status = "published" if decision == "approved" else "changes_requested"
+    row = RhapsodyPublicationApproval(assignment_id=a.id, proof_id=proof.id, decision=decision, note=(note or "").strip() or None,
+        profile_version=proof.profile_version, translation_fingerprint=proof.translation_fingerprint, pdf_sha256=proof.pdf_sha256, decided_by=user.id)
+    db.add(row); db.commit()
+    audit.record(f"rhapsody.publication_{decision}", actor=user, object_type="rhapsody_assignment", object_id=a.id,
+                 details={"language": a.target_language, "proof_id": str(proof.id), "sha256": proof.pdf_sha256}, ip=client_ip(request))
+    return {"assignment_status": a.status, "decision": decision, "proof_id": str(proof.id)}
+
+
+@router.post("/assignments/{assignment_id}/publication/approve")
+def approve_publication(assignment_id: str, request: Request, body: DecisionIn = DecisionIn(), user: User = Depends(admin), db: Session = Depends(get_db)):
+    return _decide(db, request, user, assignment_id, "approved", body.note)
+
+
+@router.post("/assignments/{assignment_id}/publication/request-changes")
+def request_publication_changes(assignment_id: str, request: Request, body: DecisionIn, user: User = Depends(admin), db: Session = Depends(get_db)):
+    if not (body.note or "").strip():
+        raise ApiError(422, "note_required", "Explain what must change.")
+    return _decide(db, request, user, assignment_id, "changes_requested", body.note)

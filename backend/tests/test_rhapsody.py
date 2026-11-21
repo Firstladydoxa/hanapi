@@ -448,3 +448,68 @@ def test_profile_revisions_localization_and_production_overview(world, login, tm
     translator = login("alice")
     assert translator.get("/v1/rhapsody/publishing/production").status_code == 403
     assert translator.get("/v1/rhapsody/publishing/profiles/fr/versions").status_code == 403
+
+
+def test_resource_sheet_parses_counts_and_localizes_bible_references():
+    from pathlib import Path
+    from app.legacy_doc import extract_paragraphs
+    from app.rhapsody_resources import localize_refs, parse_sheet
+
+    parsed = parse_sheet(extract_paragraphs(Path(__file__).parent.joinpath("fixtures/afrikaans_sheet.doc").read_bytes()))
+    assert len(parsed["months"]) == 12 and len(parsed["weekdays"]) == 7 and len(parsed["book_names"]) == 66
+    assert parsed["labels"]["prayer"] == "GEBED" and parsed["permanent"]["title.name"] == ["Rapsodie van Realiteite"]
+    assert parsed["permanent"]["salvation.items"][0] == "GEBED OM VERLOSSING" and len(parsed["permanent"]["authors.items"]) >= 3
+    assert any("2014" in w for w in parsed["warnings"])
+    assert localize_refs("2 Kings 3:5; Psalm 23; Revelation 22:1", parsed["book_names"]) == "II Konings 3:5; Psalms 23; Openbaring van Johannes 22:1"
+
+
+def test_permanent_content_import_override_and_publication_approval(world, login, tmp_path, monkeypatch):
+    from io import BytesIO
+    from pathlib import Path
+    from pypdf import PdfReader
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "rhapsody_font_storage_dir", str(tmp_path / "fonts"))
+    admin = login("tina")
+    _, master_id, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    sheet = Path(__file__).parent.joinpath("fixtures/afrikaans_sheet.doc").read_bytes()
+    base = "/v1/rhapsody/publishing/profiles/fr"
+    font = open("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", "rb").read()
+    fid = admin.client.post("/v1/rhapsody/publishing/fonts", files={"file": ("d.ttf", font, "font/ttf")},
+                            data={"family": "DejaVu Serif", "license_name": "Bitstream Vera"}, headers=admin._h()).json()["id"]
+    files = {"file": ("sheet.doc", sheet, "application/msword")}
+    assert admin.client.post(f"{base}/import-sheet", files=files, data={"apply": "true"}, headers=admin._h()).status_code == 409
+    assert admin.client.put(base, json={"direction": "ltr", "locale": "fr-FR", "fonts": {"body": fid, "heading": fid}}, headers=admin._h()).status_code == 200
+    preview = admin.client.post(f"{base}/import-sheet", files=files, data={"apply": "false"}, headers=admin._h()).json()
+    assert preview["applied"] is False and preview["books"] == 66
+    applied = admin.client.post(f"{base}/import-sheet", files=files, data={"apply": "true"}, headers=admin._h()).json()
+    assert applied["applied"] is True and applied["profile_version"] == 2
+    items = {i["key"]: i for i in admin.get(f"{base}/permanent").json()}
+    assert items["salvation.items"]["status"] == "draft"
+    for key, item in items.items():
+        if item["items"]:
+            assert admin.post(f"{base}/permanent/{key}/approve", {}).status_code == 200
+    assert login("alice").get(f"{base}/permanent").status_code == 403
+    assert admin.post(f"{base}/validate", {}).json()["status"] == "validated"
+    assert admin.post(f"{base}/activate", {}).status_code == 200
+    aid = admin.post("/v1/rhapsody/assignments", {"master_version_id": master_id, "target_language": "fr", "translator_id": str(world.users["alice"].id)}).json()["id"]
+    translator = login("alice")
+    for seg in translator.get(f"/v1/rhapsody/assignments/{aid}").json()["segments"]:
+        if not seg["metadata"].get("locked"):
+            translator.put(f"/v1/rhapsody/assignments/{aid}/segments/{seg['id']}", {"target_text": "Texte " + seg["stable_key"]})
+    translator.post(f"/v1/rhapsody/assignments/{aid}/submit", {})
+    admin.post(f"/v1/rhapsody/assignments/{aid}/review", {"decision": "approved"})
+    pub = f"/v1/rhapsody/publishing/assignments/{aid}/publication"
+    assert admin.post(f"{pub}/approve", {}).status_code == 409
+    pid = admin.post(f"/v1/rhapsody/publishing/assignments/{aid}/layout-proof", {}).json()["id"]
+    assert admin.post(f"/v1/rhapsody/publishing/layout-proofs/{pid}/pdf", {}).status_code == 200
+    pdf = PdfReader(BytesIO(admin.get(f"/v1/rhapsody/publishing/layout-proofs/{pid}/pdf").content))
+    text = "\n".join(p.extract_text() for p in pdf.pages)
+    assert "INLEIDING" in text and "GEBED OM VERLOSSING" in text and "OOR DIE SKRYWERS" in text
+    assert login("alice").post(f"{pub}/approve", {}).status_code == 403
+    assert admin.post(f"{pub}/request-changes", {}).status_code == 422
+    assert admin.post(f"{pub}/request-changes", {"note": "Fix the cover"}).json()["assignment_status"] == "changes_requested"
+    done = admin.post(f"{pub}/approve", {})
+    assert done.status_code == 200 and done.json()["assignment_status"] == "published"
+    state = admin.get(pub).json()
+    assert state["proof"]["stale"] is False and [h["decision"] for h in state["history"]] == ["approved", "changes_requested"]

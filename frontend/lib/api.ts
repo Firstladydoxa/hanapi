@@ -250,6 +250,16 @@ export const api = {
     saveProfile: (code: string, b: { direction: "ltr" | "rtl"; locale: string; fonts: Record<string, string>; typography?: Record<string, unknown>; localization?: Record<string, unknown>; layout?: Record<string, unknown> }) => request<PublishingProfile>("PUT", `/v1/rhapsody/publishing/profiles/${code}`, b),
     validate: (code: string) => request<{ status: string; checks: { severity: string; message: string }[] }>("POST", `/v1/rhapsody/publishing/profiles/${code}/validate`),
     activate: (code: string) => request<{ status: string }>("POST", `/v1/rhapsody/publishing/profiles/${code}/activate`),
+    permanent: (code: string) => request<PermanentItem[]>("GET", `/v1/rhapsody/publishing/profiles/${code}/permanent`),
+    savePermanent: (code: string, key: string, items: string[]) => request<PermanentItem>("PUT", `/v1/rhapsody/publishing/profiles/${code}/permanent/${key}`, { items }),
+    approvePermanent: (code: string, key: string) => request<PermanentItem>("POST", `/v1/rhapsody/publishing/profiles/${code}/permanent/${key}/approve`),
+    importSheet: (code: string, f: FormData) => request<SheetImport>("POST", `/v1/rhapsody/publishing/profiles/${code}/import-sheet`, f),
+    createProof: (a: string) => request<{ id: string }>("POST", `/v1/rhapsody/publishing/assignments/${a}/layout-proof`),
+    renderProof: (id: string) => request<{ proof_id: string }>("POST", `/v1/rhapsody/publishing/layout-proofs/${id}/pdf`),
+    proofUrl: (id: string) => `/v1/rhapsody/publishing/layout-proofs/${id}/pdf`,
+    publication: (a: string) => request<PublicationState>("GET", `/v1/rhapsody/publishing/assignments/${a}/publication`),
+    approvePublication: (a: string, note?: string) => request<{ assignment_status: string }>("POST", `/v1/rhapsody/publishing/assignments/${a}/publication/approve`, { note }),
+    requestChanges: (a: string, note: string) => request<{ assignment_status: string }>("POST", `/v1/rhapsody/publishing/assignments/${a}/publication/request-changes`, { note }),
   },
   glossary: {
     overview: () => request<GlossaryOverview>("GET", "/v1/glossary/overview"),
@@ -342,3 +352,6 @@ export const api = {
 export interface PublishingFont { id: string; family: string; style: string; format: string; license_name: string; byte_size: number }
 export interface PublishingProfile { id: string | null; language_code: string; language_name: string; direction: "ltr" | "rtl"; locale: string; status: string; version: number; fonts: Record<string, PublishingFont>; typography: Record<string, number | string>; localization: Record<string, unknown>; layout: Record<string, number | string> }
 export interface PublishingProduction { edition_id: string; title: string; master_active: boolean; languages: { assignment_id: string; language: string; translator: string; status: string; profile_status: string; profile_version: number }[] }
+export interface PermanentItem { key: string; items: string[]; status: "empty" | "draft" | "approved"; updated_at: string | null }
+export interface SheetImport { applied: boolean; months: number; weekdays: number; books: number; labels: string[]; permanent: Record<string, number>; warnings: string[]; profile_version?: number }
+export interface PublicationState { assignment_status: string; proof: { id: string; profile_version: number; sha256: string | null; created_at: string; stale: boolean } | null; history: { decision: string; note: string | null; by: string; profile_version: number; proof_id: string; created_at: string }[] }

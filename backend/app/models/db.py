@@ -778,3 +778,31 @@ class RhapsodyLayoutProof(Base):
     pdf_byte_size: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = _now()
+
+
+class RhapsodyPermanentContent(Base):
+    """Reusable per-language publication text (introduction, copyright, salvation prayer, ...) kept apart from monthly translations."""
+    __tablename__ = "rhapsody_permanent_content"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    language_code: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    key: Mapped[str] = mapped_column(String(60), nullable=False)
+    items: Mapped[Any] = mapped_column(JSONType, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
+    updated_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    updated_at: Mapped[datetime] = _now()
+    __table_args__ = (UniqueConstraint("language_code", "key", name="uq_rhapsody_permanent_key"),)
+
+
+class RhapsodyPublicationApproval(Base):
+    """Admin proofing decision on a rendered layout proof."""
+    __tablename__ = "rhapsody_publication_approvals"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    assignment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_assignments.id", ondelete="CASCADE"), nullable=False, index=True)
+    proof_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_layout_proofs.id", ondelete="CASCADE"), nullable=False)
+    decision: Mapped[str] = mapped_column(String(20), nullable=False)
+    note: Mapped[Optional[str]] = mapped_column(Text)
+    profile_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    translation_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    pdf_sha256: Mapped[Optional[str]] = mapped_column(String(64))
+    decided_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()

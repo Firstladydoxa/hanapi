@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type PublishingFont, type PublishingProduction, type PublishingProfile } from "@/lib/api";
 import { canSeeAdmin, useAuth } from "@/lib/auth";
 import { Alert, Spinner } from "@/components/ui";
+import { PublicationPanel } from "./PublicationPanel";
 
 const errText = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong. Please try again.");
 
@@ -80,7 +81,7 @@ export function PublishingAdmin() {
             {e.languages.length ? (<ul className="divide-y text-sm">{e.languages.map((l) => (
               <li key={l.assignment_id} className="flex flex-wrap items-center justify-between gap-2 py-1.5"><span>{l.language.toUpperCase()} · {l.translator} · {l.status.replace("_", " ")}</span>
                 <span className="flex items-center gap-3 text-xs"><span className={l.profile_status === "active" ? "text-green-700" : "text-amber-700"}>Profile: {l.profile_status.replace("_", " ")}</span>
-                  <a className="underline" href={api.rhapsody.layoutUrl(l.assignment_id)} target="_blank" rel="noreferrer">Book layout PDF</a></span></li>))}</ul>) : <p className="text-xs text-ink-muted">No translations started.</p>}
+                  <a className="underline" href={api.rhapsody.layoutUrl(l.assignment_id)} target="_blank" rel="noreferrer">Book layout PDF</a></span><div className="w-full"><PublicationPanel assignmentId={l.assignment_id} status={l.status} /></div></li>))}</ul>) : <p className="text-xs text-ink-muted">No translations started.</p>}
           </div>))}
       </div>
 

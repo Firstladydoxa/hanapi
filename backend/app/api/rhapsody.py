@@ -970,7 +970,7 @@ def _typeset_master(db: Session, master: RhapsodyMasterVersion, edition: Rhapsod
     """Lays the master out as the printed book. `texts` maps segment id to translated text; missing entries fall back to the source."""
     from ..models.db import RhapsodyFontAsset, RhapsodyLanguageProfile, RhapsodyProfileFont
     from ..rhapsody_typeset import typeset_pdf
-    from .rhapsody_publishing import font_faces
+    from .rhapsody_publishing import font_faces, permanent_content
 
     sections = list(db.execute(select(RhapsodySection).where(RhapsodySection.master_version_id == master.id).order_by(RhapsodySection.sequence)).scalars())
     segments = list(db.execute(select(RhapsodySegment).where(RhapsodySegment.master_version_id == master.id).order_by(RhapsodySegment.sequence)).scalars())
@@ -993,7 +993,9 @@ def _typeset_master(db: Session, master: RhapsodyMasterVersion, edition: Rhapsod
             kwargs["body_pt"] = float(typo.get("body_size_pt", 9.6))
             kwargs["title_pt"] = float(typo.get("heading_size_pt", 13))
             kwargs["scripture_pt"] = float(typo.get("scripture_size_pt", 9))
-            kwargs["localization"] = profile.localization or {}
+            kwargs["localization"] = {k: v for k, v in (profile.localization or {}).items() if k != "book_names"}
+            kwargs["book_names"] = (profile.localization or {}).get("book_names") or {}
+            kwargs["permanent"] = permanent_content(db, language, approved_only=False)
         except (TypeError, ValueError):
             kwargs.pop("page_mm", None)
         kwargs["direction"], kwargs["lang"] = profile.direction, profile.locale
