@@ -411,7 +411,13 @@ def save_profile(language_code: str, body: ProfileIn, request: Request, user: Us
         profile = RhapsodyLanguageProfile(language_code=code, locale=body.locale, updated_by=user.id, version=0)
         db.add(profile); db.flush()
     profile.direction, profile.locale = body.direction, body.locale
-    profile.typography, profile.localization, profile.layout = body.typography, body.localization, body.layout
+    # A save with an empty section never erases localization that was already imported or entered; it must be replaced, not blanked.
+    kept = dict(body.localization or {})
+    for key, old in (profile.localization or {}).items():
+        new = kept.get(key)
+        if old and (not new or (isinstance(new, list) and not any(str(x).strip() for x in new))):
+            kept[key] = old
+    profile.typography, profile.localization, profile.layout = body.typography, kept, body.layout
     profile.status, profile.version, profile.updated_by = "draft", profile.version + 1, user.id
     db.query(RhapsodyProfileFont).filter(RhapsodyProfileFont.profile_id == profile.id).delete()
     for role, fid in font_ids.items():

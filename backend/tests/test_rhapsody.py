@@ -604,3 +604,13 @@ def test_admin_can_edit_an_approved_paragraph_and_the_layout_uses_it(world, logi
     assert edited.status_code == 200 and edited.json()["version_number"] == 2
     again = next(s for s in admin.get(f"/v1/rhapsody/assignments/{assignment_id}").json()["segments"] if s["id"] == seg["id"])
     assert again["target_text"] == "<b>Après</b>"
+
+
+def test_saving_a_profile_with_blank_localization_keeps_existing_weekdays(world, login, tmp_path, monkeypatch):
+    admin = login("tina")
+    base = {"direction": "ltr", "locale": "af", "fonts": {}, "typography": {}, "layout": {}}
+    first = admin.put("/v1/rhapsody/publishing/profiles/fr", {**base, "localization": {"weekdays": ["a"] * 7, "labels": {"x": "y"}}})
+    assert first.status_code == 200, first.text
+    second = admin.put("/v1/rhapsody/publishing/profiles/fr", {**base, "localization": {"weekdays": [], "labels": {}}})
+    assert second.status_code == 200, second.text
+    assert second.json()["localization"]["weekdays"] == ["a"] * 7 and second.json()["localization"]["labels"] == {"x": "y"}
