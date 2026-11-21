@@ -424,3 +424,27 @@ def test_reading_plan_sheet_round_trips_and_rebuilds_the_master(world, login, tm
     assert "Genesis 1:1-2:25" in str(preview)
     bad = admin.client.post(f"/v1/rhapsody/editions/{edition_id}/reading-plans", files={"file": ("p.csv", b"a,b\n1,2\n", "text/csv")}, headers=admin._h())
     assert bad.status_code == 422
+
+
+def test_profile_revisions_localization_and_production_overview(world, login, tmp_path, monkeypatch):
+    from io import BytesIO
+    from pypdf import PdfReader
+
+    admin = login("tina")
+    edition_id, master_id, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    body = {"direction": "ltr", "locale": "fr-FR", "fonts": {}, "typography": {"heading_size_pt": 15},
+            "localization": {"weekdays": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"], "labels": {"prayer": "PRIÈRE"}}}
+    first = admin.client.put("/v1/rhapsody/publishing/profiles/fr", json=body, headers=admin._h())
+    assert first.status_code == 200, first.text
+    body["localization"]["labels"]["prayer"] = "PRIÈRE DU JOUR"
+    second = admin.client.put("/v1/rhapsody/publishing/profiles/fr", json=body, headers=admin._h())
+    assert second.json()["version"] == 2
+    versions = admin.get("/v1/rhapsody/publishing/profiles/fr/versions").json()
+    assert [v["version"] for v in versions] == [2, 1]
+    restored = admin.post("/v1/rhapsody/publishing/profiles/fr/restore/1", {})
+    assert restored.status_code == 200 and restored.json()["version"] == 3 and restored.json()["localization"]["labels"]["prayer"] == "PRIÈRE"
+    assert admin.get("/v1/rhapsody/publishing/profiles/fr/specimen.pdf").content.startswith(b"%PDF")
+    assert admin.get("/v1/rhapsody/publishing/production").json()[0]["edition_id"] == edition_id
+    translator = login("alice")
+    assert translator.get("/v1/rhapsody/publishing/production").status_code == 403
+    assert translator.get("/v1/rhapsody/publishing/profiles/fr/versions").status_code == 403

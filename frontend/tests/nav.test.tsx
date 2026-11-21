@@ -25,7 +25,7 @@ describe("navigation model", () => {
 
   it("gates administration, operations and audit by role (convenience only: the backend enforces access)", () => {
     expect(ids("auditor")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "audit"]);
-    expect(ids("technical_admin")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review", "users", "admin-projects", "terminology", "knowledge", "evidence", "readiness", "ops", "audit"]);
+    expect(ids("technical_admin")).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review", "users", "admin-projects", "publishing", "terminology", "knowledge", "evidence", "readiness", "ops", "audit"]);
     expect(ids(null)).toEqual(["han-chat", "projects", "languages", "rhapsody", "glossary", "review"]);
   });
 

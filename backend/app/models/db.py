@@ -754,6 +754,18 @@ class RhapsodyProfileFont(Base):
     __table_args__ = (UniqueConstraint("profile_id", "role", name="uq_rhapsody_profile_font_role"),)
 
 
+class RhapsodyProfileVersion(Base):
+    """Immutable snapshot of a language profile at each save, so earlier editions stay reproducible and drafts can be restored."""
+    __tablename__ = "rhapsody_profile_versions"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    profile_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rhapsody_language_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    snapshot: Mapped[Any] = mapped_column(JSONType, nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = _now()
+    __table_args__ = (UniqueConstraint("profile_id", "version", name="uq_rhapsody_profile_version"),)
+
+
 class RhapsodyLayoutProof(Base):
     __tablename__ = "rhapsody_layout_proofs"
     id: Mapped[uuid.UUID] = _uuid_pk()

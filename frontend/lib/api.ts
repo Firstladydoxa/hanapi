@@ -243,7 +243,11 @@ export const api = {
     uploadFont: (f: FormData) => request<PublishingFont>("POST", "/v1/rhapsody/publishing/fonts", f),
     deleteFont: (id: string) => request<void>("DELETE", `/v1/rhapsody/publishing/fonts/${id}`),
     profiles: () => request<PublishingProfile[]>("GET", "/v1/rhapsody/publishing/profiles"),
-    saveProfile: (code: string, b: { direction: "ltr" | "rtl"; locale: string; fonts: Record<string, string> }) => request<PublishingProfile>("PUT", `/v1/rhapsody/publishing/profiles/${code}`, b),
+    profileVersions: (code: string) => request<{ version: number; created_at: string; created_by: string }[]>("GET", `/v1/rhapsody/publishing/profiles/${code}/versions`),
+    restoreVersion: (code: string, v: number) => request<PublishingProfile>("POST", `/v1/rhapsody/publishing/profiles/${code}/restore/${v}`),
+    specimenUrl: (code: string) => `/v1/rhapsody/publishing/profiles/${code}/specimen.pdf`,
+    production: () => request<PublishingProduction[]>("GET", "/v1/rhapsody/publishing/production"),
+    saveProfile: (code: string, b: { direction: "ltr" | "rtl"; locale: string; fonts: Record<string, string>; typography?: Record<string, unknown>; localization?: Record<string, unknown>; layout?: Record<string, unknown> }) => request<PublishingProfile>("PUT", `/v1/rhapsody/publishing/profiles/${code}`, b),
     validate: (code: string) => request<{ status: string; checks: { severity: string; message: string }[] }>("POST", `/v1/rhapsody/publishing/profiles/${code}/validate`),
     activate: (code: string) => request<{ status: string }>("POST", `/v1/rhapsody/publishing/profiles/${code}/activate`),
   },
@@ -336,4 +340,5 @@ export const api = {
 };
 
 export interface PublishingFont { id: string; family: string; style: string; format: string; license_name: string; byte_size: number }
-export interface PublishingProfile { id: string | null; language_code: string; language_name: string; direction: "ltr" | "rtl"; locale: string; status: string; fonts: Record<string, PublishingFont> }
+export interface PublishingProfile { id: string | null; language_code: string; language_name: string; direction: "ltr" | "rtl"; locale: string; status: string; version: number; fonts: Record<string, PublishingFont>; typography: Record<string, number | string>; localization: Record<string, unknown>; layout: Record<string, number | string> }
+export interface PublishingProduction { edition_id: string; title: string; master_active: boolean; languages: { assignment_id: string; language: string; translator: string; status: string; profile_status: string; profile_version: number }[] }

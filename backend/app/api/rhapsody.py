@@ -989,7 +989,11 @@ def _typeset_master(db: Session, master: RhapsodyMasterVersion, edition: Rhapsod
         try:
             kwargs["page_mm"] = (float(cfg.get("page_width_mm", 140)), float(cfg.get("page_height_mm", 220)))
             kwargs["margin_mm"] = float(cfg.get("margin_mm", 12))
-            kwargs["body_pt"] = float((profile.typography or {}).get("body_size_pt", 9.6))
+            typo = profile.typography or {}
+            kwargs["body_pt"] = float(typo.get("body_size_pt", 9.6))
+            kwargs["title_pt"] = float(typo.get("heading_size_pt", 13))
+            kwargs["scripture_pt"] = float(typo.get("scripture_size_pt", 9))
+            kwargs["localization"] = profile.localization or {}
         except (TypeError, ValueError):
             kwargs.pop("page_mm", None)
         kwargs["direction"], kwargs["lang"] = profile.direction, profile.locale

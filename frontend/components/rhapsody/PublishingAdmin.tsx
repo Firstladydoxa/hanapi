@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { api, ApiError, type PublishingFont, type PublishingProfile } from "@/lib/api";
+import { api, ApiError, type PublishingFont, type PublishingProduction, type PublishingProfile } from "@/lib/api";
 import { canSeeAdmin, useAuth } from "@/lib/auth";
 import { Alert, Spinner } from "@/components/ui";
 
@@ -13,9 +14,10 @@ export function PublishingAdmin() {
   const [profiles, setProfiles] = useState<PublishingProfile[]>([]);
   const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [production, setProduction] = useState<PublishingProduction[]>([]);
 
   const load = useCallback(async () => {
-    try { const [f, p] = await Promise.all([api.publishing.fonts(), api.publishing.profiles()]); setFonts(f); setProfiles(p); }
+    try { const [f, p, pr] = await Promise.all([api.publishing.fonts(), api.publishing.profiles(), api.publishing.production()]); setFonts(f); setProfiles(p); setProduction(pr); }
     catch (x) { setNotice({ kind: "error", text: errText(x) }); }
   }, []);
   useEffect(() => { if (canSeeAdmin(user)) void load(); }, [user, load]);
@@ -38,7 +40,7 @@ export function PublishingAdmin() {
     const current = Object.fromEntries(Object.entries(p.fonts).map(([r, f]) => [r, f.id]));
     const next = { ...current, [role]: id };
     if (!id) delete next[role];
-    await run(() => api.publishing.saveProfile(p.language_code, { direction: p.direction, locale: p.locale, fonts: next }), `${p.language_name} profile saved. Validate it to activate.`);
+    await run(() => api.publishing.saveProfile(p.language_code, { direction: p.direction, locale: p.locale, fonts: next, typography: p.typography, localization: p.localization, layout: p.layout }), `${p.language_name} profile saved. Validate it to activate.`);
   }
   async function validateAndActivate(p: PublishingProfile) {
     await run(async () => {
@@ -70,10 +72,22 @@ export function PublishingAdmin() {
           ))}</ul>)}
       </div>
 
+      <div className="card space-y-3">
+        <h3 className="font-bold">Edition production</h3>
+        <p className="text-xs text-ink-muted">Each active edition with the languages being translated, and whether the language&apos;s publishing profile is ready to typeset it.</p>
+        {production.length === 0 ? <p className="text-sm text-ink-muted">No editions yet.</p> : production.map((e) => (
+          <div key={e.edition_id}><p className="text-sm font-semibold">{e.title}{e.master_active ? "" : " (master not activated)"}</p>
+            {e.languages.length ? (<ul className="divide-y text-sm">{e.languages.map((l) => (
+              <li key={l.assignment_id} className="flex flex-wrap items-center justify-between gap-2 py-1.5"><span>{l.language.toUpperCase()} · {l.translator} · {l.status.replace("_", " ")}</span>
+                <span className="flex items-center gap-3 text-xs"><span className={l.profile_status === "active" ? "text-green-700" : "text-amber-700"}>Profile: {l.profile_status.replace("_", " ")}</span>
+                  <a className="underline" href={api.rhapsody.layoutUrl(l.assignment_id)} target="_blank" rel="noreferrer">Book layout PDF</a></span></li>))}</ul>) : <p className="text-xs text-ink-muted">No translations started.</p>}
+          </div>))}
+      </div>
+
       <div className="card overflow-x-auto">
         <h3 className="mb-2 font-bold">Language typesetting profiles</h3>
         <table className="w-full text-left text-sm">
-          <thead><tr className="text-xs text-ink-muted"><th className="py-1">Language</th><th>Body font</th><th>Heading font</th><th>Status</th><th /></tr></thead>
+          <thead><tr className="text-xs text-ink-muted"><th className="py-1">Language</th><th>Body font</th><th>Heading font</th><th>Status</th><th>Rev.</th><th /></tr></thead>
           <tbody>{profiles.map((p) => (
             <tr key={p.language_code} className="border-t">
               <td className="py-2">{p.language_name}</td>
@@ -81,8 +95,8 @@ export function PublishingAdmin() {
                 <td key={role}><select className="input" aria-label={`${p.language_name} ${role} font`} value={p.fonts[role]?.id ?? ""} disabled={busy} onChange={(e) => void setFont(p, role, e.target.value)}>
                   <option value="">Default</option>{fonts.map((f) => <option key={f.id} value={f.id}>{f.family} {f.style}</option>)}</select></td>
               ))}
-              <td>{p.status.replace("_", " ")}</td>
-              <td><button className="btn btn-secondary min-h-[36px] px-3 py-1 text-xs" disabled={busy || !p.id || p.status === "active"} onClick={() => void validateAndActivate(p)}>Validate &amp; activate</button></td>
+              <td>{p.status.replace("_", " ")}</td><td>{p.version || "—"}</td>
+              <td className="space-x-2 whitespace-nowrap"><Link className="btn btn-secondary min-h-[36px] px-3 py-1 text-xs" href={`/rhapsody/publishing/${p.language_code}`}>Edit profile</Link><button className="btn btn-secondary min-h-[36px] px-3 py-1 text-xs" disabled={busy || !p.id || p.status === "active"} onClick={() => void validateAndActivate(p)}>Validate &amp; activate</button></td>
             </tr>))}</tbody>
         </table>
       </div>

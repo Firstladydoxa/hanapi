@@ -60,7 +60,8 @@ def split_front_matter(texts: List[str]) -> Dict[str, List[str]]:
     return pages
 
 
-def _css(page_w: float, page_h: float, margin: float, direction: str, font_css: str, roles: Dict[str, str], body_pt: float) -> str:
+def _css(page_w: float, page_h: float, margin: float, direction: str, font_css: str, roles: Dict[str, str], body_pt: float,
+         title_pt: float = 13.0, scripture_pt: float = 9.0) -> str:
     head, body, script = roles.get("heading", HEADING_STACK), roles.get("body", BODY_STACK), roles.get("scripture", SCRIPT_STACK)
     align = "right" if direction == "rtl" else "left"
     return font_css + f"""
@@ -88,10 +89,10 @@ p {{ margin:0 0 2.2mm; orphans:2; widows:2; text-align:justify; hyphens:auto; }}
 .banner .ph {{ position:absolute; left:{margin}mm; top:14mm; color:#fff; font:italic 8pt {head}; opacity:.8; }}
 .banner .tab {{ position:absolute; right:{margin}mm; bottom:0; background:#e4e4e4; padding:1.2mm 4mm; font:600 7.5pt {head}; letter-spacing:.3mm; }}
 .banner .tab b {{ font-size:13pt; margin-left:1.5mm; }}
-.day h2 {{ font:800 13pt/1.2 {head}; text-align:center; text-transform:uppercase; margin:0 0 3.5mm; break-after:avoid; }}
+.day h2 {{ font:800 {title_pt}pt/1.2 {head}; text-align:center; text-transform:uppercase; margin:0 0 3.5mm; break-after:avoid; }}
 .scripture {{ display:flex; background:#e4e4e4; margin:0 0 4mm; padding:2.4mm 0 2.4mm 2.4mm; }}
 .scripture svg {{ flex:none; width:9mm; height:9mm; margin-right:2.6mm; }}
-.scripture .tx {{ flex:1; font:italic 700 9pt/1.35 {script}; text-align:{align}; }}
+.scripture .tx {{ flex:1; font:italic 700 {scripture_pt}pt/1.35 {script}; text-align:{align}; }}
 .scripture .bar2 {{ flex:none; width:3mm; background:#9a9a9a; margin:-2.4mm 0; margin-left:2.4mm; }}
 .day .b:first-of-type::first-letter {{ font:700 27pt/0.85 {head}; float:{align}; padding:.8mm 1.2mm 0 0; }}
 .rule {{ font:800 11.5pt {head}; text-align:center; text-transform:uppercase; margin:4mm 0 0; padding-bottom:1mm; break-after:avoid;
@@ -124,7 +125,8 @@ p {{ margin:0 0 2.2mm; orphans:2; widows:2; text-align:justify; hyphens:auto; }}
 def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *, title: str, year: int, month: int,
                 direction: str = "ltr", lang: str = "en", page_mm: tuple = (140.0, 220.0), margin_mm: float = 12.0,
                 body_pt: float = 9.6, font_css: str = "", role_fonts: Optional[Dict[str, str]] = None,
-                month_label: Optional[str] = None, images: Optional[Dict[int, bytes]] = None) -> bytes:
+                month_label: Optional[str] = None, images: Optional[Dict[int, bytes]] = None,
+                localization: Optional[Dict[str, Any]] = None, title_pt: float = 13.0, scripture_pt: float = 9.0) -> bytes:
     """`sections`: dicts with id/key/type/day/formatting. `blocks`: dicts with section_id/key/role/text/meta, text already in the target language."""
     from weasyprint import HTML
 
@@ -141,6 +143,17 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
                     weekdays[int(key.rsplit("-", 1)[1])] = _plain(b["text"]).upper()
                 elif key.startswith("label-"):
                     labels[key[6:]] = _plain(b["text"])
+
+    loc = localization or {}
+    for i, w in enumerate((loc.get("weekdays") or [])[:7]):
+        if str(w).strip():
+            weekdays[i] = str(w).strip().upper()
+    for k, v in (loc.get("labels") or {}).items():
+        if str(v).strip():
+            labels[k] = str(v).strip()
+    months = loc.get("months") or []
+    if len(months) == 12 and str(months[month - 1]).strip():
+        month_label = f"{str(months[month - 1]).strip().upper()} {year}"
 
     out: List[str] = []
     front = next((s for s in sections if s["type"] == "front_matter"), None)
@@ -232,7 +245,7 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
             out.append(f'<div class="{cls}">{inner}</div>')
             if s["type"] == "insert":
                 out.append(notes_page)
-    css = _css(page_mm[0], page_mm[1], margin_mm, direction, font_css, role_fonts or {}, body_pt)
+    css = _css(page_mm[0], page_mm[1], margin_mm, direction, font_css, role_fonts or {}, body_pt, title_pt, scripture_pt)
     document = (f"<!doctype html><html lang='{escape(lang)}' dir='{direction}'><head><meta charset='utf-8'><title>{escape(title)}</title>"
                 f"<style>{css}</style></head><body>{''.join(out)}</body></html>")
     return HTML(string=document, base_url=None).write_pdf()

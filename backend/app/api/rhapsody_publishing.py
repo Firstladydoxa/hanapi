@@ -20,7 +20,7 @@ from ..deps import client_ip, get_current_user
 from ..errors import ApiError, not_found
 from ..models.db import (
     Language, RhapsodyAssignment, RhapsodyEdition, RhapsodyFontAsset, RhapsodyLanguageProfile,
-    RhapsodyLayoutProof, RhapsodyMasterVersion, RhapsodyProfileFont,
+    RhapsodyLayoutProof, RhapsodyMasterVersion, RhapsodyProfileFont, RhapsodyProfileVersion,
     RhapsodySegment, RhapsodySection, RhapsodySegmentTranslation,
     RhapsodyTranslationVersion, User,
 )
@@ -212,6 +212,100 @@ def delete_font(font_id: str, request: Request, user: User = Depends(admin), db:
         details={"family": family}, ip=client_ip(request))
 
 
+def _snapshot(db: Session, profile: RhapsodyLanguageProfile, font_ids: dict, user: User) -> None:
+    db.add(RhapsodyProfileVersion(profile_id=profile.id, version=profile.version, created_by=user.id, snapshot={
+        "direction": profile.direction, "locale": profile.locale, "typography": profile.typography or {},
+        "localization": profile.localization or {}, "layout": profile.layout or {}, "fonts": {r: str(i) for r, i in font_ids.items()}}))
+
+
+def _profile_row(db: Session, code: str) -> tuple[RhapsodyLanguageProfile, Language]:
+    code = code.strip().lower().replace("_", "-")
+    language = db.get(Language, code)
+    profile = db.execute(select(RhapsodyLanguageProfile).where(RhapsodyLanguageProfile.language_code == code)).scalar_one_or_none()
+    if language is None or profile is None:
+        raise not_found("language profile")
+    return profile, language
+
+
+@router.get("/profiles/{language_code}/versions")
+def profile_versions(language_code: str, user: User = Depends(admin), db: Session = Depends(get_db)):
+    profile, _ = _profile_row(db, language_code)
+    rows = db.execute(select(RhapsodyProfileVersion, User.email).join(User, User.id == RhapsodyProfileVersion.created_by)
+                      .where(RhapsodyProfileVersion.profile_id == profile.id).order_by(RhapsodyProfileVersion.version.desc())).all()
+    return [{"version": v.version, "created_at": v.created_at, "created_by": email, "snapshot": v.snapshot} for v, email in rows]
+
+
+@router.post("/profiles/{language_code}/restore/{version}")
+def restore_profile_version(language_code: str, version: int, request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
+    """Saves an earlier revision as a new draft revision; history is never rewritten."""
+    profile, language = _profile_row(db, language_code)
+    old = db.execute(select(RhapsodyProfileVersion).where(RhapsodyProfileVersion.profile_id == profile.id,
+                                                          RhapsodyProfileVersion.version == version)).scalar_one_or_none()
+    if old is None:
+        raise not_found("profile version")
+    snap = old.snapshot
+    live_fonts = {str(i) for (i,) in db.execute(select(RhapsodyFontAsset.id))}
+    font_ids = {r: uuid.UUID(i) for r, i in (snap.get("fonts") or {}).items() if i in live_fonts}
+    profile.direction, profile.locale = snap["direction"], snap["locale"]
+    profile.typography, profile.localization, profile.layout = snap["typography"], snap["localization"], snap["layout"]
+    profile.status, profile.version, profile.updated_by = "draft", profile.version + 1, user.id
+    db.query(RhapsodyProfileFont).filter(RhapsodyProfileFont.profile_id == profile.id).delete()
+    for role, fid in font_ids.items():
+        db.add(RhapsodyProfileFont(profile_id=profile.id, font_id=fid, role=role))
+    db.flush()
+    _snapshot(db, profile, font_ids, user)
+    db.commit(); db.refresh(profile)
+    audit.record("rhapsody.language_profile_restored", actor=user, object_type="rhapsody_language_profile", object_id=profile.id,
+                 details={"language": profile.language_code, "from_version": version, "version": profile.version}, ip=client_ip(request))
+    return _profile_out(db, profile, language)
+
+
+@router.get("/profiles/{language_code}/specimen.pdf")
+def profile_specimen(language_code: str, user: User = Depends(admin), db: Session = Depends(get_db)):
+    """A one-page test sheet in the profile's own fonts and localized labels, so the admin can check accents and shaping."""
+    from fastapi.responses import Response
+    from html import escape
+    from weasyprint import HTML
+
+    profile, language = _profile_row(db, language_code)
+    fonts = _profile_fonts(db, profile)
+    info = {r: {"family": f.family, "format": f.format, "storage_key": f.storage_key, "sha256": f.sha256, "coverage": f.coverage or {}} for r, f in fonts.items()}
+    css, stacks = font_faces(info) if info else ("", {})
+    sample = LANGUAGE_SAMPLES.get(profile.language_code.split("-")[0], "The quick brown fox 0123456789 — “quoted text”.")
+    loc = profile.localization or {}
+    days = " · ".join(loc.get("weekdays") or []) or "—"
+    months = " · ".join(loc.get("months") or []) or "—"
+    body = stacks.get("body", "serif"); head = stacks.get("heading", "sans-serif"); scr = stacks.get("scripture", body)
+    pt = float((profile.typography or {}).get("body_size_pt", 9.6))
+    doc = (f"<html lang='{escape(profile.locale)}' dir='{profile.direction}'><head><meta charset='utf-8'><style>{css}"
+           f"@page{{size:140mm 220mm;margin:12mm}}h1{{font:700 16pt {head}}}h2{{font:700 11pt {head};margin:6mm 0 1mm}}"
+           f"p{{font:{pt}pt/1.4 {body};margin:0}}.s{{font:italic 700 {pt}pt/1.4 {scr}}}</style></head><body>"
+           f"<h1>{escape(language.display_name)} — profile v{profile.version}</h1>"
+           f"<h2>Body</h2><p>{escape(sample)}</p><h2>Scripture</h2><p class='s'>{escape(sample)}</p>"
+           f"<h2>Weekdays</h2><p>{escape(days)}</p><h2>Months</h2><p>{escape(months)}</p></body></html>")
+    return Response(HTML(string=doc).write_pdf(), media_type="application/pdf", headers={"Content-Disposition": 'inline; filename="specimen.pdf"'})
+
+
+@router.get("/production")
+def edition_production(user: User = Depends(admin), db: Session = Depends(get_db)):
+    """Per edition and language: translation progress against the language profile that will typeset it."""
+    profiles = {p.language_code: p for p in db.execute(select(RhapsodyLanguageProfile)).scalars()}
+    out = []
+    for e in db.execute(select(RhapsodyEdition).order_by(RhapsodyEdition.year.desc(), RhapsodyEdition.month.desc()).limit(12)).scalars():
+        if not e.active_master_version_id:
+            out.append({"edition_id": str(e.id), "title": e.title, "master_active": False, "languages": []})
+            continue
+        rows = db.execute(select(RhapsodyAssignment, User.display_name).join(User, User.id == RhapsodyAssignment.translator_id)
+                          .where(RhapsodyAssignment.master_version_id == e.active_master_version_id)).all()
+        langs = []
+        for a, name in rows:
+            pr = profiles.get(a.target_language)
+            langs.append({"assignment_id": str(a.id), "language": a.target_language, "translator": name, "status": a.status,
+                          "profile_status": pr.status if pr else "not_configured", "profile_version": pr.version if pr else 0})
+        out.append({"edition_id": str(e.id), "title": e.title, "master_active": True, "languages": langs})
+    return out
+
+
 @router.get("/profiles")
 def list_profiles(request: Request, user: User = Depends(admin), db: Session = Depends(get_db)):
     langs = db.execute(select(Language).where(Language.active.is_(True)).order_by(Language.display_name)).scalars().all()
@@ -240,7 +334,7 @@ def save_profile(language_code: str, body: ProfileIn, request: Request, user: Us
         font_ids[role] = fid
     profile = db.execute(select(RhapsodyLanguageProfile).where(RhapsodyLanguageProfile.language_code == code)).scalar_one_or_none()
     if profile is None:
-        profile = RhapsodyLanguageProfile(language_code=code, locale=body.locale, updated_by=user.id)
+        profile = RhapsodyLanguageProfile(language_code=code, locale=body.locale, updated_by=user.id, version=0)
         db.add(profile); db.flush()
     profile.direction, profile.locale = body.direction, body.locale
     profile.typography, profile.localization, profile.layout = body.typography, body.localization, body.layout
@@ -248,6 +342,8 @@ def save_profile(language_code: str, body: ProfileIn, request: Request, user: Us
     db.query(RhapsodyProfileFont).filter(RhapsodyProfileFont.profile_id == profile.id).delete()
     for role, fid in font_ids.items():
         db.add(RhapsodyProfileFont(profile_id=profile.id, font_id=fid, role=role))
+    db.flush()
+    _snapshot(db, profile, font_ids, user)
     db.commit(); db.refresh(profile)
     audit.record("rhapsody.language_profile_saved", actor=user, object_type="rhapsody_language_profile",
         object_id=profile.id, details={"language": code, "version": profile.version, "font_roles": sorted(font_ids)}, ip=client_ip(request))
