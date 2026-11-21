@@ -229,6 +229,8 @@ export const api = {
       request<RhapsodySaveResult>("PUT", `/v1/rhapsody/assignments/${a}/segments/${seg}`, { target_text, expected_version_id: expected_version_id ?? undefined }),
     redraft: (a: string, seg: string, target_text: string, expected_version_id?: string | null) =>
       request<RhapsodySaveResult>("POST", `/v1/rhapsody/assignments/${a}/segments/${seg}/redraft`, { target_text, expected_version_id: expected_version_id ?? undefined }),
+    adminEdit: (a: string, seg: string, target_text: string) =>
+      request<{ segment_id: string; version_id: string; version_number: number; target_text: string }>("PUT", `/v1/rhapsody/assignments/${a}/segments/${seg}/admin-edit`, { target_text }),
     draftAll: (a: string) => request<{ started: boolean; draft: RhapsodyDraftState }>("POST", `/v1/rhapsody/assignments/${a}/draft`),
     progress: (a: string) => request<{ status: string; draft: RhapsodyDraftState }>("GET", `/v1/rhapsody/assignments/${a}/progress`),
     comment: (a: string, body: string, segment_id?: string) => request<RhapsodyComment>("POST", `/v1/rhapsody/assignments/${a}/comments`, { body, segment_id }),

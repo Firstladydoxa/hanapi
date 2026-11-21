@@ -29,12 +29,31 @@ BIBLE_SVG = ('<svg viewBox="0 0 24 24"><path d="M2 5c3-1.5 7-1.5 10 1v14c-3-2.5-
 _FRONT_MARKERS = {"cover": "rhapsody", "bible_key": "unless otherwise", "intro": "introduction", "personal": "personal information"}
 
 
+# The only inline formatting an admin can add in the editor; anything else is escaped.
+_FMT = re.compile(r"&lt;(/?)(b|i|u)&gt;")
+_FMT_RAW = re.compile(r"</?(?:b|i|u|span)(?:\s[^>]*)?>")
+
+
 def clean(value: Any) -> str:
-    return escape(TAG.sub("", str(value or "").replace(BULLET, "• ")))
+    text = escape(TAG.sub("", str(value or "").replace(BULLET, "• ")))
+    text = _FMT.sub(r"<\1\2>", text)
+    depth = 0
+
+    def span(m: "re.Match[str]") -> str:
+        nonlocal depth
+        if m.group(0) == "&lt;/span&gt;":
+            if depth == 0:
+                return m.group(0)
+            depth -= 1
+            return "</span>"
+        depth += 1
+        return f'<span style="font-size:{m.group(1)}pt">'
+
+    return re.sub(r"&lt;span style=&quot;font-size:(\d{1,2}(?:\.\d)?)pt&quot;&gt;|&lt;/span&gt;", span, text) + "</span>" * depth
 
 
 def _plain(value: Any) -> str:
-    return TAG.sub("", str(value or "")).strip()
+    return _FMT_RAW.sub("", TAG.sub("", str(value or ""))).strip()
 
 
 def split_front_matter(texts: List[str]) -> Dict[str, List[str]]:
@@ -60,12 +79,21 @@ def split_front_matter(texts: List[str]) -> Dict[str, List[str]]:
     return pages
 
 
+def dropcap(html: str) -> str:
+    """Wraps the first letter in a real float; ::first-letter floats overlap the first lines in WeasyPrint."""
+    if not html or html[0] in "<&" or not html[0].isalnum():
+        return html
+    return f'<span class="dcl">{html[0]}</span>{html[1:]}'
+
+
 def _css(page_w: float, page_h: float, margin: float, direction: str, font_css: str, roles: Dict[str, str], body_pt: float,
          title_pt: float = 13.0, scripture_pt: float = 9.0, inner_mm: Optional[float] = None, outer_mm: Optional[float] = None) -> str:
     inner = margin if inner_mm is None else inner_mm
     outer = margin if outer_mm is None else outer_mm
     head, body, script = roles.get("heading", HEADING_STACK), roles.get("body", BODY_STACK), roles.get("scripture", SCRIPT_STACK)
     align = "right" if direction == "rtl" else "left"
+    dc_pt = round(body_pt * 2.3, 1)
+    bleed_r, bleed_l = (f'-{margin}mm', '0') if direction != 'rtl' else ('0', f'-{margin}mm')
     return font_css + f"""
 @page {{ size:{page_w}mm {page_h}mm; margin:{margin}mm {margin}mm {margin + 4}mm {margin}mm;
   @bottom-center {{ content: counter(page); font:7.5pt {head}; color:#444; }} }}
@@ -91,7 +119,7 @@ p {{ margin:0 0 2.2mm; orphans:2; widows:2; text-align:justify; hyphens:auto; }}
 .personal h1 {{ background:#222; color:#fff; padding:1.4mm 0; }}
 .personal .line {{ border-bottom:.3mm solid #555; height:7mm; font:7.5pt {head}; }}
 .day {{ page:art; break-before:left; }}
-.banner {{ height:38mm; margin:-{margin}mm -{margin}mm 4mm -{margin}mm; background:#8a8f94 center/cover no-repeat; position:relative; }}
+.banner {{ height:35.4mm; margin:-{max(margin - 9.6, 0)}mm {bleed_r} 4mm {bleed_l}; background:#8a8f94 center/cover no-repeat; position:relative; }}
 .banner .ph {{ position:absolute; left:{margin}mm; top:14mm; color:#fff; font:italic 8pt {head}; opacity:.8; }}
 .banner .tab {{ position:absolute; right:{margin}mm; bottom:0; background:#e4e4e4; padding:1.2mm 4mm; font:600 7.5pt {head}; letter-spacing:.3mm; }}
 .banner .tab b {{ font-size:13pt; margin-left:1.5mm; }}
@@ -100,7 +128,9 @@ p {{ margin:0 0 2.2mm; orphans:2; widows:2; text-align:justify; hyphens:auto; }}
 .scripture svg {{ flex:none; width:9mm; height:9mm; margin-right:2.6mm; }}
 .scripture .tx {{ flex:1; font:italic 700 {scripture_pt}pt/1.35 {script}; text-align:{align}; }}
 .scripture .bar2 {{ flex:none; width:3mm; background:#9a9a9a; margin:-2.4mm 0; margin-left:2.4mm; }}
-.day .b:first-of-type::first-letter {{ font:700 27pt/0.85 {head}; float:{align}; padding:.8mm 1.2mm 0 0; }}
+.dcl {{ float:{align}; font:700 {dc_pt}pt/{dc_pt}pt {head}; padding:0 1.6mm 0 0; margin-top:.6mm; }}
+.sign {{ text-align:right; font-weight:700; break-before:avoid; }}
+.intro p:has(+ .sign) {{ break-after:avoid; }}
 .rule {{ font:800 11.5pt {head}; text-align:center; text-transform:uppercase; margin:4mm 0 0; padding-bottom:1mm; break-after:avoid;
   border-bottom:.2mm solid #777; }}
 .rule + p {{ margin-top:1.6mm; }}
@@ -119,10 +149,10 @@ p {{ margin:0 0 2.2mm; orphans:2; widows:2; text-align:justify; hyphens:auto; }}
 .intro .strip {{ text-align:center; font:700 8pt {head}; margin:3mm 0; }}
 .intro .panel {{ background:#222; color:#fff; border-radius:3mm; padding:3mm 4mm; margin:0 0 3mm; }}
 .intro .panel p {{ text-align:{align}; margin:0 0 1.8mm; }}
-.intro p.dc:first-of-type::first-letter {{ font:italic 30pt/0.85 {COVER_STACK}; float:{align}; padding:0 1.2mm 0 0; }}
+.intro .dcl {{ font:italic {dc_pt + 2}pt/{dc_pt + 2}pt {COVER_STACK}; }}
 @page art {{ margin:{margin}mm {margin}mm {margin + 4}mm {margin}mm; @bottom-center {{ content:none; }} }}
-@page art:left {{ margin-left:{outer}mm; margin-right:{inner}mm; @bottom-left {{ content:counter(page); font:700 7pt {head}; color:#fff; background:#111; border-radius:50%; width:5.5mm; line-height:5.5mm; text-align:center; }} }}
-@page art:right {{ margin-left:{inner}mm; margin-right:{outer}mm; @bottom-right {{ content:counter(page); font:700 7pt {head}; color:#fff; background:#111; border-radius:50%; width:5.5mm; line-height:5.5mm; text-align:center; }} }}
+@page art:left {{ margin-left:{outer}mm; margin-right:{inner}mm; @bottom-left {{ content:counter(page); font:700 7pt/5.5mm {head}; color:#fff; text-align:center; vertical-align:top; width:5.5mm; height:5.5mm; background:#111; border-radius:2.75mm; padding:0; margin:0; }} }}
+@page art:right {{ margin-left:{inner}mm; margin-right:{outer}mm; @bottom-right {{ content:counter(page); font:700 7pt/5.5mm {head}; color:#fff; text-align:center; vertical-align:top; width:5.5mm; height:5.5mm; background:#111; border-radius:2.75mm; padding:0; margin:0; }} }}
 .insert, .back {{ break-before:page; }}
 .insert p, .back p {{ text-align:{align}; }}
 """
@@ -209,17 +239,18 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
         if perm.get("howto.items"):
             lead = rest
             panel = "".join(f"<p>• {clean(t)}</p>" for t in perm["howto.items"])
-            after = perm.get("intro.closing", []) + [f"— {t}" for t in perm.get("intro.signoff", [])]
+            after = perm.get("intro.closing", [])
+            signoff = "".join(f'<p class="sign">— {clean(t)}</p>' for t in perm.get("intro.signoff", []))
             strip = (perm.get("howto.heading") or [""])[0]
-            intro_html = ("".join(f'<p class="dc">{clean(t)}</p>' for t in lead) + f'<div class="strip">{clean(strip)}</div>'
-                          f'<div class="panel">{panel}</div>' + "".join(f"<p>{clean(t)}</p>" for t in after))
+            intro_html = ("".join(f'<p class="dc">{dropcap(clean(t)) if n == 0 else clean(t)}</p>' for n, t in enumerate(lead)) + f'<div class="strip">{clean(strip)}</div>'
+                          f'<div class="panel">{panel}</div>' + "".join(f"<p>{clean(t)}</p>" for t in after) + signoff)
         elif hi is None:
             intro_html = "".join(f"<p>{clean(t)}</p>" for t in rest)
         else:
             lead, strip, tail_p = rest[:hi], rest[hi], rest[hi + 1:]
             cut = max(len(tail_p) - 2, 0)
             items, after = tail_p[:cut], tail_p[cut:]
-            intro_html = ("".join(f'<p class="dc">{clean(t)}</p>' for t in lead) + f'<div class="strip">{clean(strip)}</div>'
+            intro_html = ("".join(f'<p class="dc">{dropcap(clean(t)) if n == 0 else clean(t)}</p>' for n, t in enumerate(lead)) + f'<div class="strip">{clean(strip)}</div>'
                           f'<div class="panel">{"".join(f"<p>• {clean(t)}</p>" for t in items)}</div>' + "".join(f"<p>{clean(t)}</p>" for t in after))
         out.append(f'<div class="plain intro"><div class="banner2">{clean(head)}</div>{intro_html}</div>')
     if pages["personal"]:
@@ -250,7 +281,7 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
             meta = s.get("formatting") or {}
             wd = meta.get("weekday")
             day = s.get("day") or ""
-            body = "".join(f'<p class="b">{clean(b["text"])}</p>' for b in items if b["role"] == "body")
+            body = "".join(f'<p class="b">{dropcap(clean(b["text"])) if n == 0 else clean(b["text"])}</p>' for n, b in enumerate([x for x in items if x["role"] == "body"]))
             ref = localize_refs(_plain(roles.get("scripture_ref")), names)
             for rk in ("further_study", "plan1", "plan2"):
                 if roles.get(rk):

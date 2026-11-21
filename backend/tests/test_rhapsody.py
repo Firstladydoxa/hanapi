@@ -578,3 +578,29 @@ def test_font_library_crud_with_usage(world, login, tmp_path, monkeypatch):
     assert admin.get(base).json()[0]["used_by"] == [{"language": "fr", "role": "body"}]
     assert admin.delete(f"{base}/{fid}").status_code == 409
     assert login("alice").get(f"{base}/{fid}/file").status_code == 403
+
+
+def test_inline_formatting_is_whitelisted_and_drop_cap_wraps_first_letter():
+    from app.rhapsody_typeset import clean, dropcap
+
+    out = clean('<b>Bold</b> <span style="font-size:11pt">big</span> <script>x</script> <span style="color:red">c</span>')
+    assert "<b>Bold</b>" in out and '<span style="font-size:11pt">big</span>' in out
+    assert "<script>" not in out and "style=\"color" not in out
+    assert dropcap("Vir ons") == '<span class="dcl">V</span>ir ons'
+    assert dropcap("<b>Vir</b>") == "<b>Vir</b>"
+
+
+def test_admin_can_edit_an_approved_paragraph_and_the_layout_uses_it(world, login, tmp_path, monkeypatch):
+    admin = login("tina")
+    _, master_id, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    assignment_id = admin.post("/v1/rhapsody/assignments", {"master_version_id": master_id, "target_language": "fr",
+                                                            "translator_id": str(world.users["alice"].id)}).json()["id"]
+    translator = login("alice")
+    seg = next(s for s in translator.get(f"/v1/rhapsody/assignments/{assignment_id}").json()["segments"] if not s["metadata"].get("locked"))
+    assert translator.put(f"/v1/rhapsody/assignments/{assignment_id}/segments/{seg['id']}", {"target_text": "Avant"}).status_code == 200
+    url = f"/v1/rhapsody/assignments/{assignment_id}/segments/{seg['id']}/admin-edit"
+    assert translator.put(url, {"target_text": "Pirate"}).status_code == 403
+    edited = admin.put(url, {"target_text": "<b>Après</b>"})
+    assert edited.status_code == 200 and edited.json()["version_number"] == 2
+    again = next(s for s in admin.get(f"/v1/rhapsody/assignments/{assignment_id}").json()["segments"] if s["id"] == seg["id"])
+    assert again["target_text"] == "<b>Après</b>"

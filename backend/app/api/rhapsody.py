@@ -829,6 +829,38 @@ def save_segment(assignment_id: str, segment_id: str, body: SegmentSave, request
             "origin": version.origin, "warnings": warnings}
 
 
+class AdminEditIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target_text: str = Field(min_length=1, max_length=200000)
+
+
+@router.put("/assignments/{assignment_id}/segments/{segment_id}/admin-edit")
+def admin_edit_segment(assignment_id: str, segment_id: str, body: AdminEditIn, request: Request,
+                       user: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """Light layout-stage correction by an administrator. Saved as a new version of the same paragraph (so HAN's layout uses it);
+    any layout proof made before the edit becomes stale because its fingerprint changes."""
+    assignment = _load_assignment(db, assignment_id)
+    segment = db.get(RhapsodySegment, parse_uuid(segment_id, "segment"))
+    if segment is None or segment.master_version_id != assignment.master_version_id:
+        raise not_found("segment")
+    tr = db.execute(select(RhapsodySegmentTranslation).where(
+        RhapsodySegmentTranslation.assignment_id == assignment.id,
+        RhapsodySegmentTranslation.segment_id == segment.id).with_for_update()).scalar_one_or_none()
+    if tr is None:
+        raise not_found("segment")
+    current = db.get(RhapsodyTranslationVersion, tr.current_version_id) if tr.current_version_id else None
+    number = (current.version_number + 1) if current else 1
+    version = RhapsodyTranslationVersion(segment_translation_id=tr.id, version_number=number, target_text=body.target_text,
+        origin="human", created_by=user.id, parent_version_id=current.id if current else None, meta={"source": "admin_edit"})
+    db.add(version)
+    db.flush()
+    tr.current_version_id = version.id
+    db.commit()
+    audit.record("rhapsody.segment_admin_edited", actor=user, object_type="rhapsody_translation_version", object_id=version.id,
+                 details={"assignment_id": str(assignment.id), "segment_id": str(segment.id), "version": number}, ip=client_ip(request))
+    return {"segment_id": str(segment.id), "version_id": str(version.id), "version_number": number, "target_text": version.target_text}
+
+
 @router.post("/assignments/{assignment_id}/submit")
 def submit_assignment(assignment_id: str, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     assignment = _load_assignment(db, assignment_id)

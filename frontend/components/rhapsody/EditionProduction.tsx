@@ -34,6 +34,7 @@ function Row({ l, busy, onApprove }: { l: ProductionLanguage; busy: boolean; onA
           <span className={`pill ${profileOk ? "pill-green" : "pill-orange"}`} title="Language typesetting profile">{profileOk ? `Profile r${l.profile_version}` : `Profile ${l.profile_status.replace("_", " ")}`}</span></div>
         <div className="flex flex-wrap justify-end gap-2">
           {l.status === "submitted" ? <button className="btn btn-primary min-h-[36px] px-3 py-1 text-xs" disabled={busy} onClick={() => onApprove(l.assignment_id)}>Approve translation</button> : null}
+          <Link className="btn btn-secondary min-h-[36px] px-3 py-1 text-xs" href={`/rhapsody/publishing/editor/${l.assignment_id}`}>Edit text</Link>
           <a className="btn btn-secondary min-h-[36px] px-3 py-1 text-xs" href={api.rhapsody.layoutUrl(l.assignment_id)} target="_blank" rel="noreferrer">Preview layout</a>
         </div>
       </div>

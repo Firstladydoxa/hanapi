@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { RichText } from "./RichText";
 import { api, ApiError, type PublishingFont, type PermanentItem, type PublishingProfile, type SheetImport } from "@/lib/api";
 import { canSeeAdmin, useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/labels";
@@ -116,8 +117,11 @@ export function ProfileEditor({ code }: { code: string }) {
       if (changed || !approve) await api.publishing.savePermanent(code, key, lines);
       if (approve) await api.publishing.approvePermanent(code, key);
       setPermanent(await api.publishing.permanent(code));
+      setNotice({ kind: "success", text: approve ? `“${key}” saved and approved. It will appear in the next layout preview.` : `“${key}” saved as a draft.` });
     } catch (x) { setNotice({ kind: "error", text: errText(x) }); } finally { setBusy(false); }
   }
+  const lines = (t: string) => t.split("\n").map((x) => x.trim()).filter(Boolean).join("\n");
+  const isDirty = (key: string) => lines(drafts[key] ?? "") !== (permanent.find((i) => i.key === key)?.items ?? []).join("\n");
   const input = (value: string, set: (v: string) => void, label: string, ph = "") => (
     <label className="block text-xs font-semibold">{label}<input className="input mt-1 font-normal" value={value} placeholder={ph} onChange={(e) => set(e.target.value)} dir={direction} /></label>);
 
@@ -165,7 +169,7 @@ export function ProfileEditor({ code }: { code: string }) {
           <div className="grid gap-3 md:grid-cols-3">
             {input(bible.name ?? "", (v) => setBible({ ...bible, name: v }), "Version name")}
             {input(bible.abbreviation ?? "", (v) => setBible({ ...bible, abbreviation: v }), "Abbreviation")}
-            {input(bible.copyright ?? "", (v) => setBible({ ...bible, copyright: v }), "Copyright notice")}
+            {input(bible.copyright ?? "", (v) => setBible({ ...bible, copyright: v }), "Bible copyright notice (not printed; the printed copyright page is the copyright.lines item under Permanent content)")}
           </div>
           <h3 className="font-bold">Bible book names</h3>
           <p className="text-xs text-ink-muted">One per line as <code>English = Local name</code>. Applied to scripture references, further study and the reading plans.</p>
@@ -187,10 +191,11 @@ export function ProfileEditor({ code }: { code: string }) {
           {permanent.map((i) => (
             <div key={i.key} className="space-y-1">
               <div className="flex items-center justify-between"><label className="text-xs font-semibold" htmlFor={`perm-${i.key}`}>{i.key}</label>
+                {isDirty(i.key) ? <span className="text-xs font-semibold text-red-700">Unsaved changes: click Save draft or Save &amp; approve</span> : null}
                 <span className={`text-xs ${i.status === "approved" ? "text-green-700" : i.status === "draft" ? "text-amber-700" : "text-ink-muted"}`}>{i.status}</span></div>
-              <textarea id={`perm-${i.key}`} className="input min-h-[70px] w-full font-normal" dir={direction} value={drafts[i.key] ?? ""} onChange={(e) => setDrafts({ ...drafts, [i.key]: e.target.value })} />
+              <RichText label={i.key} dir={direction} minHeight={70} value={drafts[i.key] ?? ""} onChange={(v) => setDrafts((d) => ({ ...d, [i.key]: v }))} />
               <div className="flex gap-2"><button className="btn btn-secondary min-h-[32px] px-3 py-1 text-xs" disabled={busy} onClick={() => void savePermanent(i.key, false)}>Save draft</button>
-                <button className="btn btn-primary min-h-[32px] px-3 py-1 text-xs" disabled={busy || !(drafts[i.key] ?? "").trim()} onClick={() => void savePermanent(i.key, true)}>Approve</button></div>
+                <button className="btn btn-primary min-h-[32px] px-3 py-1 text-xs" disabled={busy || !(drafts[i.key] ?? "").trim()} onClick={() => void savePermanent(i.key, true)}>Save &amp; approve</button></div>
             </div>))}</>) : null}
 
         {tab === "Layout" ? (<div className="grid gap-3 md:grid-cols-3">

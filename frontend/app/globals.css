@@ -511,3 +511,13 @@ h1, h2, h3 { letter-spacing: -.035em; }
 .bell-panel { position: absolute; right: 0; top: 42px; z-index: 60; width: min(380px, 92vw); max-height: 70vh; overflow-y: auto; border: 1px solid var(--han-line-strong); border-radius: 15px; background: rgb(var(--han-panel-strong-rgb)); box-shadow: 0 24px 60px rgb(var(--han-shadow-rgb) / .5); letter-spacing: 0; text-transform: none; }
 .modal-back { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(0 0 0 / .6); }
 .modal { width: min(520px, 100%); max-height: 90vh; overflow-y: auto; }
+
+.rich { border: 1px solid var(--line, #d5d9e0); border-radius: 10px; background: #fff; overflow: hidden; }
+.rich-bar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 6px 8px; background: #f5f6f8; border-bottom: 1px solid var(--line, #d5d9e0); }
+.rich-btn { min-width: 30px; height: 30px; border-radius: 6px; border: 1px solid transparent; background: transparent; cursor: pointer; font-size: 14px; }
+.rich-btn:hover { background: #e7eaf0; }
+.rich-btn.is-active { background: #1f2937; color: #fff; }
+.rich-size { height: 30px; border-radius: 6px; border: 1px solid #cfd4dc; background: #fff; font-size: 12px; padding: 0 6px; }
+.rich-body { padding: 10px 12px; outline: none; font-size: 14px; line-height: 1.5; }
+.rich-body p { margin: 0 0 6px; }
+.rich:focus-within { box-shadow: 0 0 0 2px rgba(59, 99, 255, .35); }
