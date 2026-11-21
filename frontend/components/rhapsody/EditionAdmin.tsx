@@ -16,6 +16,21 @@ export function EditionAdmin({ editionId }: { editionId: string }) {
   const [tpl, setTpl] = useState<File | null>(null);
   const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [plans, setPlans] = useState<{ days: number[]; expected: number } | null>(null);
+  const loadPlans = useCallback(() => { api.rhapsody.plans(editionId).then(setPlans).catch(() => undefined); }, [editionId]);
+  useEffect(() => { loadPlans(); }, [loadPlans]);
+
+  async function sendPlans(f: File | null) {
+    if (!f) return;
+    setBusy(true); setNotice(null);
+    try {
+      const d = new FormData(); d.append("file", f);
+      const r = await api.rhapsody.uploadPlans(editionId, d);
+      loadPlans();
+      if (r.rebuilt) { await load(); if (r.master_version_id) setSelected(r.master_version_id); }
+      setNotice({ kind: "success", text: `Reading plans saved for ${r.days.length} days.${r.rebuilt ? " HAN rebuilt the master as a new version." : " They will be added when you lay out the manuscript."}${r.warnings.length ? " " + r.warnings.join(" ") : ""}` });
+    } catch (x) { setNotice({ kind: "error", text: errText(x) }); } finally { setBusy(false); }
+  }
   const [imgs, setImgs] = useState<{ days: number[]; expected: number } | null>(null);
   const loadImgs = useCallback(() => { api.rhapsody.images(editionId).then(setImgs).catch(() => undefined); }, [editionId]);
   useEffect(() => { loadImgs(); }, [loadImgs]);
@@ -85,6 +100,16 @@ export function EditionAdmin({ editionId }: { editionId: string }) {
         <div><label className="text-xs font-semibold" htmlFor="t">Template (.xliff, only if changed)</label><input id="t" className="input" type="file" accept=".xlf,.xliff" onChange={(e) => setTpl(e.target.files?.[0] ?? null)} /></div>
         <div className="md:col-span-2"><button className="btn btn-primary" disabled={busy || !file}>{busy ? "HAN is working…" : "Start layout"}</button></div>
       </form>
+
+      <div className="card space-y-2">
+        <h3 className="font-bold">Bible reading plans</h3>
+        <p className="text-xs text-ink-muted">The 1-year and 2-year plans are not in the Word manuscript. Download the sheet, fill one row per day, and upload it back (.xlsx or .csv). HAN adds the plans to every article and rebuilds the master as a new version.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <a className="btn btn-secondary" href={api.rhapsody.plansTemplateUrl(editionId)}>Download the sheet</a>
+          <input className="input max-w-xs" type="file" accept=".xlsx,.csv" disabled={busy} aria-label="Filled reading-plan sheet" onChange={(e) => { void sendPlans(e.target.files?.[0] ?? null); e.target.value = ""; }} />
+        </div>
+        {plans ? <p className="text-xs">{plans.days.length} of {plans.expected} days have plans</p> : null}
+      </div>
 
       <div className="card space-y-2">
         <h3 className="font-bold">Article images</h3>

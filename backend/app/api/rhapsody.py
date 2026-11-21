@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import shutil
 import uuid
@@ -13,7 +14,7 @@ from typing import Any, List, Optional
 from xml.etree import ElementTree as ET
 
 from docx import Document
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, Response, UploadFile
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -22,6 +23,7 @@ from sqlalchemy.orm import Session
 from .. import audit
 from .. import rhapsody_draft as drafting
 from .. import rhapsody_layout as layout
+from .. import rhapsody_plans as plans_mod
 from ..config import get_settings
 from ..legacy_doc import LegacyDocError, extract_paragraphs, is_legacy_doc
 from ..database import get_db
@@ -228,6 +230,62 @@ def edition_images(edition_id: Any) -> dict[int, bytes]:
     return out
 
 
+def _plans_path(edition_id: Any) -> Path:
+    base = Path(get_settings().rhapsody_storage_dir).resolve()
+    return base / str(edition_id) / "plans.json"
+
+
+def load_plans(edition_id: Any) -> dict[int, tuple[str, str]]:
+    try:
+        raw = json.loads(_plans_path(edition_id).read_text("utf-8"))
+        return {int(k): (v[0], v[1]) for k, v in raw.items()}
+    except (OSError, ValueError, IndexError, TypeError):
+        return {}
+
+
+@router.get("/editions/{edition_id}/reading-plans/template")
+def reading_plans_template(edition_id: str, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    edition = _get_edition(db, edition_id)
+    data = plans_mod.build_template(edition.year, edition.month, load_plans(edition.id))
+    name = f"reading-plans-{edition.year}-{edition.month:02d}.xlsx"
+    return Response(data, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
+@router.get("/editions/{edition_id}/reading-plans")
+def reading_plans_status(edition_id: str, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    edition = _get_edition(db, edition_id)
+    saved = load_plans(edition.id)
+    return {"days": sorted(saved), "expected": monthrange(edition.year, edition.month)[1]}
+
+
+@router.post("/editions/{edition_id}/reading-plans", status_code=201)
+async def upload_reading_plans(edition_id: str, request: Request, file: UploadFile = File(...),
+                               actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """Stores the filled-in plan sheet and, when a manuscript has already been laid out, rebuilds the master as a new version that includes it."""
+    edition = _get_edition(db, edition_id)
+    data = await file.read(2_000_001)
+    if not data or len(data) > 2_000_000:
+        raise ApiError(413, "plans_size", "The reading-plan file must be under 2 MB.")
+    try:
+        parsed, warnings = plans_mod.parse_plans(data, file.filename or "", edition.year, edition.month)
+    except plans_mod.PlanFileError as exc:
+        raise ApiError(422, "invalid_plans", str(exc))
+    path = _plans_path(edition.id)
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    path.write_text(json.dumps({str(k): list(v) for k, v in parsed.items()}), "utf-8")
+    latest = db.execute(select(RhapsodyMasterVersion).where(RhapsodyMasterVersion.edition_id == edition.id)
+                        .order_by(RhapsodyMasterVersion.version_number.desc())).scalars().first()
+    result = None
+    source = db.get(RhapsodySourceFile, latest.source_file_id) if latest and latest.source_file_id else None
+    if source is not None and source.format == "docx":
+        tpl = (latest.structure or {}).get("template")
+        inherit = (tpl["units"], tpl.get("name") or "this edition") if tpl and tpl.get("units") else None
+        result = ingest_edition(db, edition, source, None, actor, request, inherit=inherit)
+    audit.record("rhapsody.plans_uploaded", actor=actor, object_type="rhapsody_edition", object_id=edition.id, ip=client_ip(request), details={"days": len(parsed)})
+    return {"days": sorted(parsed), "warnings": warnings, "master_version_id": (result or {}).get("master_version_id"), "rebuilt": result is not None}
+
+
 @router.get("/editions/{edition_id}/images")
 def list_images(edition_id: str, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
     edition = _get_edition(db, edition_id)
@@ -307,6 +365,7 @@ def delete_edition(edition_id: str, request: Request, actor: User = Depends(admi
         except (OSError, ApiError):
             pass
     shutil.rmtree(_images_dir(eid, create=False), ignore_errors=True)
+    _plans_path(eid).unlink(missing_ok=True)
     audit.record("rhapsody.edition_deleted", actor=actor, object_type="rhapsody_edition", object_id=eid, ip=client_ip(request), details={"title": title})
 
 
@@ -425,7 +484,7 @@ def _inherited_template(db: Session, exclude_edition: uuid.UUID) -> Optional[tup
 
 
 def ingest_edition(db: Session, edition: RhapsodyEdition, source: RhapsodySourceFile, template_source: Optional[RhapsodySourceFile],
-                   actor: User, request: Optional[Request] = None) -> dict:
+                   actor: User, request: Optional[Request] = None, inherit: Optional[tuple] = None) -> dict:
     """Build a new master version: the month's articles (DOCX) merged into the InDesign layout template (XLIFF)."""
     data = _read_source(source)
     template_units: Optional[list] = None
@@ -440,7 +499,7 @@ def ingest_edition(db: Session, edition: RhapsodyEdition, source: RhapsodySource
             except (ET.ParseError, ValueError):
                 raise ApiError(422, "invalid_xliff", "The layout template is not valid XLIFF.")
         else:
-            inherited = _inherited_template(db, edition.id)
+            inherited = inherit or _inherited_template(db, edition.id)
             if inherited:
                 template_units, template_name = inherited[0], inherited[1]
         try:
@@ -449,6 +508,10 @@ def ingest_edition(db: Session, edition: RhapsodyEdition, source: RhapsodySource
             raise
         except Exception:
             raise ApiError(422, "invalid_docx", "The Word document could not be read. Please upload a valid DOCX file.")
+        saved_plans = load_plans(edition.id)
+        for art in articles:
+            if art["day"] in saved_plans:
+                art["plan1"], art["plan2"] = saved_plans[art["day"]]
         if articles:
             sections, segments, info = layout.build_master(edition.year, edition.month, articles, template_units)
             validation = layout.validate_master(edition.year, edition.month, articles, template_units is not None)

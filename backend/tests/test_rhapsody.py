@@ -400,3 +400,27 @@ def test_article_images_are_stored_listed_and_removed_with_the_edition(world, lo
     assert (tmp_path / edition_id / "images").exists()
     assert admin.delete(f"/v1/rhapsody/editions/{edition_id}").status_code == 204
     assert not (tmp_path / edition_id).exists() or not (tmp_path / edition_id / "images").exists()
+
+
+def test_reading_plan_sheet_round_trips_and_rebuilds_the_master(world, login, tmp_path, monkeypatch):
+    from io import BytesIO
+    from openpyxl import load_workbook
+
+    admin = login("tina")
+    edition_id, master_id, validation = _setup_active_master(admin, tmp_path, monkeypatch)
+    sheet = admin.get(f"/v1/rhapsody/editions/{edition_id}/reading-plans/template")
+    assert sheet.status_code == 200
+    wb = load_workbook(BytesIO(sheet.content))
+    ws = wb["Reading plans"]
+    assert ws.max_row == 31 and ws["A2"].value == 1
+    ws["D2"], ws["E2"] = "Genesis 1:1-2:25", "Matthew 1:1-17"
+    out = BytesIO()
+    wb.save(out)
+    up = admin.client.post(f"/v1/rhapsody/editions/{edition_id}/reading-plans", files={"file": ("plans.xlsx", out.getvalue(), "application/octet-stream")}, headers=admin._h())
+    assert up.status_code == 201, up.text
+    body = up.json()
+    assert body["rebuilt"] and body["master_version_id"] != master_id and body["days"] == [1]
+    preview = admin.get(f"/v1/rhapsody/editions/{edition_id}/masters/{body['master_version_id']}").json()
+    assert "Genesis 1:1-2:25" in str(preview)
+    bad = admin.client.post(f"/v1/rhapsody/editions/{edition_id}/reading-plans", files={"file": ("p.csv", b"a,b\n1,2\n", "text/csv")}, headers=admin._h())
+    assert bad.status_code == 422

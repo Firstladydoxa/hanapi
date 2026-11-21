@@ -405,7 +405,7 @@ def validate_master(year: int, month: int, articles: List[Dict[str, Any]], has_t
     for a in articles:
         warnings.extend(a["issues"])
     if articles and not any(a["plan1"] or a["plan2"] for a in articles):
-        warnings.append("The manuscript has no 1-year or 2-year Bible reading plans; those lines are left out of the master.")
+        warnings.append("No 1-year or 2-year Bible reading plans yet. Download the reading-plans sheet on the edition page, fill it in and upload it; HAN will add them to the layout.")
     if not has_template:
         warnings.append("No layout template (InDesign XLIFF) was supplied or found, so the cover, introduction and back matter are not included.")
     return {"articles": len(articles), "expected_articles": expected, "missing_days": missing, "warnings": warnings, "blocking_errors": blocking}
