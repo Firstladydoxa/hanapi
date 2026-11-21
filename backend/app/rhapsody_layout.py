@@ -49,6 +49,11 @@ def _is_upper(text: str) -> bool:
 
 def _paragraphs(data: bytes) -> List[Dict[str, Any]]:
     """Paragraphs of the manuscript in reading order, with table cells flattened in place."""
+    from .legacy_doc import extract_paragraphs, is_legacy_doc
+
+    if is_legacy_doc(data):
+        return [{"text": re.sub(r"[ \t]+", " ", t), "style": "", "runs": [{"text": t, "bold": False, "italic": False}]} for t in extract_paragraphs(data)]
+
     from docx import Document
     from docx.table import Table
     from docx.text.paragraph import Paragraph
@@ -106,6 +111,7 @@ def _day_number(text: str, year: int, month: int, last: int) -> Optional[int]:
     return n
 
 
+SIGNATURE = re.compile(r"^\W*pastor\s+chris(?:\s+oyakhilome)?\W*$", re.I)
 RUNNING_HEADER = re.compile(r"^(?P<n>\d{1,2})\s+(?P<name>[A-Z][A-Za-z.'’\- ]{2,40}?)\W*$")
 
 
@@ -118,13 +124,15 @@ def _page_markers(paras: List[Dict[str, Any]], last_day: int) -> List[Tuple[int,
     prev = 0
     for i, p in enumerate(paras):
         m = RUNNING_HEADER.match(p["text"].strip())
-        if m and prev < int(m.group("n")) <= last_day and not (prev == 0 and int(m.group("n")) != 2):
+        if m and prev < int(m.group("n")) <= last_day and not (prev == 0 and int(m.group("n")) not in (1, 2)):
             marks.append((i, int(m.group("n")), m.group("name").strip().lower()))
             prev = int(m.group("n"))
     if not marks:
         return []
     author = marks[0][2]
     out: List[Tuple[int, int]] = []
+    if marks[0][1] == 1:  # every article, the first included, opens with "<number>  <author>"
+        return [(i + 1, n) for i, n, name in marks if name == author]
     head = paras[0]["text"].strip().lower().rstrip(".") if paras else ""
     if len(marks) < 2 and head != author:
         return []
@@ -156,7 +164,8 @@ def parse_manuscript(data: bytes, year: int, month: int) -> List[Dict[str, Any]]
                 last = n
         for k, (i, n) in enumerate(starts):
             spans.append((i + 1, starts[k + 1][0] if k + 1 < len(starts) else len(paras), n))
-    return [_parse_article(n, year, month, paras[a:b]) for a, b, n in spans]
+    # the author's signature printed above each article belongs to the Word file, not to the layout
+    return [_parse_article(n, year, month, [p for p in paras[a:b] if not SIGNATURE.match(p["text"])]) for a, b, n in spans]
 
 
 def _parse_article(day: int, year: int, month: int, paras: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -171,7 +180,8 @@ def _parse_article(day: int, year: int, month: int, paras: List[Dict[str, Any]])
             break
         title.append(rest.pop(0)["text"])
     if not title and rest and len(rest[0]["text"]) < 120 and (
-            not rest[0]["text"].endswith((".", "”", '"')) or (rest[0]["runs"] and all(r["bold"] for r in rest[0]["runs"]))):
+            not rest[0]["text"].endswith((".", "”", '"')) or (rest[0]["runs"] and all(r["bold"] for r in rest[0]["runs"]))
+            or (len(rest) > 1 and rest[1]["text"][:1] in "“\"‘'" and rest[0]["text"][:1] not in "“\"‘'" and not rest[0]["text"].endswith("."))):
         title.append(rest.pop(0)["text"])
     art["title"] = " ".join(title)
 
@@ -364,7 +374,7 @@ def build_master(year: int, month: int, articles: List[Dict[str, Any]], template
         n = art["day"]
         d = date(year, month, n)
         weekday = d.weekday()
-        sk = section(f"day-{n}", "daily_article", art["title"] or f"Day {n}", n, {"weekday": weekday, "date": d.isoformat()})
+        sk = section(f"day-{n}", "daily_article", art["title"] or f"Day {n}", n, {"weekday": weekday, "date": d.isoformat(), "image": f"day-{n:02d}"})
         base = {"day": n, "weekday": weekday, "date": d.isoformat()}
         seg(sk, f"d{n}-title", art["title"], "title", **base)
         seg(sk, f"d{n}-scripture", art["scripture"], "scripture", **base)

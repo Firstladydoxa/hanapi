@@ -8,7 +8,7 @@ interface Msg { id: number; role: "user" | "han"; text: string; actions?: ChatAc
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const ERR = "I'm sorry, I couldn't complete that just now. Please try again shortly.";
-const DOCX = ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const DOCX = ".doc,.docx,.docm,.dot,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 /** Suggested prompts come from real data: the month an administrator is preparing, or the edition open to this translator. */
 export function starterPrompts(admin: boolean, openEdition?: string | null, now = new Date()): string[] {

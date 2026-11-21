@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import shutil
 import uuid
 import zipfile
 from calendar import monthrange
@@ -22,6 +23,7 @@ from .. import audit
 from .. import rhapsody_draft as drafting
 from .. import rhapsody_layout as layout
 from ..config import get_settings
+from ..legacy_doc import LegacyDocError, extract_paragraphs, is_legacy_doc
 from ..database import get_db
 from ..deps import client_ip, get_current_user
 from ..errors import ApiError, not_found
@@ -34,7 +36,7 @@ from ..security.permissions import ADMIN_ROLES, parse_uuid, require_roles
 
 router = APIRouter(prefix="/v1/rhapsody", tags=["rhapsody"])
 MAX_UPLOAD = 25 * 1024 * 1024
-ALLOWED_EXTENSIONS = {".docx": "docx", ".xlf": "xliff", ".xliff": "xliff"}
+ALLOWED_EXTENSIONS = {".docx": "docx", ".docm": "docx", ".doc": "docx", ".dot": "docx", ".xlf": "xliff", ".xliff": "xliff"}
 
 
 def admin_user(request: Request, user: User = Depends(get_current_user)) -> User:
@@ -95,8 +97,21 @@ def _get_edition(db: Session, edition_id: str) -> RhapsodyEdition:
     return row
 
 
+def _parse_legacy_doc(data: bytes) -> tuple[list[dict], list[dict]]:
+    try:
+        texts = extract_paragraphs(data)
+    except LegacyDocError:
+        raise ApiError(422, "invalid_doc", "The Word document could not be read. Save it as .docx and upload it again.")
+    sections = [{"stable_key": "front-matter", "section_type": "front_matter", "title": "Front matter", "sequence": 0, "day_number": None}]
+    segments = [{"stable_key": f"docx-p-{i+1}", "source_text": t, "source_markup": None, "sequence": i, "section_key": "front-matter", "metadata": {"paragraph_style": "", "runs": []}}
+                for i, t in enumerate(texts)]
+    return sections, segments
+
+
 def _parse_docx(data: bytes) -> tuple[list[dict], list[dict]]:
     from io import BytesIO
+    if is_legacy_doc(data):
+        return _parse_legacy_doc(data)
     try:
         doc = Document(BytesIO(data))
     except Exception:
@@ -190,6 +205,72 @@ def create_edition(body: EditionCreate, request: Request, actor: User = Depends(
     return _edition_out(db, row)
 
 
+def _images_dir(edition_id: Any, create: bool = True) -> Path:
+    base = Path(get_settings().rhapsody_storage_dir).resolve()
+    target = (base / str(edition_id) / "images").resolve()
+    if base not in target.parents:
+        raise ApiError(500, "storage_error", "The image path is invalid.")
+    if create:
+        target.mkdir(parents=True, exist_ok=True, mode=0o700)
+    return target
+
+
+def edition_images(edition_id: Any) -> dict[int, bytes]:
+    """The banner photo of each daily article, keyed by day number."""
+    folder = _images_dir(edition_id, create=False)
+    out: dict[int, bytes] = {}
+    if folder.is_dir():
+        for f in folder.glob("day-*.jpg"):
+            try:
+                out[int(f.stem.split("-")[1])] = f.read_bytes()
+            except (ValueError, OSError):
+                continue
+    return out
+
+
+@router.get("/editions/{edition_id}/images")
+def list_images(edition_id: str, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    edition = _get_edition(db, edition_id)
+    return {"days": sorted(edition_images(edition.id)), "expected": monthrange(edition.year, edition.month)[1]}
+
+
+@router.post("/editions/{edition_id}/images", status_code=201)
+async def upload_image(edition_id: str, file: UploadFile = File(...), day: Optional[int] = Form(None),
+                       actor: User = Depends(admin_user), db: Session = Depends(get_db)):
+    """The photo printed at the top of a daily article. The day comes from the form or from the first number in the file name."""
+    from io import BytesIO
+    from PIL import Image, ImageOps
+
+    edition = _get_edition(db, edition_id)
+    if day is None:
+        m = re.search(r"\d{1,2}", Path(file.filename or "").stem)
+        day = int(m.group()) if m else None
+    last = monthrange(edition.year, edition.month)[1]
+    if day is None or not 1 <= day <= last:
+        raise ApiError(422, "image_day", f"Name the file after its day (for example 1.jpg or day-12.png); this month has {last} days.")
+    data = await file.read(8_000_001)
+    if not data or len(data) > 8_000_000:
+        raise ApiError(413, "image_size", "Each image must be under 8 MB.")
+    try:
+        img = ImageOps.exif_transpose(Image.open(BytesIO(data)))
+        img.load()
+    except Exception:
+        raise ApiError(422, "invalid_image", "Upload a JPG or PNG image.")
+    if img.format not in {"JPEG", "PNG"} and Path(file.filename or "").suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+        raise ApiError(422, "invalid_image", "Upload a JPG or PNG image.")
+    img = img.convert("RGB")
+    img.thumbnail((1800, 1800))
+    buf = BytesIO()
+    img.save(buf, "JPEG", quality=88)
+    target = _images_dir(edition.id) / f"day-{day:02d}.jpg"
+    target.write_bytes(buf.getvalue())
+    try:
+        target.chmod(0o600)
+    except OSError:
+        pass
+    return {"day": day}
+
+
 @router.delete("/editions/{edition_id}", status_code=204)
 def delete_edition(edition_id: str, request: Request, actor: User = Depends(admin_user), db: Session = Depends(get_db)):
     """Removes the edition and everything hanging off it: unsubmitted translations (segments, versions, comments, reviews), master versions,
@@ -225,6 +306,7 @@ def delete_edition(edition_id: str, request: Request, actor: User = Depends(admi
             _source_path(key).unlink(missing_ok=True)
         except (OSError, ApiError):
             pass
+    shutil.rmtree(_images_dir(eid, create=False), ignore_errors=True)
     audit.record("rhapsody.edition_deleted", actor=actor, object_type="rhapsody_edition", object_id=eid, ip=client_ip(request), details={"title": title})
 
 
@@ -252,15 +334,22 @@ async def upload_source(edition_id: str, request: Request, file: UploadFile = Fi
     ext = Path(filename).suffix.lower()
     fmt = ALLOWED_EXTENSIONS.get(ext)
     if not fmt:
-        raise ApiError(415, "unsupported_format", "Upload a DOCX, XLF or XLIFF source file.")
+        raise ApiError(415, "unsupported_format", "Upload a Word document (.doc or .docx), or an XLF/XLIFF file.")
     data = await file.read(MAX_UPLOAD + 1)
     if not data or len(data) > min(MAX_UPLOAD, get_settings().rhapsody_max_upload_bytes):
         raise ApiError(413, "file_size", "The source file is empty or exceeds the 25 MB upload limit.")
-    if fmt == "docx" and not data.startswith(b"PK"):
-        raise ApiError(422, "invalid_docx", "The uploaded file does not appear to be a valid DOCX package.")
+    legacy = fmt == "docx" and is_legacy_doc(data)
+    if legacy:
+        try:
+            if not extract_paragraphs(data):
+                raise ApiError(422, "empty_doc", "This Word document appears to be empty.")
+        except LegacyDocError:
+            raise ApiError(422, "invalid_doc", "HAN could not read this Word document. Open it in Word and save it as .docx or .doc (Word 97-2003), then upload it again.")
+    elif fmt == "docx" and not data.startswith(b"PK"):
+        raise ApiError(422, "invalid_docx", "The uploaded file does not appear to be a valid Word document.")
     if fmt == "xliff" and not data.lstrip().startswith(b"<"):
         raise ApiError(422, "invalid_xliff", "The uploaded file does not appear to be an XML XLIFF file.")
-    if fmt == "docx":
+    if fmt == "docx" and not legacy:
         try:
             import io
             with zipfile.ZipFile(io.BytesIO(data)) as zf:
@@ -844,6 +933,7 @@ def _typeset_master(db: Session, master: RhapsodyMasterVersion, edition: Rhapsod
     sec_rows = [{"id": str(s.id), "key": s.stable_key, "type": s.section_type, "day": s.day_number, "formatting": s.formatting or {}} for s in sections]
     blocks = [{"section_id": str(g.section_id), "key": g.stable_key, "role": (g.metadata_json or {}).get("role", "body"),
                "text": texts.get(g.id) or g.source_text, "meta": g.metadata_json or {}} for g in segments]
+    kwargs["images"] = edition_images(edition.id)
     return typeset_pdf(sec_rows, blocks, title=f"Rhapsody of Realities {edition.title}", year=edition.year, month=edition.month,
                        month_label=f"{layout.MONTHS[edition.month - 1]} {edition.year}", **kwargs)
 

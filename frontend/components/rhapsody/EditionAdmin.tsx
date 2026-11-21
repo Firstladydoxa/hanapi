@@ -16,6 +16,20 @@ export function EditionAdmin({ editionId }: { editionId: string }) {
   const [tpl, setTpl] = useState<File | null>(null);
   const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [imgs, setImgs] = useState<{ days: number[]; expected: number } | null>(null);
+  const loadImgs = useCallback(() => { api.rhapsody.images(editionId).then(setImgs).catch(() => undefined); }, [editionId]);
+  useEffect(() => { loadImgs(); }, [loadImgs]);
+
+  async function sendImages(files: FileList | null) {
+    if (!files?.length) return;
+    setBusy(true); setNotice(null);
+    let failed = 0, last = "";
+    for (const f of Array.from(files)) {
+      try { const d = new FormData(); d.append("file", f); await api.rhapsody.uploadImage(editionId, d); } catch (x) { failed += 1; last = `${f.name}: ${errText(x)}`; }
+    }
+    setBusy(false); loadImgs();
+    setNotice(failed ? { kind: "error", text: `${failed} image(s) were not added. ${last}` } : { kind: "success", text: `${files.length} image(s) added.` });
+  }
 
   const load = useCallback(async () => {
     try {
@@ -67,10 +81,17 @@ export function EditionAdmin({ editionId }: { editionId: string }) {
       <form className="card grid gap-3 md:grid-cols-2" onSubmit={layout}>
         <div className="md:col-span-2"><h3 className="font-bold">Ask HAN to lay out this month</h3>
           <p className="text-xs text-ink-muted">Upload the English Word manuscript (30/31 articles). HAN extracts each article and places it into the master template. Cover and introduction are reused from the previous edition, with the month updated. You can also say it in chat.</p></div>
-        <div><label className="text-xs font-semibold" htmlFor="m">Manuscript (.docx)</label><input id="m" className="input" type="file" accept=".docx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></div>
+        <div><label className="text-xs font-semibold" htmlFor="m">Manuscript (.doc or .docx)</label><input id="m" className="input" type="file" accept=".doc,.docx,.docm,.dot" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></div>
         <div><label className="text-xs font-semibold" htmlFor="t">Template (.xliff, only if changed)</label><input id="t" className="input" type="file" accept=".xlf,.xliff" onChange={(e) => setTpl(e.target.files?.[0] ?? null)} /></div>
         <div className="md:col-span-2"><button className="btn btn-primary" disabled={busy || !file}>{busy ? "HAN is working…" : "Start layout"}</button></div>
       </form>
+
+      <div className="card space-y-2">
+        <h3 className="font-bold">Article images</h3>
+        <p className="text-xs text-ink-muted">Each daily article opens with a photo banner. Select the images named after their day (1.jpg, 2.jpg … or day-12.png); they appear in the book layout preview. Missing days show a grey placeholder.</p>
+        <input className="input" type="file" accept="image/jpeg,image/png" multiple disabled={busy} aria-label="Article images" onChange={(e) => { void sendImages(e.target.files); e.target.value = ""; }} />
+        {imgs ? <p className="text-xs">{imgs.days.length} of {imgs.expected} images uploaded{imgs.days.length < imgs.expected ? ` · missing days: ${Array.from({ length: imgs.expected }, (_, i) => i + 1).filter((d) => !imgs.days.includes(d)).join(", ")}` : ""}</p> : null}
+      </div>
 
       {edition.master_versions.length > 0 ? (
         <div className="grid gap-4 lg:grid-cols-[260px_1fr]">

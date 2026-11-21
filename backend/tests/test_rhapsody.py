@@ -337,7 +337,8 @@ def test_typesetter_lays_out_cover_daily_pages_and_notes():
     doc = PdfReader(BytesIO(pdf))
     text = "\n".join(page.extract_text() for page in doc.pages)
     assert round(float(doc.pages[0].mediabox.width) / 72 * 25.4) == 140 and round(float(doc.pages[0].mediabox.height) / 72 * 25.4) == 220
-    assert "November 2026" in text and "SUNDAY" in text and "THE GRACE ADVANTAGE" in text and "PRAYER" in text and "(2 Peter 1:2)" in text and "Notes" in text
+    assert "November 2026" in text and "SUNDAY" in text and "THE GRACE ADVANTAGE" in text and "PRAYER" in text and "(2 Peter 1:2)" in text
+    assert len(doc.pages) == 2
 
 
 def test_publishing_profile_font_proof_and_pdf(world, login, tmp_path, monkeypatch):
@@ -369,3 +370,33 @@ def test_publishing_profile_font_proof_and_pdf(world, login, tmp_path, monkeypat
     assert admin.post(f"/v1/rhapsody/publishing/layout-proofs/{pid}/pdf", {}).status_code == 200
     dl = admin.get(f"/v1/rhapsody/publishing/layout-proofs/{pid}/pdf")
     assert dl.status_code == 200 and dl.content.startswith(b"%PDF")
+
+
+def test_legacy_word_manuscript_is_laid_out_without_the_signature():
+    from pathlib import Path
+    from app.rhapsody_layout import parse_manuscript
+
+    data = (Path(__file__).parent / "fixtures" / "legacy_manuscript.doc").read_bytes()
+    articles = parse_manuscript(data, 2026, 12)
+    assert [a["day"] for a in articles] == list(range(1, 32))
+    assert all(a["title"] and a["scripture"] and a["body"] for a in articles)
+    assert not any("Pastor Chris" in (a["title"] or "") or any("Pastor Chris" == str(p.get("text", p) if isinstance(p, dict) else p).strip() for p in a["body"]) for a in articles)
+
+
+def test_article_images_are_stored_listed_and_removed_with_the_edition(world, login, tmp_path, monkeypatch):
+    from io import BytesIO
+    from PIL import Image
+
+    admin = login("tina")
+    edition_id, master_id, _ = _setup_active_master(admin, tmp_path, monkeypatch)
+    buf = BytesIO()
+    Image.new("RGB", (60, 30), "red").save(buf, "PNG")
+    up = admin.client.post(f"/v1/rhapsody/editions/{edition_id}/images", files={"file": ("3.png", buf.getvalue(), "image/png")}, headers=admin._h())
+    assert up.status_code == 201 and up.json()["day"] == 3
+    bad = admin.client.post(f"/v1/rhapsody/editions/{edition_id}/images", files={"file": ("x.png", b"nope", "image/png")}, headers=admin._h())
+    assert bad.status_code == 422
+    assert admin.get(f"/v1/rhapsody/editions/{edition_id}/images").json() == {"days": [3], "expected": 30}
+    assert admin.get(f"/v1/rhapsody/editions/{edition_id}/masters/{master_id}/layout.pdf").content.startswith(b"%PDF")
+    assert (tmp_path / edition_id / "images").exists()
+    assert admin.delete(f"/v1/rhapsody/editions/{edition_id}").status_code == 204
+    assert not (tmp_path / edition_id).exists() or not (tmp_path / edition_id / "images").exists()

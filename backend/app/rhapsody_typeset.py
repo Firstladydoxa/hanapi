@@ -8,6 +8,7 @@ then one article per day (weekday + date header, title, opening scripture box, b
 from __future__ import annotations
 
 import re
+import base64
 from html import escape
 from typing import Any, Dict, List, Optional
 
@@ -23,6 +24,8 @@ BODY_STACK = "'Optimum','Lato','Nimbus Sans','DejaVu Sans',sans-serif"
 SCRIPT_STACK = "'Lato','Nimbus Sans','DejaVu Sans',sans-serif"
 COVER_STACK = "'URW Chancery L','Z003','Nimbus Roman',serif"
 
+BIBLE_SVG = ('<svg viewBox="0 0 24 24"><path d="M2 5c3-1.5 7-1.5 10 1v14c-3-2.5-7-2.5-10-1z" fill="#555"/>'
+             '<path d="M22 5c-3-1.5-7-1.5-10 1v14c3-2.5 7-2.5 10-1z" fill="#777"/></svg>')
 _FRONT_MARKERS = {"cover": "rhapsody", "bible_key": "unless otherwise", "intro": "introduction", "personal": "personal information"}
 
 
@@ -51,7 +54,7 @@ def split_front_matter(texts: List[str]) -> Dict[str, List[str]]:
             current = "intro"
         elif current == "intro" and low == "personal information":
             current = "personal"
-        elif current == "personal" and low == "rhapsody":
+        elif current == "personal" and low == "rhapsody of realities":
             current = "tail"
         pages[current].append(raw)
     return pages
@@ -80,22 +83,39 @@ p {{ margin:0 0 2.2mm; orphans:2; widows:2; text-align:justify; hyphens:auto; }}
 .intro h1, .personal h1 {{ font:700 12pt {head}; text-align:center; margin:0 0 4mm; text-transform:uppercase; }}
 .personal h1 {{ background:#222; color:#fff; padding:1.4mm 0; }}
 .personal .line {{ border-bottom:.3mm solid #555; height:7mm; font:7.5pt {head}; }}
-.day {{ break-before:page; }}
-.day .head {{ display:flex; justify-content:space-between; align-items:baseline; background:#e4e4e4; padding:1.6mm 3mm; margin:0 0 3mm;
-  font:700 8.5pt {head}; letter-spacing:.2mm; }}
-.day .head .n {{ font-size:13pt; }}
+.day {{ page:art; break-before:left; }}
+.banner {{ height:38mm; margin:-{margin}mm -{margin}mm 4mm -{margin}mm; background:#8a8f94 center/cover no-repeat; position:relative; }}
+.banner .ph {{ position:absolute; left:{margin}mm; top:14mm; color:#fff; font:italic 8pt {head}; opacity:.8; }}
+.banner .tab {{ position:absolute; right:{margin}mm; bottom:0; background:#e4e4e4; padding:1.2mm 4mm; font:600 7.5pt {head}; letter-spacing:.3mm; }}
+.banner .tab b {{ font-size:13pt; margin-left:1.5mm; }}
 .day h2 {{ font:800 13pt/1.2 {head}; text-align:center; text-transform:uppercase; margin:0 0 3.5mm; break-after:avoid; }}
-.scripture {{ background:#e9e9e9; border-{('right' if direction == 'rtl' else 'left')}:1.2mm solid #888; padding:2.4mm 3.4mm; margin:0 0 4mm;
-  font:italic 700 9pt/1.35 {script}; text-align:{align}; }}
+.scripture {{ display:flex; background:#e4e4e4; margin:0 0 4mm; padding:2.4mm 0 2.4mm 2.4mm; }}
+.scripture svg {{ flex:none; width:9mm; height:9mm; margin-right:2.6mm; }}
+.scripture .tx {{ flex:1; font:italic 700 9pt/1.35 {script}; text-align:{align}; }}
+.scripture .bar2 {{ flex:none; width:3mm; background:#9a9a9a; margin:-2.4mm 0; margin-left:2.4mm; }}
 .day .b:first-of-type::first-letter {{ font:700 27pt/0.85 {head}; float:{align}; padding:.8mm 1.2mm 0 0; }}
-.rule {{ font:800 11.5pt {head}; text-align:center; text-transform:uppercase; margin:4mm 0 1.6mm; break-after:avoid; }}
+.rule {{ font:800 11.5pt {head}; text-align:center; text-transform:uppercase; margin:4mm 0 0; padding-bottom:1mm; break-after:avoid;
+  border-bottom:.2mm solid #777; }}
+.rule + p {{ margin-top:1.6mm; }}
 .end {{ break-inside:avoid; }}
-.closing {{ font-weight:700; text-align:center; }}
+.closing {{ font-weight:700; }}
 .refs {{ text-align:center; font-size:{body_pt - 0.5}pt; }}
 .bar {{ background:#bdbdbd; font:800 8.4pt {head}; text-align:center; padding:1.2mm 0; margin:2.4mm 0 1.4mm; text-transform:uppercase; }}
 .notes {{ break-before:page; }}
 .notes h3 {{ font:italic 14pt {COVER_STACK}; text-align:center; color:#888; margin:0 0 3mm; }}
 .notes .line {{ border-bottom:.25mm solid #999; height:7.6mm; }}
+.tail {{ text-align:center; padding-top:70mm; }}
+.tail .a {{ font:italic 20pt {COVER_STACK}; }}
+.tail .b2 {{ font:700 8pt {head}; letter-spacing:.4mm; margin:2mm 0 8mm; }}
+.tail .c {{ font:8pt {head}; }}
+.intro .banner2 {{ background:#222; color:#fff; border-radius:3mm; padding:2.4mm 0; text-align:center; font:italic 22pt {COVER_STACK}; margin:0 0 4mm; }}
+.intro .strip {{ text-align:center; font:700 8pt {head}; margin:3mm 0; }}
+.intro .panel {{ background:#222; color:#fff; border-radius:3mm; padding:3mm 4mm; margin:0 0 3mm; }}
+.intro .panel p {{ text-align:{align}; margin:0 0 1.8mm; }}
+.intro p.dc:first-of-type::first-letter {{ font:italic 30pt/0.85 {COVER_STACK}; float:{align}; padding:0 1.2mm 0 0; }}
+@page art {{ margin:{margin}mm {margin}mm {margin + 4}mm {margin}mm; @bottom-center {{ content:none; }} }}
+@page art:left {{ @bottom-left {{ content:counter(page); font:700 7pt {head}; color:#fff; background:#111; border-radius:50%; width:5.5mm; line-height:5.5mm; text-align:center; }} }}
+@page art:right {{ @bottom-right {{ content:counter(page); font:700 7pt {head}; color:#fff; background:#111; border-radius:50%; width:5.5mm; line-height:5.5mm; text-align:center; }} }}
 .insert, .back {{ break-before:page; }}
 .insert p, .back p {{ text-align:{align}; }}
 """
@@ -104,7 +124,7 @@ p {{ margin:0 0 2.2mm; orphans:2; widows:2; text-align:justify; hyphens:auto; }}
 def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *, title: str, year: int, month: int,
                 direction: str = "ltr", lang: str = "en", page_mm: tuple = (140.0, 220.0), margin_mm: float = 12.0,
                 body_pt: float = 9.6, font_css: str = "", role_fonts: Optional[Dict[str, str]] = None,
-                month_label: Optional[str] = None) -> bytes:
+                month_label: Optional[str] = None, images: Optional[Dict[int, bytes]] = None) -> bytes:
     """`sections`: dicts with id/key/type/day/formatting. `blocks`: dicts with section_id/key/role/text/meta, text already in the target language."""
     from weasyprint import HTML
 
@@ -149,7 +169,16 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
         out.append(f'<div class="plain small">{"".join(paras)}</div>')
     if pages["intro"]:
         head, *rest = pages["intro"]
-        out.append(f'<div class="plain intro"><h1>{clean(head)}</h1>{"".join(f"<p>{clean(t)}</p>" for t in rest)}</div>')
+        hi = next((i for i, t in enumerate(rest) if "how to use" in _plain(t).lower()), None)
+        if hi is None:
+            intro_html = "".join(f"<p>{clean(t)}</p>" for t in rest)
+        else:
+            lead, strip, tail_p = rest[:hi], rest[hi], rest[hi + 1:]
+            cut = max(len(tail_p) - 2, 0)
+            items, after = tail_p[:cut], tail_p[cut:]
+            intro_html = ("".join(f'<p class="dc">{clean(t)}</p>' for t in lead) + f'<div class="strip">{clean(strip)}</div>'
+                          f'<div class="panel">{"".join(f"<p>• {clean(t)}</p>" for t in items)}</div>' + "".join(f"<p>{clean(t)}</p>" for t in after))
+        out.append(f'<div class="plain intro"><div class="banner2">{clean(head)}</div>{intro_html}</div>')
     if pages["personal"]:
         head, *rest = pages["personal"]
         gi = next((i for i, t in enumerate(rest) if _plain(t).lower().startswith("goals")), len(rest) - 1)
@@ -158,6 +187,11 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
         extra = "".join('<div class="line"></div>' for _ in range(8))
         out.append(f'<div class="plain personal"><h1>{clean(head)}</h1>{rows}'
                    f'<p class="rule">{clean(goals[0]) if goals else ""}</p>{extra}</div>')
+
+    if pages["tail"]:
+        t = [_plain(x) for x in pages["tail"]]
+        out.append(f'<div class="plain tail"><div class="a">{clean(t[0])}</div><div class="b2">{clean(t[1] if len(t) > 1 else "")}</div>'
+                   f'<div class="c">{clean(t[2] if len(t) > 2 else "")}</div></div>')
 
     note_lines = '<div class="line"></div>' * 24
     notes_page = f'<div class="notes"><h3>{clean(labels["notes"])}</h3>{note_lines}</div>'
@@ -173,10 +207,14 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
             scripture = clean(roles.get("scripture"))
             closing_kind = next((b.get("meta", {}).get("closing_type") for b in items if b["role"] == "closing"), None) or "prayer"
             closing_label = labels.get("confession" if closing_kind == "confession" else "prayer", "PRAYER")
-            html_day = [f'<div class="day"><div class="head"><span>{clean(weekdays[wd]) if isinstance(wd, int) and 0 <= wd < 7 else ""}</span>'
-                        f'<span class="n">{clean(day)}</span></div>', f'<h2>{clean(roles.get("title"))}</h2>']
+            img = (images or {}).get(int(s.get("day") or 0)) if str(s.get("day") or "").isdigit() else None
+            style = f' style="background-image:url(data:image/jpeg;base64,{base64.b64encode(img).decode()})"' if img else ""
+            ph = "" if img else f'<span class="ph">{clean(labels.get("image", "Article image"))}</span>'
+            wlabel = clean(weekdays[wd]) if isinstance(wd, int) and 0 <= wd < 7 else ""
+            html_day = [f'<div class="day"><div class="banner"{style}>{ph}<div class="tab">{wlabel}<b>{clean(day)}</b></div></div>',
+                        f'<h2>{clean(roles.get("title"))}</h2>']
             if scripture:
-                html_day.append(f'<div class="scripture">{scripture}{f" ({escape(ref)})" if ref else ""}</div>')
+                html_day.append(f'<div class="scripture">{BIBLE_SVG}<div class="tx">{scripture}{f" ({escape(ref)})" if ref else ""}</div><div class="bar2"></div></div>')
             html_day.append(body)
             html_day.append('<div class="end">')
             if roles.get("closing"):
@@ -188,14 +226,12 @@ def typeset_pdf(sections: List[Dict[str, Any]], blocks: List[Dict[str, Any]], *,
                     html_day.append(f'<div class="bar">{clean(labels[lk])}</div><p class="refs">{clean(roles[rk])}</p>')
             html_day.append("</div></div>")
             out.append("".join(html_day))
-            if isinstance(wd, int) and wd == 6:
-                out.append(notes_page)
         elif s["type"] in {"insert", "back_matter"} and items:
             cls = "insert" if s["type"] == "insert" else "back"
             inner = "".join("<p>" + clean(b["text"]) + "</p>" for b in items)
             out.append(f'<div class="{cls}">{inner}</div>')
-    out.append(notes_page)
-
+            if s["type"] == "insert":
+                out.append(notes_page)
     css = _css(page_mm[0], page_mm[1], margin_mm, direction, font_css, role_fonts or {}, body_pt)
     document = (f"<!doctype html><html lang='{escape(lang)}' dir='{direction}'><head><meta charset='utf-8'><title>{escape(title)}</title>"
                 f"<style>{css}</style></head><body>{''.join(out)}</body></html>")
