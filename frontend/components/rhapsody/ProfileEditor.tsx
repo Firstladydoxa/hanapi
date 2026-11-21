@@ -196,7 +196,9 @@ export function ProfileEditor({ code }: { code: string }) {
         {tab === "Layout" ? (<div className="grid gap-3 md:grid-cols-3">
           {input(layout.page_width_mm ?? "", (v) => setLayout({ ...layout, page_width_mm: v }), "Page width (mm)", "140")}
           {input(layout.page_height_mm ?? "", (v) => setLayout({ ...layout, page_height_mm: v }), "Page height (mm)", "220")}
-          {input(layout.margin_mm ?? "", (v) => setLayout({ ...layout, margin_mm: v }), "Margin (mm)", "12")}
+          {input(layout.margin_mm ?? "", (v) => setLayout({ ...layout, margin_mm: v }), "Margin top/bottom (mm)", "12")}
+          {input(layout.margin_inner_mm ?? "", (v) => setLayout({ ...layout, margin_inner_mm: v }), "Inner margin / gutter (mm)", "same as margin")}
+          {input(layout.margin_outer_mm ?? "", (v) => setLayout({ ...layout, margin_outer_mm: v }), "Outer margin (mm)", "same as margin")}
         </div>) : null}
 
         {tab === "Font test" ? (<>

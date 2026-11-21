@@ -989,6 +989,8 @@ def _typeset_master(db: Session, master: RhapsodyMasterVersion, edition: Rhapsod
         try:
             kwargs["page_mm"] = (float(cfg.get("page_width_mm", 140)), float(cfg.get("page_height_mm", 220)))
             kwargs["margin_mm"] = float(cfg.get("margin_mm", 12))
+            if cfg.get("margin_inner_mm") not in (None, ""): kwargs["inner_mm"] = float(cfg["margin_inner_mm"])
+            if cfg.get("margin_outer_mm") not in (None, ""): kwargs["outer_mm"] = float(cfg["margin_outer_mm"])
             typo = profile.typography or {}
             kwargs["body_pt"] = float(typo.get("body_size_pt", 9.6))
             kwargs["title_pt"] = float(typo.get("heading_size_pt", 13))

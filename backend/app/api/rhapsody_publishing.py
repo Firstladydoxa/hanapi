@@ -433,10 +433,11 @@ def create_layout_proof(assignment_id: str, request: Request, user: User = Depen
         page_width=float(layout_cfg.get("page_width_mm",140))
         page_height=float(layout_cfg.get("page_height_mm",220))
         margin=float(layout_cfg.get("margin_mm",12))
+        inner=float(layout_cfg.get("margin_inner_mm",margin)); outer=float(layout_cfg.get("margin_outer_mm",margin))
         font_size=float((profile.typography or {}).get("body_size_pt",9.6))
     except (TypeError, ValueError):
         raise ApiError(422,"invalid_layout_settings","Page dimensions and typography settings must be numeric.")
-    if not (90 <= page_width <= 400 and 120 <= page_height <= 500 and 4 <= margin <= 40 and 6 <= font_size <= 24):
+    if not (90 <= page_width <= 400 and 120 <= page_height <= 500 and 4 <= margin <= 40 and 4 <= inner <= 40 and 4 <= outer <= 40 and 6 <= font_size <= 24):
         raise ApiError(422,"invalid_layout_settings","Page dimensions, margins or body font size are outside supported publishing limits.")
     usable_width=max(30,page_width-2*margin); usable_height=max(50,page_height-2*margin)
     chars_per_line=max(20,int(usable_width*2.4/max(font_size,6)))
@@ -447,7 +448,7 @@ def create_layout_proof(assignment_id: str, request: Request, user: User = Depen
     page_estimate=max(1,(total_lines+lines_per_page-1)//lines_per_page)
     fingerprint=hashlib.sha256("|".join(f"{b['key']}:{hashlib.sha256(b['text'].encode()).hexdigest()}" for b in blocks).encode()).hexdigest()
     manifest={"language":assignment.target_language,"locale":profile.locale,"direction":profile.direction,"profile_version":profile.version,
-        "page":{"width_mm":page_width,"height_mm":page_height,"margin_mm":margin},"typography":profile.typography or {},
+        "page":{"width_mm":page_width,"height_mm":page_height,"margin_mm":margin,"margin_inner_mm":inner,"margin_outer_mm":outer},"typography":profile.typography or {},
         "fonts":font_manifest,"sections":[{"id":str(s.id),"key":s.stable_key,"type":s.section_type,"sequence":s.sequence,"day":s.day_number,"formatting":s.formatting or {}} for s in sections],
         "blocks":blocks,"pagination":{"estimated_pages":page_estimate,"method":"character-count preflight estimate; not final typeset pagination"},
         "renderer_contract":{"text_reflow":True,"repaginate":True,"embed_fonts":True,"respect_direction":profile.direction,
@@ -498,6 +499,7 @@ def render_layout_proof_pdf(proof_id: str, request: Request, user: User = Depend
             title=f"Rhapsody of Realities {manifest.get('language')}", year=edition.year if edition else 0, month=edition.month if edition else 0,
             direction=manifest.get("direction", "ltr"), lang=str(manifest.get("locale") or manifest.get("language") or "en"),
             page_mm=(float(page.get("width_mm", 140)), float(page.get("height_mm", 220))), margin_mm=float(page.get("margin_mm", 12)),
+            inner_mm=float(page.get("margin_inner_mm", page.get("margin_mm", 12))), outer_mm=float(page.get("margin_outer_mm", page.get("margin_mm", 12))),
             body_pt=float((manifest.get("typography") or {}).get("body_size_pt", 9.6)), font_css=font_css, role_fonts=role_fonts,
             month_label=edition.title if edition else None,
             localization=manifest.get("localization") or {}, permanent=manifest.get("permanent") or {},

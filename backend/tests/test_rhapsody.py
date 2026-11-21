@@ -513,3 +513,20 @@ def test_permanent_content_import_override_and_publication_approval(world, login
     assert done.status_code == 200 and done.json()["assignment_status"] == "published"
     state = admin.get(pub).json()
     assert state["proof"]["stale"] is False and [h["decision"] for h in state["history"]] == ["approved", "changes_requested"]
+
+
+def test_inner_and_outer_margins_alternate_between_facing_pages():
+    from io import BytesIO
+    from pypdf import PdfReader
+    from app.rhapsody_typeset import typeset_pdf
+
+    sections = [{"id": "d1", "key": "d1", "type": "daily_article", "day": 1, "formatting": {"weekday": 0}}]
+    body = "Lorem ipsum dolor sit amet. " * 400
+    blocks = [{"section_id": "d1", "key": "t", "role": "title", "text": "TITLE"}, {"section_id": "d1", "key": "b", "role": "body", "text": body}]
+    pdf = PdfReader(BytesIO(typeset_pdf(sections, blocks, title="t", year=2026, month=12, inner_mm=25, outer_mm=10)))
+    left_edges = []
+    for page in pdf.pages[-2:]:
+        xs = []
+        page.extract_text(visitor_text=lambda t, cm, tm, fd, fs: xs.append(tm[4]) if t.strip() else None)
+        left_edges.append(min(xs) / 72 * 25.4)
+    assert abs(left_edges[0] - left_edges[1]) > 8
