@@ -512,12 +512,12 @@ h1, h2, h3 { letter-spacing: -.035em; }
 .modal-back { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(0 0 0 / .6); }
 .modal { width: min(520px, 100%); max-height: 90vh; overflow-y: auto; }
 
-.rich { border: 1px solid var(--line, #d5d9e0); border-radius: 10px; background: #fff; overflow: hidden; }
-.rich-bar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 6px 8px; background: #f5f6f8; border-bottom: 1px solid var(--line, #d5d9e0); }
-.rich-btn { min-width: 30px; height: 30px; border-radius: 6px; border: 1px solid transparent; background: transparent; cursor: pointer; font-size: 14px; }
-.rich-btn:hover { background: #e7eaf0; }
-.rich-btn.is-active { background: #1f2937; color: #fff; }
-.rich-size { height: 30px; border-radius: 6px; border: 1px solid #cfd4dc; background: #fff; font-size: 12px; padding: 0 6px; }
-.rich-body { padding: 10px 12px; outline: none; font-size: 14px; line-height: 1.5; }
+.rich { border: 1px solid var(--han-line-strong); border-radius: 11px; background: rgb(var(--han-sunken-rgb) / .62); color: var(--han-text); overflow: hidden; }
+.rich-bar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 6px 8px; background: rgb(var(--han-primary-rgb) / .08); border-bottom: 1px solid var(--han-line-strong); }
+.rich-btn { min-width: 30px; height: 30px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--han-text); cursor: pointer; font-size: 14px; }
+.rich-btn:hover { background: rgb(var(--han-primary-rgb) / .18); }
+.rich-btn.is-active { background: rgb(var(--han-primary-strong-rgb)); color: #fff; }
+.rich-size { height: 30px; border-radius: 6px; border: 1px solid var(--han-line-strong); background: rgb(var(--han-sunken-rgb) / .9); color: var(--han-text); font-size: 12px; padding: 0 6px; }
+.rich-body { padding: 10px 12px; outline: none; font-size: 14px; line-height: 1.5; color: var(--han-text); }
 .rich-body p { margin: 0 0 6px; }
-.rich:focus-within { box-shadow: 0 0 0 2px rgba(59, 99, 255, .35); }
+.rich:focus-within { box-shadow: 0 0 0 2px rgb(var(--han-primary-rgb) / .45); }
